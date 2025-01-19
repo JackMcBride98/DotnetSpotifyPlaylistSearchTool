@@ -6,7 +6,7 @@ namespace DotnetSpotifyPlaylistSearchTool.Features;
 public class LogIn
 {
     public record Response(Uri LoginUri);
-    public class Endpoint(IConfiguration config) : EndpointWithoutRequest<EmptyResponse>
+    public class Endpoint(IConfiguration config) : EndpointWithoutRequest<Response>
     {
         public override void Configure()
         {
@@ -14,7 +14,7 @@ public class LogIn
             AllowAnonymous();
         }
         
-        public override async Task<Response> HandleAsync(CancellationToken cancellationToken)
+        public override async Task<Response> ExecuteAsync(CancellationToken cancellationToken)
         {
             var spotifyClientId = config.GetValue<string>("Spotify:ClientId");
             if (string.IsNullOrWhiteSpace(spotifyClientId))
@@ -22,8 +22,7 @@ public class LogIn
                 ThrowError("Spotify client id is missing");
             }
 
-            var loginRequest = new LoginRequest(new Uri("http://localhost:5030"), spotifyClientId,
-                LoginRequest.ResponseType.Code)
+            var loginRequest = new LoginRequest(new Uri("http://localhost:5173"), spotifyClientId, LoginRequest.ResponseType.Code)
             {
                 Scope =
                 [

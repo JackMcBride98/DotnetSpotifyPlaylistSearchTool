@@ -1,8 +1,13 @@
+import { Home } from "./features/Home.tsx";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
 function App() {
+  const queryClient = new QueryClient();
+
   return (
-    <div className="w-screen h-screen flex flex-col items-center">
-      <h1 className="font-bold text-5xl">Hello, World!</h1>
-    </div>
+    <QueryClientProvider client={queryClient}>
+      <Home />
+    </QueryClientProvider>
   );
 }
 
