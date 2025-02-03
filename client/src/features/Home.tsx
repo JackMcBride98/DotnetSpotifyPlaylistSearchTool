@@ -8,12 +8,9 @@ type LoginResponse = {
 export const Home = () => {
   const mutation = useMutation({
     mutationFn: async () => {
-      const response: LoginResponse = await fetch(
-        "http://localhost:5030/login",
-        {
-          method: "POST",
-        },
-      ).then((res) => res.json());
+      const response: LoginResponse = await fetch("/api/login", {
+        method: "POST",
+      }).then((res) => res.json());
       if (!response.loginUri) {
         throw Error("Login Uri not returned from endpoint");
       }

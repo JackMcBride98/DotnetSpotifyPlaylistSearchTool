@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="FastEndpoints" Version="5.33.0" />
+    <PackageReference Include="Microsoft.AspNetCore.SpaServices.Extensions" Version="9.0.1" />
     <PackageReference Include="SpotifyAPI.Web" Version="7.2.1" />
   </ItemGroup>
 

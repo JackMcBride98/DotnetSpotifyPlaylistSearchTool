@@ -22,13 +22,13 @@ public class LogIn
                 ThrowError("Spotify client id is missing");
             }
 
-            var loginRequest = new LoginRequest(new Uri("http://localhost:5173"), spotifyClientId, LoginRequest.ResponseType.Code)
+            var loginRequest = new LoginRequest(new Uri("http://localhost:5030"), spotifyClientId, LoginRequest.ResponseType.Code)
             {
                 Scope =
                 [
                     Scopes.PlaylistReadPrivate, Scopes.PlaylistReadCollaborative, Scopes.UserReadPrivate,
-                    Scopes.UserReadEmail
-                ]
+                    Scopes.UserReadEmail,
+                ],
             };
             
             var uri = loginRequest.ToUri();
