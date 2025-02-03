@@ -14,10 +14,10 @@ export const Home = () => {
       if (!response.loginUri) {
         throw Error("Login Uri not returned from endpoint");
       }
-
-      console.log(response);
+      window.location.href = response.loginUri;
     },
   });
+
   return (
     <div className="w-screen h-screen flex flex-col items-center space-y-10">
       <h1 className="font-bold text-5xl">Hello, World!</h1>
