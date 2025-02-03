@@ -24,15 +24,26 @@ type User = {
 type UserResponse = { user: User };
 
 export const Profile = () => {
-  const { isLoading, isError, error, isSuccess, data } = useQuery<UserResponse>(
-    {
-      queryKey: ["profile"],
-      queryFn: () => fetch("/api/profile").then((res) => res.json()),
-    }
-  );
+  const { isLoading, isError, error, isSuccess, data } = useQuery<
+    UserResponse,
+    Error
+  >({
+    queryKey: ["profile"],
+    queryFn: async () => {
+      const res = await fetch("/api/profile");
+      if (!res.ok) {
+        const errorMessage = await res.text();
+        throw new Error(`HTTP Error ${res.status}: ${errorMessage}`);
+      }
+
+      return res.json();
+    },
+  });
+
   if (isLoading) {
     return <p>Loading...</p>;
   }
+
   if (isError || !isSuccess) {
     return <p>Error: {error?.message}</p>;
   }
