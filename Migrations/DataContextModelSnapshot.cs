@@ -120,6 +120,9 @@ namespace DotnetSpotifyPlaylistSearchTool.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
 
+                    b.Property<int?>("ImageId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("RefreshToken")
                         .IsRequired()
                         .HasMaxLength(500)
@@ -131,6 +134,8 @@ namespace DotnetSpotifyPlaylistSearchTool.Migrations
                         .HasColumnType("character varying(100)");
 
                     b.HasKey("UserId");
+
+                    b.HasIndex("ImageId");
 
                     b.ToTable("Users");
                 });
@@ -166,6 +171,15 @@ namespace DotnetSpotifyPlaylistSearchTool.Migrations
                         .HasForeignKey("PlaylistId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("DotnetSpotifyPlaylistSearchTool.Database.User", b =>
+                {
+                    b.HasOne("DotnetSpotifyPlaylistSearchTool.Database.Image", "Image")
+                        .WithMany()
+                        .HasForeignKey("ImageId");
+
+                    b.Navigation("Image");
                 });
 
             modelBuilder.Entity("PlaylistUser", b =>

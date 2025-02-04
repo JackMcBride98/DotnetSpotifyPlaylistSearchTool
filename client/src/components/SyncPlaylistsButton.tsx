@@ -1,23 +1,38 @@
 import { useMutation } from "@tanstack/react-query";
+import { motion } from "framer-motion";
+import { SpinnerCircularFixed } from "spinners-react";
 
 export const SyncPlaylistsButton = () => {
-  const { isPending, mutate } = useMutation({
+  const { isPending, mutate, error, isError } = useMutation({
     mutationKey: ["syncPlaylists"],
     mutationFn: async () => {
       const res = await fetch("/api/sync-playlists", { method: "POST" });
       if (!res.ok) {
         const errorMessage = await res.text();
-        throw new Error(`HTTP Error ${res.status}: ${errorMessage}`);
+        throw new Error(`HTTP Error ${errorMessage}`);
       }
     },
   });
+  if (isPending) {
+    return (
+      <>
+        <SpinnerCircularFixed />
+        <p>This may take a while</p>
+      </>
+    );
+  }
   return (
-    <button
-      onClick={() => mutate()}
-      disabled={isPending}
-      className="border border-black rounded-md p-2"
-    >
-      {isPending ? "Loading ..." : "Sync playlists"}
-    </button>
+    <>
+      <motion.button
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
+        className="text-center p-4 rounded-full bg-green-600 flex space-x-2 items-center "
+        onClick={() => mutate()}
+        disabled={isPending}
+      >
+        Sync playlists
+      </motion.button>
+      {isError && <p className="text-red-600">Error: {error?.message}</p>}
+    </>
   );
 };

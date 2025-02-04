@@ -1,5 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { SyncPlaylistsButton } from "../components/SyncPlaylistsButton.tsx";
+import { SpinnerCircularFixed } from "spinners-react";
+import { Search } from "../components/Search.tsx";
 
 type User = {
   country: string;
@@ -22,7 +24,7 @@ type User = {
   uri: string;
 };
 
-type UserResponse = { user: User };
+type UserResponse = { user: User; totalPlaylists: number };
 
 export const Profile = () => {
   const { isLoading, isError, error, isSuccess, data } = useQuery<
@@ -42,20 +44,37 @@ export const Profile = () => {
   });
 
   if (isLoading) {
-    return <p>Loading...</p>;
+    return (
+      <div className="w-screen h-screen flex flex-col items-center space-y-4 bg-black text-white">
+        <SpinnerCircularFixed />
+      </div>
+    );
   }
 
   if (isError || !isSuccess) {
-    return <p>Error: {error?.message}</p>;
+    return (
+      <div className="w-screen h-screen flex flex-col items-center space-y-4 bg-black text-white">
+        <p className="text-red-600">Error: {error?.message}</p>{" "}
+      </div>
+    );
   }
 
-  const { user } = data;
+  const { user, totalPlaylists } = data;
 
   return (
-    <div className="flex flex-col">
-      <h1>Profile</h1>
-      <p>{user.displayName}</p>
-      <SyncPlaylistsButton />
+    <div className="w-screen h-screen flex flex-col items-center space-y-4 bg-black text-white">
+      <h1 className="font-bold text-3xl">Spotify Playlist Search Tool</h1>
+
+      <p>Hello {user.displayName.split(" ")[0]}</p>
+      <img
+        className="rounded-full"
+        src={user.images[0]?.url}
+        width={150}
+        height={150}
+        alt="User's spotify profile"
+      />
+      <p>You have {totalPlaylists} total playlists saved</p>
+      {totalPlaylists <= 0 ? <SyncPlaylistsButton /> : <Search />}
     </div>
   );
 };

@@ -1,15 +1,15 @@
+using DotnetSpotifyPlaylistSearchTool.Database;
 using FastEndpoints;
+using Microsoft.EntityFrameworkCore;
 using SpotifyAPI.Web;
 
 namespace DotnetSpotifyPlaylistSearchTool.Features;
 
 public class GetProfile
 {
-    public record Request(string SearchTerm);
-    
-    public record Response(PrivateUser User);
+    public record Response(PrivateUser User, int TotalPlaylists);
 
-    public class Endpoint : Endpoint<Request, Response>
+    public class Endpoint(DataContext dataContext) : EndpointWithoutRequest<Response>
     {
         public override void Configure()
         {
@@ -17,7 +17,7 @@ public class GetProfile
             AllowAnonymous();
         }
 
-        public override async Task<Response> ExecuteAsync(Request req, CancellationToken ct)
+        public override async Task<Response> ExecuteAsync(CancellationToken ct)
         {
             if (!HttpContext.Request.Cookies.TryGetValue("AccessToken", out var accessToken))
             {
@@ -28,7 +28,9 @@ public class GetProfile
 
             var profile = await spotify.UserProfile.Current(ct);
 
-            return new Response(profile);
+            var totalPlaylists = await dataContext.Playlists.Include(p => p.Users).CountAsync(p => p.Users!.Any(u => u.UserId == profile.Id), ct);
+
+            return new Response(profile, totalPlaylists);
         }
     }
 }
