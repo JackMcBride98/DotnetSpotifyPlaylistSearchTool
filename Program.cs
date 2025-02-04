@@ -1,6 +1,9 @@
+using DotnetSpotifyPlaylistSearchTool.Database;
 using FastEndpoints;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder();
+builder.Services.AddDbContextPool<DataContext>(options => options.UseNpgsql(builder.Configuration.GetSection("Database:ConnectionString").Value));
 builder.Services.AddFastEndpoints();
 // builder.Services.AddSpaStaticFiles(options => { options.RootPath = "client/dist"; }); do this if not development
 
