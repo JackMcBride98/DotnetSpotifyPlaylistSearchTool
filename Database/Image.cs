@@ -2,12 +2,14 @@
 
 namespace DotnetSpotifyPlaylistSearchTool.Database;
 
-public class Image
+public class Image(string url, int height, int width)
 {
-    [MaxLength(100)]
-    public string Id { get; set; }
+    public int ImageId { get; set; }
+
     [MaxLength(200)]
-    public string Url { get; set; }
-    public int Height { get; set; }
-    public int Width { get; set; }
+    public string Url { get; set; } = url;
+
+    public int Height { get; set; } = height;
+
+    public int Width { get; set; } = width;
 }

@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
@@ -14,71 +15,72 @@ namespace DotnetSpotifyPlaylistSearchTool.Migrations
                 name: "Image",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    ImageId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Url = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                     Height = table.Column<int>(type: "integer", nullable: false),
                     Width = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Image", x => x.Id);
+                    table.PrimaryKey("PK_Image", x => x.ImageId);
                 });
 
             migrationBuilder.CreateTable(
                 name: "Users",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    UserId = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     Username = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    AccessToken = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    RefreshToken = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false)
+                    AccessToken = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
+                    RefreshToken = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Users", x => x.Id);
+                    table.PrimaryKey("PK_Users", x => x.UserId);
                 });
 
             migrationBuilder.CreateTable(
                 name: "Playlists",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    PlaylistId = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     OwnerName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    ImageId = table.Column<string>(type: "character varying(100)", nullable: true),
+                    ImageId = table.Column<int>(type: "integer", nullable: true),
                     SnapshotId = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Playlists", x => x.Id);
+                    table.PrimaryKey("PK_Playlists", x => x.PlaylistId);
                     table.ForeignKey(
                         name: "FK_Playlists_Image_ImageId",
                         column: x => x.ImageId,
                         principalTable: "Image",
-                        principalColumn: "Id");
+                        principalColumn: "ImageId");
                 });
 
             migrationBuilder.CreateTable(
                 name: "PlaylistUser",
                 columns: table => new
                 {
-                    PlaylistsId = table.Column<string>(type: "character varying(100)", nullable: false),
-                    UsersId = table.Column<string>(type: "character varying(100)", nullable: false)
+                    PlaylistsPlaylistId = table.Column<string>(type: "character varying(100)", nullable: false),
+                    UsersUserId = table.Column<string>(type: "character varying(100)", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_PlaylistUser", x => new { x.PlaylistsId, x.UsersId });
+                    table.PrimaryKey("PK_PlaylistUser", x => new { x.PlaylistsPlaylistId, x.UsersUserId });
                     table.ForeignKey(
-                        name: "FK_PlaylistUser_Playlists_PlaylistsId",
-                        column: x => x.PlaylistsId,
+                        name: "FK_PlaylistUser_Playlists_PlaylistsPlaylistId",
+                        column: x => x.PlaylistsPlaylistId,
                         principalTable: "Playlists",
-                        principalColumn: "Id",
+                        principalColumn: "PlaylistId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_PlaylistUser_Users_UsersId",
-                        column: x => x.UsersId,
+                        name: "FK_PlaylistUser_Users_UsersUserId",
+                        column: x => x.UsersUserId,
                         principalTable: "Users",
-                        principalColumn: "Id",
+                        principalColumn: "UserId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -86,19 +88,21 @@ namespace DotnetSpotifyPlaylistSearchTool.Migrations
                 name: "Tracks",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    TrackId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Index = table.Column<int>(type: "integer", nullable: false),
                     Name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                     ArtistName = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                     PlaylistId = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Tracks", x => x.Id);
+                    table.PrimaryKey("PK_Tracks", x => x.TrackId);
                     table.ForeignKey(
                         name: "FK_Tracks_Playlists_PlaylistId",
                         column: x => x.PlaylistId,
                         principalTable: "Playlists",
-                        principalColumn: "Id",
+                        principalColumn: "PlaylistId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -108,9 +112,9 @@ namespace DotnetSpotifyPlaylistSearchTool.Migrations
                 column: "ImageId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_PlaylistUser_UsersId",
+                name: "IX_PlaylistUser_UsersUserId",
                 table: "PlaylistUser",
-                column: "UsersId");
+                column: "UsersUserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Tracks_PlaylistId",

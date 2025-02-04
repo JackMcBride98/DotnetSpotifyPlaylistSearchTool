@@ -23,9 +23,11 @@ namespace DotnetSpotifyPlaylistSearchTool.Migrations
 
             modelBuilder.Entity("DotnetSpotifyPlaylistSearchTool.Database.Image", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                    b.Property<int>("ImageId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ImageId"));
 
                     b.Property<int>("Height")
                         .HasColumnType("integer");
@@ -38,19 +40,19 @@ namespace DotnetSpotifyPlaylistSearchTool.Migrations
                     b.Property<int>("Width")
                         .HasColumnType("integer");
 
-                    b.HasKey("Id");
+                    b.HasKey("ImageId");
 
                     b.ToTable("Image");
                 });
 
             modelBuilder.Entity("DotnetSpotifyPlaylistSearchTool.Database.Playlist", b =>
                 {
-                    b.Property<string>("Id")
+                    b.Property<string>("PlaylistId")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
-                    b.Property<string>("ImageId")
-                        .HasColumnType("character varying(100)");
+                    b.Property<int?>("ImageId")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -67,7 +69,7 @@ namespace DotnetSpotifyPlaylistSearchTool.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
-                    b.HasKey("Id");
+                    b.HasKey("PlaylistId");
 
                     b.HasIndex("ImageId");
 
@@ -76,14 +78,19 @@ namespace DotnetSpotifyPlaylistSearchTool.Migrations
 
             modelBuilder.Entity("DotnetSpotifyPlaylistSearchTool.Database.Track", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                    b.Property<int>("TrackId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("TrackId"));
 
                     b.Property<string>("ArtistName")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
+
+                    b.Property<int>("Index")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -95,7 +102,7 @@ namespace DotnetSpotifyPlaylistSearchTool.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
-                    b.HasKey("Id");
+                    b.HasKey("TrackId");
 
                     b.HasIndex("PlaylistId");
 
@@ -104,41 +111,41 @@ namespace DotnetSpotifyPlaylistSearchTool.Migrations
 
             modelBuilder.Entity("DotnetSpotifyPlaylistSearchTool.Database.User", b =>
                 {
-                    b.Property<string>("Id")
+                    b.Property<string>("UserId")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
                     b.Property<string>("AccessToken")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
                     b.Property<string>("RefreshToken")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
                     b.Property<string>("Username")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
-                    b.HasKey("Id");
+                    b.HasKey("UserId");
 
                     b.ToTable("Users");
                 });
 
             modelBuilder.Entity("PlaylistUser", b =>
                 {
-                    b.Property<string>("PlaylistsId")
+                    b.Property<string>("PlaylistsPlaylistId")
                         .HasColumnType("character varying(100)");
 
-                    b.Property<string>("UsersId")
+                    b.Property<string>("UsersUserId")
                         .HasColumnType("character varying(100)");
 
-                    b.HasKey("PlaylistsId", "UsersId");
+                    b.HasKey("PlaylistsPlaylistId", "UsersUserId");
 
-                    b.HasIndex("UsersId");
+                    b.HasIndex("UsersUserId");
 
                     b.ToTable("PlaylistUser");
                 });
@@ -165,13 +172,13 @@ namespace DotnetSpotifyPlaylistSearchTool.Migrations
                 {
                     b.HasOne("DotnetSpotifyPlaylistSearchTool.Database.Playlist", null)
                         .WithMany()
-                        .HasForeignKey("PlaylistsId")
+                        .HasForeignKey("PlaylistsPlaylistId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("DotnetSpotifyPlaylistSearchTool.Database.User", null)
                         .WithMany()
-                        .HasForeignKey("UsersId")
+                        .HasForeignKey("UsersUserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

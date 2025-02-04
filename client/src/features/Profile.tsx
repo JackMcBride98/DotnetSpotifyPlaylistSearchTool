@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { SyncPlaylistsButton } from "../components/SyncPlaylistsButton.tsx";
 
 type User = {
   country: string;
@@ -54,6 +55,7 @@ export const Profile = () => {
     <div className="flex flex-col">
       <h1>Profile</h1>
       <p>{user.displayName}</p>
+      <SyncPlaylistsButton />
     </div>
   );
 };

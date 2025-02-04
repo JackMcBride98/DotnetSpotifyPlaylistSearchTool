@@ -2,21 +2,21 @@
 
 namespace DotnetSpotifyPlaylistSearchTool.Database;
 
-public class Playlist
+public class Playlist(string playlistId, string name, string ownerName, string snapshotId)
 {
     [MaxLength(100)]
-    public string Id { get; set; }
+    public string PlaylistId { get; set; } = playlistId;
 
     [MaxLength(100)]
-    public string Name { get; set; }
+    public string Name { get; set; } = name;
 
     [MaxLength(100)]
-    public string OwnerName { get; set; }
+    public string OwnerName { get; set; } = ownerName;
 
-    public Image Image { get; set; }
+    public Image? Image { get; set; }
 
     [MaxLength(100)]
-    public string SnapshotId { get; set; }
+    public string SnapshotId { get; set; } = snapshotId;
 
     public ICollection<User>? Users { get; set; }
 

@@ -1,4 +1,8 @@
-﻿using FastEndpoints;
+﻿using DotnetSpotifyPlaylistSearchTool.Database;
+using DotnetSpotifyPlaylistSearchTool.Services;
+using FastEndpoints;
+using Microsoft.EntityFrameworkCore;
+using SpotifyAPI.Web;
 
 namespace DotnetSpotifyPlaylistSearchTool.Features;
 
@@ -6,11 +10,11 @@ public static class SyncPlaylists
 {
     public record Response(string Message);
 
-    public class Endpoint : EndpointWithoutRequest<Response>
+    public class Endpoint(ISyncSpotifyPlaylistService syncSpotifyPlaylistService, DataContext dataContext) : EndpointWithoutRequest<Response>
     {
         public override void Configure()
         {
-            Get("/profile");
+            Post("/sync-playlists");
             AllowAnonymous();
         }
 
@@ -21,7 +25,17 @@ public static class SyncPlaylists
                 ThrowError("Access token not found");
             }
 
-            // If playlists already in db, sync not allowed.
+            var spotify = new SpotifyClient(accessToken);
+            var currentUser = await spotify.UserProfile.Current(ct);
+
+            var anyExistingPlaylistsForCurrentUser = await dataContext.Playlists.Include(p => p.Users).AnyAsync(p => p.Users!.Any(u => u.UserId == currentUser.Id), ct);
+
+            if (anyExistingPlaylistsForCurrentUser)
+            {
+                ThrowError("Playlists already in db, sync not allowed except from background job.");
+            }
+
+            await syncSpotifyPlaylistService.SyncSpotifyPlaylistAsync(currentUser.Id);
 
             return new Response("Syncing playlists...");
         }

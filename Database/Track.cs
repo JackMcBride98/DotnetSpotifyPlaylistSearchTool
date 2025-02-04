@@ -2,14 +2,18 @@
 
 namespace DotnetSpotifyPlaylistSearchTool.Database;
 
-public class Track
+public class Track(int index, string name, string artistName, string playlistId)
 {
-    [MaxLength(100)]
-    public string Id { get; set; }
+    public int TrackId { get; set; }
+
+    public int Index { get; set; } = index;
+
     [MaxLength(200)]
-    public string Name { get; set; }
+    public string Name { get; set; } = name;
+
     [MaxLength(200)]
-    public string ArtistName { get; set; }
+    public string ArtistName { get; set; } = artistName;
+
     [MaxLength(100)]
-    public string PlaylistId { get; set; }
+    public string PlaylistId { get; set; } = playlistId;
 }

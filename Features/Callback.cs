@@ -51,7 +51,7 @@ public static class Callback
             var spotify = new SpotifyClient(response.AccessToken);
             var currentUser = await spotify.UserProfile.Current(ct);
 
-            var userOrNull = await dataContext.Users.SingleOrDefaultAsync(u => u.Id == currentUser.Id, ct);
+            var userOrNull = await dataContext.Users.SingleOrDefaultAsync(u => u.UserId == currentUser.Id, ct);
 
             if (userOrNull == null)
             {
