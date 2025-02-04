@@ -2,7 +2,7 @@ import githubLogo from "../assets/github-logo.png";
 
 export const Credits = () => {
   return (
-    <>
+    <div className="flex flex-col items-center space-y-2">
       <div className="">
         Created by{" "}
         <a
@@ -15,7 +15,7 @@ export const Credits = () => {
         </a>
       </div>
       <a
-        href="https://github.com/JackMcBride98/spotify-playlist-search-tool"
+        href="https://github.com/JackMcBride98/DotnetSpotifyPlaylistSearchTool"
         rel="noopener noreferrer"
         target="_blank"
         className="mx-auto mb-4"
@@ -26,6 +26,6 @@ export const Credits = () => {
           className="w-8 h-8 mt-2 invert"
         ></img>
       </a>
-    </>
+    </div>
   );
 };
