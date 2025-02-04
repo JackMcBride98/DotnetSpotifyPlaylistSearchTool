@@ -19,7 +19,6 @@ public class GetProfile
 
         public override async Task<Response> ExecuteAsync(Request req, CancellationToken ct)
         {
-            await Task.Delay(100, ct);
             if (!HttpContext.Request.Cookies.TryGetValue("AccessToken", out var accessToken))
             {
                 ThrowError("Access token not found");
