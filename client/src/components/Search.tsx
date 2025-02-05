@@ -1,9 +1,29 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
 import searchIcon from "../assets/search.svg";
+import { useQuery } from "@tanstack/react-query";
 export const Search = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showOnlyOwnPlaylists, setShowOnlyOwnPlaylists] = useState(false);
+
+  const { refetch } = useQuery({
+    queryKey: ["search", searchTerm, showOnlyOwnPlaylists],
+    queryFn: async () => {
+      const res = await fetch(
+        `/api/search-playlists?searchTerm=${searchTerm}&showOnlyOwnPlaylists=${showOnlyOwnPlaylists}`
+      );
+      if (!res.ok) {
+        const errorMessage = await res.text();
+        throw new Error(`Error: ${errorMessage}`);
+      }
+      return res.json();
+    },
+    enabled: false,
+  });
+
+  const handleSearch = () => {
+    void refetch();
+  };
 
   return (
     <>
@@ -15,20 +35,15 @@ export const Search = () => {
           className="p-2 outline-0 bg-black w-full overflow-visible"
           type="text"
           placeholder="Search for songs or artists"
-          // onKeyDown={(e) => {
-          //   if (e.key === "Enter") {
-          //     search(searchTerm, showOwn);
-          //   }
-          // }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              void handleSearch();
+            }
+          }}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
-        <button
-          className=" p-2"
-          // onClick={() => {
-          //   search(searchTerm, showOwn);
-          // }}
-        >
+        <button className=" p-2" onClick={handleSearch}>
           <img
             src={searchIcon}
             alt="search"
