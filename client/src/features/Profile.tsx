@@ -45,7 +45,7 @@ export const Profile = () => {
 
   if (isLoading) {
     return (
-      <div className="w-screen h-screen flex flex-col items-center space-y-4 bg-black text-white">
+      <div className="w-full min-w-screen h-full min-h-screen flex flex-col items-center space-y-4 bg-black text-white">
         <SpinnerCircularFixed />
       </div>
     );
@@ -53,7 +53,7 @@ export const Profile = () => {
 
   if (isError || !isSuccess) {
     return (
-      <div className="w-screen h-screen flex flex-col items-center space-y-4 bg-black text-white">
+      <div className="w-full min-w-screen h-full min-h-screen flex flex-col items-center space-y-4 bg-black text-white">
         <p className="text-red-600">Error: {error?.message}</p>{" "}
       </div>
     );
@@ -62,7 +62,7 @@ export const Profile = () => {
   const { user, totalPlaylists } = data;
 
   return (
-    <div className="w-screen h-screen flex flex-col items-center space-y-4 bg-black text-white">
+    <div className="w-full min-w-screen h-full min-h-screen flex flex-col items-center space-y-4 bg-black text-white">
       <h1 className="font-bold text-3xl">Spotify Playlist Search Tool</h1>
 
       <p>Hello {user.displayName.split(" ")[0]}</p>

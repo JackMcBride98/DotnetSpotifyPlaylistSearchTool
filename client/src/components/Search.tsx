@@ -3,35 +3,40 @@ import { useState } from "react";
 import searchIcon from "../assets/search.svg";
 import { useQuery } from "@tanstack/react-query";
 import { SpinnerCircularFixed } from "spinners-react";
+import { SearchResults } from "./SearchResults.tsx";
 
 type Response = {
-  MatchingPlaylists: PlaylistResponse[];
+  matchingPlaylists: PlaylistResponse[];
 };
 
-type PlaylistResponse = {
-  Name: string;
-  OwnerName: string;
-  Image: ImageResponse;
-  Tracks: TrackResponse[];
+export type PlaylistResponse = {
+  name: string;
+  ownerName: string;
+  image: ImageResponse;
+  tracks: TrackResponse[];
 };
 
 type TrackResponse = {
-  Name: string;
-  ArtistName: string;
-  Match: boolean;
+  name: string;
+  artistName: string;
+  match: boolean;
 };
 
 type ImageResponse = {
-  Url: string;
+  url: string;
 };
 
 export const Search = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [intermediateSearchTerm, setIntermediateSearchTerm] = useState("");
   const [showOnlyOwnPlaylists, setShowOnlyOwnPlaylists] = useState(false);
 
-  const { refetch, isLoading, isError, error } = useQuery<Response, Error>({
+  const { isLoading, isError, error, data } = useQuery<Response, Error>({
     queryKey: ["search", searchTerm, showOnlyOwnPlaylists],
     queryFn: async () => {
+      if (!searchTerm) {
+        return null;
+      }
       const res = await fetch(
         `/api/search-playlists?searchTerm=${searchTerm}&showOnlyOwnPlaylists=${showOnlyOwnPlaylists}`
       );
@@ -41,13 +46,10 @@ export const Search = () => {
       }
       return res.json();
     },
-    enabled: false,
   });
 
   const handleSearch = () => {
-    if (searchTerm) {
-      void refetch();
-    }
+    setSearchTerm(intermediateSearchTerm);
   };
 
   return (
@@ -65,8 +67,8 @@ export const Search = () => {
               void handleSearch();
             }
           }}
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          value={intermediateSearchTerm}
+          onChange={(e) => setIntermediateSearchTerm(e.target.value)}
         />
         <button
           disabled={isLoading}
@@ -93,6 +95,7 @@ export const Search = () => {
       </label>
       {isLoading && <SpinnerCircularFixed />}
       {isError && <p className="text-red-600">Error: {error?.message}</p>}
+      {data && <SearchResults playlists={data.matchingPlaylists} />}
     </>
   );
 };

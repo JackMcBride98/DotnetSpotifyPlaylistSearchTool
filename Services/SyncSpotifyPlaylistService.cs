@@ -32,8 +32,12 @@ public class SyncSpotifyPlaylistService(DataContext dataContext) : ISyncSpotifyP
             }
 
             var existingPlaylist = await dataContext.Playlists.Include(p => p.Users).Include(p => p.Tracks).SingleOrDefaultAsync(p => p.PlaylistId == playlist.Id);
-            if (existingPlaylist?.SnapshotId == playlist.SnapshotId)
+            if (existingPlaylist != null && existingPlaylist.SnapshotId == playlist.SnapshotId)
             {
+                if (!existingPlaylist.Users!.Any(u => u.UserId == userId))
+                {
+                    existingPlaylist.Users!.Add(user);
+                }
                 continue;
             }
 
@@ -45,7 +49,7 @@ public class SyncSpotifyPlaylistService(DataContext dataContext) : ISyncSpotifyP
 
             var playlistImage = firstImageOrNull == null ? null : new Image(firstImageOrNull.Url, firstImageOrNull.Width, firstImageOrNull.Height);
 
-            var existingPlaylistUsers = new List<User>{ user};
+            var existingPlaylistUsers = new List<User>{ user };
             if (existingPlaylist is not null)
             {
                 existingPlaylistUsers = existingPlaylist.Users!.ToList();
