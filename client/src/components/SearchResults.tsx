@@ -63,7 +63,7 @@ type PlaylistProps = {
   playlist: PlaylistResponse;
 };
 
-const Playlist = ({ playlist }: PlaylistProps) => {
+export const Playlist = ({ playlist }: PlaylistProps) => {
   return (
     <div className="m-2 my-6 md:my-8 p-2 md:w-full md:max-w-md justify-start w-72 border-gray-600 border-2 rounded-md mx-auto">
       <div className="flex space-x-4">

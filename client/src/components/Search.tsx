@@ -1,12 +1,16 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
 import searchIcon from "../assets/search.svg";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { SpinnerCircularFixed } from "spinners-react";
-import { SearchResults } from "./SearchResults.tsx";
+import { Playlist, SearchResults } from "./SearchResults.tsx";
 
 type Response = {
   matchingPlaylists: PlaylistResponse[];
+};
+
+type RandomPlaylistResponse = {
+  randomPlaylist: PlaylistResponse;
 };
 
 export type PlaylistResponse = {
@@ -29,6 +33,7 @@ type ImageResponse = {
 };
 
 export const Search = () => {
+  const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
   const [intermediateSearchTerm, setIntermediateSearchTerm] = useState("");
   const [showOnlyOwnPlaylists, setShowOnlyOwnPlaylists] = useState(false);
@@ -50,12 +55,45 @@ export const Search = () => {
     },
   });
 
+  const {
+    isLoading: isRandomPlaylistLoading,
+    isError: isRandomPlaylistError,
+    error: randomPlaylistError,
+    data: randomPlaylistData,
+    isRefetching: isRandomPlaylistRefetching,
+    refetch: refetchRandomPlaylist,
+  } = useQuery<RandomPlaylistResponse, Error>({
+    queryKey: ["getRandomPlaylist"],
+    queryFn: async () => {
+      const res = await fetch(
+        `/api/random-playlist?onlyOwnPlaylists=${showOnlyOwnPlaylists}`
+      );
+      if (!res.ok) {
+        const errorMessage = await res.text();
+        throw new Error(`Error: ${errorMessage}`);
+      }
+
+      return res.json();
+    },
+    enabled: false,
+  });
+
   const handleSearch = () => {
+    queryClient.removeQueries({ queryKey: ["getRandomPlaylist"] });
     setSearchTerm(intermediateSearchTerm);
   };
 
   return (
     <>
+      <motion.button
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
+        className="text-center p-4 rounded-full bg-green-600 flex space-x-2 items-center "
+        onClick={() => refetchRandomPlaylist()}
+        disabled={isRandomPlaylistLoading}
+      >
+        Get random playlist
+      </motion.button>
       <motion.div
         whileTap={{ scale: 0.9 }}
         className="md:w-80 w-72 flex items-center bg-green-600 rounded-md pl-1"
@@ -95,9 +133,19 @@ export const Search = () => {
           }}
         />
       </label>
-      {isLoading && <SpinnerCircularFixed />}
+      {(isLoading || isRandomPlaylistLoading || isRandomPlaylistRefetching) && (
+        <SpinnerCircularFixed />
+      )}
       {isError && <p className="text-red-600">Error: {error?.message}</p>}
-      {data && <SearchResults playlists={data.matchingPlaylists} />}
+      {isRandomPlaylistError && (
+        <p className="text-red-600">Error: {randomPlaylistError?.message}</p>
+      )}
+      {!(isRandomPlaylistLoading || isRandomPlaylistRefetching || isLoading) &&
+      randomPlaylistData ? (
+        <Playlist playlist={randomPlaylistData.randomPlaylist} />
+      ) : (
+        data && <SearchResults playlists={data.matchingPlaylists} />
+      )}
     </>
   );
 };
