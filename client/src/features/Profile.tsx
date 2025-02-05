@@ -62,7 +62,7 @@ export const Profile = () => {
   const { user, totalPlaylists } = data;
 
   return (
-    <div className="w-full min-w-screen h-full min-h-screen flex flex-col items-center space-y-4 bg-black text-white">
+    <div className="w-full min-w-screen h-full min-h-screen flex flex-col items-center space-y-4 bg-black text-white overflow-y-auto">
       <h1 className="font-bold text-2xl md:text-3xl">
         Spotify Playlist Search Tool
       </h1>

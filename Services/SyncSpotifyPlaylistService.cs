@@ -29,7 +29,7 @@ public class SyncSpotifyPlaylistService(DataContext dataContext) : ISyncSpotifyP
 
         var newPlaylists = new List<Playlist>();
 
-        foreach (var playlist in playlists.Take(5))
+        foreach (var playlist in playlists)
         {
             if (playlist.Id == null)
             {
@@ -48,7 +48,7 @@ public class SyncSpotifyPlaylistService(DataContext dataContext) : ISyncSpotifyP
 
             var tracks = await spotify.PaginateAll(await spotify.Playlists.GetItems(playlist.Id));
 
-            var trackEntities = tracks.Select((t, i) => ToTrack(t, playlist.Id, i)).ToList();
+            var trackEntities = tracks.Select((t, i) => ToTrack(t, playlist.Id, i)).Where(t => t != null).Select(t => t!).ToList();
 
             var firstImageOrNull = playlist.Images?.FirstOrDefault();
 
@@ -76,12 +76,13 @@ public class SyncSpotifyPlaylistService(DataContext dataContext) : ISyncSpotifyP
             newPlaylists.Add(newPlaylist);
         }
 
+        newPlaylists = newPlaylists.DistinctBy(p => p.PlaylistId).ToList(); // Somehow some playlists were returned twice
         dataContext.Playlists.AddRange(newPlaylists);
         await dataContext.SaveChangesAsync();
         return newPlaylists;
     }
 
-    private static Track ToTrack(PlaylistTrack<IPlayableItem> playlistTrack, string playlistId, int index)
+    private static Track? ToTrack(PlaylistTrack<IPlayableItem> playlistTrack, string playlistId, int index)
     {
         if (playlistTrack.Track is FullTrack fullTrack)
         {
@@ -103,6 +104,6 @@ public class SyncSpotifyPlaylistService(DataContext dataContext) : ISyncSpotifyP
             );
         }
 
-        throw new InvalidOperationException($"Unexpected track type: {playlistTrack.Track.GetType().Name}");
+        return null;
     }
 }

@@ -6,11 +6,55 @@ type Props = {
 };
 
 export const SearchResults = ({ playlists }: Props) => {
+  const parentRef = useRef<HTMLDivElement>(null);
+
+  const virtualizer = useVirtualizer({
+    count: playlists.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 600,
+  });
+
+  const items = virtualizer.getVirtualItems();
+
   return (
-    <div>
-      {playlists.map((playlist) => (
-        <Playlist key={playlist.id} playlist={playlist} />
-      ))}
+    <div
+      ref={parentRef}
+      className="flex-grow"
+      style={{
+        height: virtualizer.getTotalSize(),
+        width: "100%",
+        contain: "strict",
+      }}
+    >
+      <div
+        style={{
+          height: virtualizer.getTotalSize(),
+          width: "100%",
+          position: "relative",
+        }}
+      >
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            height: "100%",
+            width: "100%",
+            transform: `translateY(${items[0]?.start ?? 0}px)`,
+          }}
+        >
+          {items.map((virtualRow) => (
+            <div
+              key={virtualRow.key}
+              data-index={virtualRow.index}
+              ref={virtualizer.measureElement}
+              className={virtualRow.index % 2 ? "ListItemOdd" : "ListItemEven"}
+            >
+              <Playlist playlist={playlists[virtualRow.index]} />
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 };
@@ -35,9 +79,10 @@ const Playlist = ({ playlist }: PlaylistProps) => {
           >
             Link
           </a>
-          <p className="text-xs break-words w-44 md:w-[19rem] font-light text-slate-200 mb-2">
-            {playlist.description}
-          </p>
+          <p
+            dangerouslySetInnerHTML={{ __html: playlist.description }}
+            className="text-xs break-words w-44 md:w-[19rem] font-light text-slate-200 mb-2"
+          />
         </div>
       </div>
       <Tracks tracks={playlist.tracks} />
@@ -66,7 +111,7 @@ const Tracks = ({ tracks }: TracksProps) => {
       className="List"
       style={{
         height: 400,
-        width: 400,
+        width: "100%",
         overflowY: "auto",
         contain: "strict",
       }}
@@ -94,7 +139,6 @@ const Tracks = ({ tracks }: TracksProps) => {
                 key={item.key}
                 data-index={item.index}
                 ref={virtualizer.measureElement}
-                className={item.index % 2 ? "ListItemOdd" : "ListItemEven"}
               >
                 <p
                   className={

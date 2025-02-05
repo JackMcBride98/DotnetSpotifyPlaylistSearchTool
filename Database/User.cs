@@ -7,7 +7,7 @@ public class User(string userId, string username, string accessToken, string ref
     [MaxLength(100)]
     public string UserId { get; set; } = userId;
 
-    [MaxLength(100)]
+    [MaxLength(5000)]
     public string Username { get; set; } = username;
 
     [MaxLength(500)]

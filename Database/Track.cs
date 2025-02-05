@@ -8,10 +8,10 @@ public class Track(int index, string name, string artistName, string playlistId)
 
     public int Index { get; set; } = index;
 
-    [MaxLength(200)]
+    [MaxLength(5000)]
     public string Name { get; set; } = name;
 
-    [MaxLength(200)]
+    [MaxLength(5000)]
     public string ArtistName { get; set; } = artistName;
 
     [MaxLength(100)]

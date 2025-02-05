@@ -17,7 +17,7 @@ namespace DotnetSpotifyPlaylistSearchTool.Migrations
                 {
                     ImageId = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Url = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    Url = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
                     Height = table.Column<int>(type: "integer", nullable: false),
                     Width = table.Column<int>(type: "integer", nullable: false)
                 },
@@ -31,7 +31,7 @@ namespace DotnetSpotifyPlaylistSearchTool.Migrations
                 columns: table => new
                 {
                     UserId = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    Username = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    Username = table.Column<string>(type: "character varying(5000)", maxLength: 5000, nullable: false),
                     AccessToken = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
                     RefreshToken = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false)
                 },
@@ -45,9 +45,9 @@ namespace DotnetSpotifyPlaylistSearchTool.Migrations
                 columns: table => new
                 {
                     PlaylistId = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    Description = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
-                    OwnerName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    Name = table.Column<string>(type: "character varying(5000)", maxLength: 5000, nullable: false),
+                    Description = table.Column<string>(type: "character varying(5000)", maxLength: 5000, nullable: false),
+                    OwnerName = table.Column<string>(type: "character varying(5000)", maxLength: 5000, nullable: false),
                     ImageId = table.Column<int>(type: "integer", nullable: true),
                     SnapshotId = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false)
                 },
@@ -92,8 +92,8 @@ namespace DotnetSpotifyPlaylistSearchTool.Migrations
                     TrackId = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Index = table.Column<int>(type: "integer", nullable: false),
-                    Name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
-                    ArtistName = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    Name = table.Column<string>(type: "character varying(5000)", maxLength: 5000, nullable: false),
+                    ArtistName = table.Column<string>(type: "character varying(5000)", maxLength: 5000, nullable: false),
                     PlaylistId = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false)
                 },
                 constraints: table =>

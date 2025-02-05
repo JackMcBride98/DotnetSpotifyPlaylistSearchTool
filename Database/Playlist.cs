@@ -7,13 +7,13 @@ public class Playlist(string playlistId, string name, string description, string
     [MaxLength(100)]
     public string PlaylistId { get; set; } = playlistId;
 
-    [MaxLength(100)]
+    [MaxLength(5000)]
     public string Name { get; set; } = name;
 
-    [MaxLength(500)]
+    [MaxLength(5000)]
     public string Description { get; set; } = description;
 
-    [MaxLength(100)]
+    [MaxLength(5000)]
     public string OwnerName { get; set; } = ownerName;
 
     public Image? Image { get; set; }
