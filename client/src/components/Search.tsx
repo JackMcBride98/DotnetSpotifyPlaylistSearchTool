@@ -18,7 +18,7 @@ export type PlaylistResponse = {
   tracks: TrackResponse[];
 };
 
-type TrackResponse = {
+export type TrackResponse = {
   name: string;
   artistName: string;
   match: boolean;
