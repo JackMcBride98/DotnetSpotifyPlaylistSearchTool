@@ -16,7 +16,12 @@ public class SyncSpotifyPlaylistService(DataContext dataContext) : ISyncSpotifyP
     {
         var user = await dataContext.Users
             .Include(u => u.Playlists)
-            .SingleAsync(u => u.UserId == userId);
+            .SingleOrDefaultAsync(u => u.UserId == userId);
+
+        if (user == null)
+        {
+            throw new InvalidOperationException("User not found");
+        }
 
         var spotify = new SpotifyClient(user.AccessToken);
 
@@ -59,8 +64,9 @@ public class SyncSpotifyPlaylistService(DataContext dataContext) : ISyncSpotifyP
             var newPlaylist = new Playlist(
                 playlist.Id,
                 playlist.Name ?? "",
-                playlist.Owner?.DisplayName!,
-                playlist.SnapshotId!
+                playlist.Description ?? "",
+                playlist.Owner?.DisplayName ?? "",
+                playlist.SnapshotId ?? ""
             )
             {
                 Tracks = trackEntities,

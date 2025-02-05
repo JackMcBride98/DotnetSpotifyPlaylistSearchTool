@@ -27,7 +27,7 @@ const Playlist = ({ playlist }: PlaylistProps) => {
           <h1 className="text-lg">{playlist.name}</h1>
           <p className="text-sm">{playlist.ownerName}</p>
           <a
-            // href={playlist.}
+            href={`spotify:playlist:${playlist.id}`}
             rel="noreferrer"
             target="_blank"
             className="text-base text-green-300 hover:italic"
@@ -35,7 +35,7 @@ const Playlist = ({ playlist }: PlaylistProps) => {
             Link
           </a>
           <p className="text-xs break-words w-44 md:w-[19rem] font-light text-slate-200 mb-2">
-            Placeholder for description
+            {playlist.description}
           </p>
         </div>
       </div>

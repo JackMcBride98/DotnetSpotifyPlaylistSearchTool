@@ -1,8 +1,9 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { SpinnerCircularFixed } from "spinners-react";
 
 export const SyncPlaylistsButton = () => {
+  const queryClient = useQueryClient();
   const { isPending, mutate, error, isError } = useMutation({
     mutationKey: ["syncPlaylists"],
     mutationFn: async () => {
@@ -11,6 +12,7 @@ export const SyncPlaylistsButton = () => {
         const errorMessage = await res.text();
         throw new Error(`HTTP Error ${errorMessage}`);
       }
+      await queryClient.invalidateQueries({ queryKey: ["profile"] });
     },
   });
   if (isPending) {

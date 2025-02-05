@@ -11,7 +11,7 @@ public static class SearchPlaylists
 
     public record Response(ICollection<PlaylistResponse> MatchingPlaylists);
 
-    public record PlaylistResponse(string Name, string OwnerName, ImageResponse Image, ICollection<TrackResponse> Tracks);
+    public record PlaylistResponse(string Id, string Name, string Description, string OwnerName, ImageResponse Image, ICollection<TrackResponse> Tracks);
 
     public record TrackResponse(string Name, string ArtistName, bool Match);
 
@@ -55,7 +55,9 @@ public static class SearchPlaylists
             return new Response(
                     matchingPlaylists.Select(p =>
                         new PlaylistResponse(
+                            p.PlaylistId,
                             p.Name,
+                            p.Description,
                             p.OwnerName,
                             new ImageResponse(p.Image!.Url),
                             p.Tracks!.Select(t => new TrackResponse(

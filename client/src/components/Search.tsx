@@ -10,7 +10,9 @@ type Response = {
 };
 
 export type PlaylistResponse = {
+  id: string;
   name: string;
+  description: string;
   ownerName: string;
   image: ImageResponse;
   tracks: TrackResponse[];

@@ -11,7 +11,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DotnetSpotifyPlaylistSearchTool.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20250204124606_InitialCreate")]
+    [Migration("20250205101204_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -53,6 +53,11 @@ namespace DotnetSpotifyPlaylistSearchTool.Migrations
                     b.Property<string>("PlaylistId")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
                     b.Property<int?>("ImageId")
                         .HasColumnType("integer");

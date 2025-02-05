@@ -46,6 +46,7 @@ namespace DotnetSpotifyPlaylistSearchTool.Migrations
                 {
                     PlaylistId = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    Description = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
                     OwnerName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     ImageId = table.Column<int>(type: "integer", nullable: true),
                     SnapshotId = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false)
