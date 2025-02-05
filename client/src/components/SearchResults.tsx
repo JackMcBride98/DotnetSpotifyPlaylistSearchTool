@@ -53,6 +53,9 @@ export const SearchResults = ({ playlists }: Props) => {
               <Playlist playlist={playlists[virtualRow.index]} />
             </div>
           ))}
+          {items.length === 0 && (
+            <p className="text-center">No results found</p>
+          )}
         </div>
       </div>
     </div>
