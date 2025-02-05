@@ -1,6 +1,6 @@
 import { PlaylistResponse, TrackResponse } from "./Search.tsx";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { useRef } from "react";
+import { useLayoutEffect, useRef } from "react";
 type Props = {
   playlists: PlaylistResponse[];
 };
@@ -104,6 +104,14 @@ const Tracks = ({ tracks }: TracksProps) => {
   });
 
   const items = virtualizer.getVirtualItems();
+
+  const firstMatchIndex = tracks.findIndex((track) => track.match);
+
+  useLayoutEffect(() => {
+    if (firstMatchIndex !== -1) {
+      virtualizer.scrollToIndex(firstMatchIndex, { align: "start" });
+    }
+  }, [firstMatchIndex, virtualizer]);
 
   return (
     <div
