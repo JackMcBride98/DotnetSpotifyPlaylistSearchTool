@@ -1,5 +1,6 @@
 ﻿using DotnetSpotifyPlaylistSearchTool.Database;
 using Microsoft.EntityFrameworkCore;
+using NodaTime;
 using SpotifyAPI.Web;
 using Image = DotnetSpotifyPlaylistSearchTool.Database.Image;
 
@@ -78,6 +79,7 @@ public class SyncSpotifyPlaylistService(DataContext dataContext) : ISyncSpotifyP
 
         newPlaylists = newPlaylists.DistinctBy(p => p.PlaylistId).ToList(); // Somehow some playlists were returned twice
         dataContext.Playlists.AddRange(newPlaylists);
+        user.UpdatedAt = SystemClock.Instance.GetCurrentInstant();
         await dataContext.SaveChangesAsync();
         return newPlaylists;
     }

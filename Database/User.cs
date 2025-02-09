@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using NodaTime;
 
 namespace DotnetSpotifyPlaylistSearchTool.Database;
 
@@ -15,6 +16,8 @@ public class User(string userId, string username, string accessToken, string ref
 
     [MaxLength(500)]
     public string RefreshToken { get; set; } = refreshToken;
+
+    public Instant? UpdatedAt { get; set; }
 
     public ICollection<Playlist>? Playlists { get; set; }
 }

@@ -7,7 +7,7 @@ namespace DotnetSpotifyPlaylistSearchTool.Features;
 
 public class GetProfile
 {
-    public record Response(PrivateUser User, int TotalPlaylists);
+    public record Response(PrivateUser User, int TotalPlaylists, string? LastSyncedAt);
 
     public class Endpoint(DataContext dataContext, IConfiguration configuration) : EndpointWithoutRequest<Response>
     {
@@ -54,9 +54,13 @@ public class GetProfile
 
             var profile = await spotify.UserProfile.Current(ct);
 
+            var user = await dataContext.Users.Where(u => u.UserId == profile.Id).SingleOrDefaultAsync(ct);
+
+            var lastUpdatedAtOrNull = user?.UpdatedAt.ToString();
+
             var totalPlaylists = await dataContext.Playlists.Include(p => p.Users).CountAsync(p => p.Users!.Any(u => u.UserId == profile.Id), ct);
 
-            return new Response(profile, totalPlaylists);
+            return new Response(profile, totalPlaylists, lastUpdatedAtOrNull);
         }
     }
 }

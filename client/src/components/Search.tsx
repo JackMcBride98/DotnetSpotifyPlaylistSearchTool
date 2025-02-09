@@ -32,7 +32,11 @@ type ImageResponse = {
   url: string;
 };
 
-export const Search = () => {
+type Props = {
+  totalPlaylists: number;
+};
+
+export const Search = ({ totalPlaylists }: Props) => {
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
   const [intermediateSearchTerm, setIntermediateSearchTerm] = useState("");
@@ -144,7 +148,12 @@ export const Search = () => {
       randomPlaylistData ? (
         <Playlist playlist={randomPlaylistData.randomPlaylist} />
       ) : (
-        data && <SearchResults playlists={data.matchingPlaylists} />
+        data && (
+          <SearchResults
+            playlists={data.matchingPlaylists}
+            totalPlaylists={totalPlaylists}
+          />
+        )
       )}
     </>
   );

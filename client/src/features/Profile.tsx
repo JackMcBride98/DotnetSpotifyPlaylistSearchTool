@@ -4,6 +4,7 @@ import { SpinnerCircularFixed } from "spinners-react";
 import { Search } from "../components/Search.tsx";
 import { motion } from "framer-motion";
 import { useRef, useEffect, useState } from "react";
+import { formatDate } from "../helpers/dateHelpers.ts";
 
 type User = {
   country: string;
@@ -26,7 +27,11 @@ type User = {
   uri: string;
 };
 
-type UserResponse = { user: User; totalPlaylists: number };
+type UserResponse = {
+  user: User;
+  totalPlaylists: number;
+  lastSyncedAt?: string;
+};
 
 export const Profile = () => {
   const ref = useRef<HTMLDivElement>(null);
@@ -73,7 +78,7 @@ export const Profile = () => {
     );
   }
 
-  const { user, totalPlaylists } = data;
+  const { user, totalPlaylists, lastSyncedAt } = data;
 
   return (
     <div
@@ -93,10 +98,14 @@ export const Profile = () => {
         alt="User's spotify profile"
       />
       <div className="flex flex-col items-center space-x-1">
-        <p>You have {totalPlaylists} total playlists saved</p>
-        <p>Last updated: TODO</p>
+        <p>You have {totalPlaylists} playlists saved</p>
+        <p>Last updated: {lastSyncedAt ? formatDate(lastSyncedAt) : "never"}</p>
       </div>
-      {totalPlaylists <= 0 ? <SyncPlaylistsButton /> : <Search />}
+      {totalPlaylists <= 0 ? (
+        <SyncPlaylistsButton />
+      ) : (
+        <Search totalPlaylists={totalPlaylists} />
+      )}
       <motion.button
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}

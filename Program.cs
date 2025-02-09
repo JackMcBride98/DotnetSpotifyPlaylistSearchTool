@@ -4,7 +4,10 @@ using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder();
-builder.Services.AddDbContextPool<DataContext>(options => options.UseNpgsql(builder.Configuration.GetSection("Database:ConnectionString").Value));
+builder.Services.AddDbContextPool<DataContext>(options =>
+{
+    options.UseNpgsql(builder.Configuration.GetSection("Database:ConnectionString").Value, x => x.UseNodaTime());
+});
 builder.Services.AddFastEndpoints();
 builder.Services.AddScoped<ISyncSpotifyPlaylistService, SyncSpotifyPlaylistService>();
 

@@ -3,9 +3,10 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { useLayoutEffect, useRef } from "react";
 type Props = {
   playlists: PlaylistResponse[];
+  totalPlaylists: number;
 };
 
-export const SearchResults = ({ playlists }: Props) => {
+export const SearchResults = ({ playlists, totalPlaylists }: Props) => {
   const parentRef = useRef<HTMLDivElement>(null);
 
   const virtualizer = useVirtualizer({
@@ -17,48 +18,54 @@ export const SearchResults = ({ playlists }: Props) => {
   const items = virtualizer.getVirtualItems();
 
   return (
-    <div
-      ref={parentRef}
-      className="flex-grow"
-      style={{
-        height: virtualizer.getTotalSize(),
-        width: "100%",
-        contain: "strict",
-      }}
-    >
+    <>
+      <p>
+        Showing {items.length} matching out of {totalPlaylists} total playlists
+      </p>
       <div
+        ref={parentRef}
+        className="flex-grow"
         style={{
-          height: virtualizer.getTotalSize(),
+          height: virtualizer.getTotalSize() + (items.length > 0 ? 0 : 100),
           width: "100%",
-          position: "relative",
+          contain: "strict",
         }}
       >
         <div
           style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            height: "100%",
             width: "100%",
-            transform: `translateY(${items[0]?.start ?? 0}px)`,
+            position: "relative",
           }}
         >
-          {items.map((virtualRow) => (
-            <div
-              key={virtualRow.key}
-              data-index={virtualRow.index}
-              ref={virtualizer.measureElement}
-              className={virtualRow.index % 2 ? "ListItemOdd" : "ListItemEven"}
-            >
-              <Playlist playlist={playlists[virtualRow.index]} />
-            </div>
-          ))}
-          {items.length === 0 && (
-            <p className="text-center">No results found</p>
-          )}
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              height: "100%",
+              width: "100%",
+              transform: `translateY(${items[0]?.start ?? 0}px)`,
+            }}
+          >
+            {items.map((virtualRow) => (
+              <div
+                key={virtualRow.key}
+                data-index={virtualRow.index}
+                ref={virtualizer.measureElement}
+                className={
+                  virtualRow.index % 2 ? "ListItemOdd" : "ListItemEven"
+                }
+              >
+                <Playlist playlist={playlists[virtualRow.index]} />
+              </div>
+            ))}
+            {items.length === 0 && (
+              <p className="text-center">No results found</p>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 
