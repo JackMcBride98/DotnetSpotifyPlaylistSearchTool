@@ -5,7 +5,7 @@ This is a project used to search a Spotify User's saved playlists by its contain
 The user's playlists are fetched via the Spotify API andsaved into a PostgresSQL Database the first time they use the app and they updated periodically by a background job. This helps reduce the calls to Spotify API.
 
 # Running the app locally
-First create the database using `Database/docker-compose.yaml` 
+First create the database using the `Database/docker-compose.yaml` file. Run `docker-compose up -d`
 
 Update `appsettings.Development.json` with the Spotify API client ID and secret, these can be found through the Spotify Developer Dashboard.
 
@@ -21,7 +21,7 @@ Then run the backend with `dotnet watch run` and go to `http://localhost:5030/`
 # TODO
 - Tidy up/refactor existing code
 - Create background job for syncing playlists
-- Fix scroll bug
+- Update first sync to have progress updates
 - Finish off all functionality
 - Create backend tests
 - Create frontend tests
