@@ -22,7 +22,8 @@ If you make changes to the database models run `dotnet ef migrations add <migrat
 
 
 # TODO
-- Middleware for auth
+- Make random playlist query more performant
+- Search and Random whilst syncing?!
 - Create background job for syncing playlists
 - Create backend tests
 - Create frontend tests

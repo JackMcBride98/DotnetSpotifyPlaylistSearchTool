@@ -21,24 +21,27 @@ public static class Logout
             {
                 ThrowError("Access token not found");
             }
-            
+
             var spotify = new SpotifyClient(accessToken);
 
             var spotifyUser = await spotify.UserProfile.Current(ct);
 
-            var user = await dataContext.Users.Where(u => u.UserId == spotifyUser.Id).SingleOrDefaultAsync(ct);
-            
-            if (user == null){
+            var user = await dataContext
+                .Users.Where(u => u.UserId == spotifyUser.Id)
+                .SingleOrDefaultAsync(ct);
+
+            if (user == null)
+            {
                 ThrowError("User not found");
             }
-            
+
             user.AccessToken = null;
-            
+
             HttpContext.Response.Cookies.Delete("AccessToken");
             HttpContext.Response.Cookies.Delete("RefreshToken");
-            
+
             await dataContext.SaveChangesAsync(ct);
-            
+
             return new EmptyResponse();
         }
     }

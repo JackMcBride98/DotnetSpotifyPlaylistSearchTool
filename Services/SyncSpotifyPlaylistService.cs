@@ -8,13 +8,15 @@ namespace DotnetSpotifyPlaylistSearchTool.Services;
 
 public interface ISyncSpotifyPlaylistService
 {
-    Task SyncSpotifyPlaylistAsync(string userId, bool requiresProgressUpdates);
+    Task SyncSpotifyPlaylistAsync(SpotifyClient spotifyClient, bool requiresProgressUpdates);
 }
 
 public class SyncSpotifyPlaylistService(DataContext dataContext) : ISyncSpotifyPlaylistService
 {
-    public async Task SyncSpotifyPlaylistAsync(string userId, bool requiresProgressUpdates)
+    public async Task SyncSpotifyPlaylistAsync(SpotifyClient spotifyClient, bool requiresProgressUpdates)
     {
+        var profile = await spotifyClient.UserProfile.Current();
+        var userId = profile.Id;
         var user = await dataContext.Users
             .Include(u => u.Playlists)
             .SingleOrDefaultAsync(u => u.UserId == userId);
@@ -24,9 +26,7 @@ public class SyncSpotifyPlaylistService(DataContext dataContext) : ISyncSpotifyP
             throw new InvalidOperationException("User not found");
         }
 
-        var spotify = new SpotifyClient(user.AccessToken);
-
-        var playlists = (await spotify.PaginateAll(await spotify.Playlists.GetUsers(user.UserId))).DistinctBy(p => p.Id).ToList();
+        var playlists = (await spotifyClient.PaginateAll(await spotifyClient.Playlists.GetUsers(user.UserId))).DistinctBy(p => p.Id).ToList();
 
         if (requiresProgressUpdates)
         {
@@ -53,7 +53,7 @@ public class SyncSpotifyPlaylistService(DataContext dataContext) : ISyncSpotifyP
                 continue;
             }
 
-            var tracks = await spotify.PaginateAll(await spotify.Playlists.GetItems(playlist.Id));
+            var tracks = await spotifyClient.PaginateAll(await spotifyClient.Playlists.GetItems(playlist.Id));
 
             var trackEntities = tracks.Select((t, i) => ToTrack(t, playlist.Id, i)).Where(t => t != null).Select(t => t!).ToList();
 
@@ -61,7 +61,7 @@ public class SyncSpotifyPlaylistService(DataContext dataContext) : ISyncSpotifyP
 
             var playlistImage = firstImageOrNull == null ? null : new Image(firstImageOrNull.Url, firstImageOrNull.Width, firstImageOrNull.Height);
 
-            var existingPlaylistUsers = new List<User>{ user };
+            var existingPlaylistUsers = new List<User> { user };
             if (existingPlaylist is not null)
             {
                 existingPlaylistUsers = existingPlaylist.Users!.ToList();
@@ -80,16 +80,16 @@ public class SyncSpotifyPlaylistService(DataContext dataContext) : ISyncSpotifyP
                 Users = existingPlaylistUsers,
                 Image = playlistImage,
             };
-            
+
             newPlaylists.Add(newPlaylist);
             dataContext.Playlists.Add(newPlaylist);
-            
+
             if (requiresProgressUpdates)
             {
                 await dataContext.SaveChangesAsync();
             }
         }
-        
+
         user.UpdatedAt = SystemClock.Instance.GetCurrentInstant();
         await dataContext.SaveChangesAsync();
     }

@@ -9,7 +9,9 @@ builder.Services.AddDbContextPool<DataContext>(options =>
     options.UseNpgsql(builder.Configuration.GetSection("Database:ConnectionString").Value, x => x.UseNodaTime());
 });
 builder.Services.AddFastEndpoints();
+
 builder.Services.AddScoped<ISyncSpotifyPlaylistService, SyncSpotifyPlaylistService>();
+builder.Services.AddScoped<ISpotifyAuthService, SpotifyAuthService>();
 
 // builder.Services.AddSpaStaticFiles(options => { options.RootPath = "client/dist"; }); do this if not development
 

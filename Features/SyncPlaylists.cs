@@ -10,7 +10,11 @@ public static class SyncPlaylists
 {
     public record Response(string Message);
 
-    public class Endpoint(ISyncSpotifyPlaylistService syncSpotifyPlaylistService, DataContext dataContext) : EndpointWithoutRequest<Response>
+    public class Endpoint(
+        ISyncSpotifyPlaylistService syncSpotifyPlaylistService,
+        DataContext dataContext,
+        ISpotifyAuthService spotifyAuthService
+    ) : EndpointWithoutRequest<Response>
     {
         public override void Configure()
         {
@@ -20,22 +24,23 @@ public static class SyncPlaylists
 
         public override async Task<Response> ExecuteAsync(CancellationToken ct)
         {
-            if (!HttpContext.Request.Cookies.TryGetValue("AccessToken", out var accessToken))
-            {
-                ThrowError("Access token not found");
-            }
+            var spotifyClient = await spotifyAuthService.GetSpotifyClientAsync(HttpContext, ct);
 
-            var spotify = new SpotifyClient(accessToken);
-            var currentUser = await spotify.UserProfile.Current(ct);
+            var spotifyUserProfile = await spotifyClient.UserProfile.Current(ct);
 
-            var anyExistingPlaylistsForCurrentUser = await dataContext.Playlists.Include(p => p.Users).AnyAsync(p => p.Users!.Any(u => u.UserId == currentUser.Id), ct);
+            var anyExistingPlaylistsForCurrentUser = await dataContext
+                .Playlists.Include(p => p.Users)
+                .AnyAsync(p => p.Users!.Any(u => u.UserId == spotifyUserProfile.Id), ct);
 
             if (anyExistingPlaylistsForCurrentUser)
             {
                 ThrowError("Playlists already in db, sync not allowed except from background job.");
             }
 
-            await syncSpotifyPlaylistService.SyncSpotifyPlaylistAsync(currentUser.Id, requiresProgressUpdates: true);
+            await syncSpotifyPlaylistService.SyncSpotifyPlaylistAsync(
+                spotifyClient,
+                requiresProgressUpdates: true
+            );
 
             return new Response("Syncing playlists...");
         }
