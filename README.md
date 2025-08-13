@@ -17,14 +17,15 @@ Run the frontend by navigating to the `/client` directory and then running `npm 
 
 Then run the backend with `dotnet watch run` and go to `http://localhost:5030/`
 
+# Running migrations
+If you make changes to the database models run `dotnet ef migrations add <migration_name>` then `dotnet ef database update`
+
 
 # TODO
-- Tidy up/refactor existing code
+- Implement Logout functionality
+- Middleware for auth
 - Create background job for syncing playlists
-- Update first sync to have progress updates
-- Finish off all functionality
 - Create backend tests
 - Create frontend tests
-- Middleware for auth?
 - Azure Deployment
 - AWS Deployment

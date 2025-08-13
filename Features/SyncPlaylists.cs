@@ -35,7 +35,7 @@ public static class SyncPlaylists
                 ThrowError("Playlists already in db, sync not allowed except from background job.");
             }
 
-            await syncSpotifyPlaylistService.SyncSpotifyPlaylistAsync(currentUser.Id);
+            await syncSpotifyPlaylistService.SyncSpotifyPlaylistAsync(currentUser.Id, requiresProgressUpdates: true);
 
             return new Response("Syncing playlists...");
         }

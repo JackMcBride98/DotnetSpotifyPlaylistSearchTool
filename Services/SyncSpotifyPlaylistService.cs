@@ -8,12 +8,12 @@ namespace DotnetSpotifyPlaylistSearchTool.Services;
 
 public interface ISyncSpotifyPlaylistService
 {
-    Task<ICollection<Playlist>> SyncSpotifyPlaylistAsync(string userId);
+    Task SyncSpotifyPlaylistAsync(string userId, bool requiresProgressUpdates);
 }
 
 public class SyncSpotifyPlaylistService(DataContext dataContext) : ISyncSpotifyPlaylistService
 {
-    public async Task<ICollection<Playlist>> SyncSpotifyPlaylistAsync(string userId)
+    public async Task SyncSpotifyPlaylistAsync(string userId, bool requiresProgressUpdates)
     {
         var user = await dataContext.Users
             .Include(u => u.Playlists)
@@ -26,7 +26,13 @@ public class SyncSpotifyPlaylistService(DataContext dataContext) : ISyncSpotifyP
 
         var spotify = new SpotifyClient(user.AccessToken);
 
-        var playlists = await spotify.PaginateAll(await spotify.Playlists.GetUsers(user.UserId));
+        var playlists = (await spotify.PaginateAll(await spotify.Playlists.GetUsers(user.UserId))).DistinctBy(p => p.Id).ToList();
+
+        if (requiresProgressUpdates)
+        {
+            user.FirstSyncTotalPlaylists = playlists.Count;
+            await dataContext.SaveChangesAsync();
+        }
 
         var newPlaylists = new List<Playlist>();
 
@@ -74,14 +80,18 @@ public class SyncSpotifyPlaylistService(DataContext dataContext) : ISyncSpotifyP
                 Users = existingPlaylistUsers,
                 Image = playlistImage,
             };
+            
             newPlaylists.Add(newPlaylist);
+            dataContext.Playlists.Add(newPlaylist);
+            
+            if (requiresProgressUpdates)
+            {
+                await dataContext.SaveChangesAsync();
+            }
         }
-
-        newPlaylists = newPlaylists.DistinctBy(p => p.PlaylistId).ToList(); // Somehow some playlists were returned twice
-        dataContext.Playlists.AddRange(newPlaylists);
+        
         user.UpdatedAt = SystemClock.Instance.GetCurrentInstant();
         await dataContext.SaveChangesAsync();
-        return newPlaylists;
     }
 
     private static Track? ToTrack(PlaylistTrack<IPlayableItem> playlistTrack, string playlistId, int index)

@@ -54,9 +54,9 @@ public class GetProfile
 
             var profile = await spotify.UserProfile.Current(ct);
 
-            var user = await dataContext.Users.Where(u => u.UserId == profile.Id).SingleOrDefaultAsync(ct);
+            var user = await dataContext.Users.Where(u => u.UserId == profile.Id).SingleAsync(ct);
 
-            var lastUpdatedAtOrNull = user?.UpdatedAt.ToString();
+            var lastUpdatedAtOrNull = user.UpdatedAt.HasValue ? user.UpdatedAt.ToString() : null;
 
             var totalPlaylists = await dataContext.Playlists.Include(p => p.Users).CountAsync(p => p.Users!.Any(u => u.UserId == profile.Id), ct);
 

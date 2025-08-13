@@ -18,6 +18,7 @@ public class User(string userId, string username, string accessToken, string ref
     public string RefreshToken { get; set; } = refreshToken;
 
     public Instant? UpdatedAt { get; set; }
-
+    
+    public int? FirstSyncTotalPlaylists { get; set; }
     public ICollection<Playlist>? Playlists { get; set; }
 }
