@@ -22,10 +22,12 @@ If you make changes to the database models run `dotnet ef migrations add <migrat
 
 
 # TODO
-- Implement Logout functionality
 - Middleware for auth
 - Create background job for syncing playlists
 - Create backend tests
 - Create frontend tests
+- NUKE?
+- DB Up?
+- Client Gen?
 - Azure Deployment
 - AWS Deployment

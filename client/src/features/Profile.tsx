@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { SyncPlaylistsButton } from "../components/SyncPlaylistsButton.tsx";
+import { LogoutButton } from "../components/LogoutButton";
 import { SpinnerCircularFixed } from "spinners-react";
 import { RandomPlaylist } from "../components/RandomPlaylist";
 import { SearchPlaylists } from "../components/SearchPlaylists.tsx";
@@ -118,13 +119,7 @@ export const Profile = () => {
           />
         </div>
       )}
-      <motion.button
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.9 }}
-        className="text-center p-4 rounded-full bg-green-600 flex space-x-2 items-center "
-      >
-        Logout
-      </motion.button>
+      <LogoutButton />
       <motion.button
         onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
         whileHover={{ scale: 1.1 }}
