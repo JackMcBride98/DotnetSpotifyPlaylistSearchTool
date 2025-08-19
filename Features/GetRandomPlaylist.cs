@@ -28,20 +28,28 @@ public static class GetRandomPlaylist
                 ct
             );
 
-            // TODO: adapt this to do the random select in the SQL rather than loading all playlists into memory
-            var userPlaylists = await dataContext
-                .Playlists.Include(p => p.Users)
+            var userPlaylistCount = await dataContext.Playlists.Include(p => p.Users)
+                .Where(p => p.Users!.Any(u => u.UserId == spotifyUserProfile.Id))
+                .CountAsync(ct);
+
+            if (userPlaylistCount == 0)
+                ThrowError("User has no playlists");
+
+            var skip = new Random().Next(userPlaylistCount);
+
+            var randomPlaylist = await dataContext.Playlists
                 .Include(p => p.Tracks)
                 .Include(p => p.Image)
                 .Where(p => p.Users!.Any(u => u.UserId == spotifyUserProfile.Id))
-                .Where(p =>
-                    !request.OnlyOwnPlaylists || p.OwnerName == spotifyUserProfile.DisplayName
-                )
-                .ToListAsync(ct);
+                .Skip(skip)
+                .Take(1)
+                .SingleOrDefaultAsync(ct);
 
-            var rand = new Random();
 
-            var randomPlaylist = userPlaylists[rand.Next(userPlaylists.Count)];
+            if (randomPlaylist == null)
+            {
+                ThrowError("Random playlist not found");
+            }
 
             var randomPlaylistResponse = new SearchPlaylists.PlaylistResponse(
                 randomPlaylist.PlaylistId,
