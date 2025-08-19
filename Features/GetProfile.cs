@@ -22,8 +22,13 @@ public class GetProfile
         {
             var spotifyUserProfile = await spotifyAuthService.GetCurrentUserProfileAsync(HttpContext, ct);
             
-            var user = await dataContext.Users.Where(u => u.UserId == spotifyUserProfile.Id).SingleAsync(ct);
-            
+            var user = await dataContext.Users.Where(u => u.UserId == spotifyUserProfile.Id).SingleOrDefaultAsync(ct);
+
+            if (user == null)
+            {
+                ThrowError("User not found, try logging in again");
+            }
+
             var lastUpdatedAtOrNull = user.UpdatedAt.HasValue ? user.UpdatedAt.ToString() : null;
             
             var totalPlaylists = await dataContext.Playlists.Include(p => p.Users).CountAsync(p => p.Users!.Any(u => u.UserId == spotifyUserProfile.Id), ct);

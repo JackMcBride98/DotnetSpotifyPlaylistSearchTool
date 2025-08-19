@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { SyncPlaylistsButton } from "../components/SyncPlaylistsButton.tsx";
+import { PlaylistsSyncProgress } from "../components/PlaylistsSyncProgress.tsx";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { LogoutButton } from "../components/LogoutButton";
 import { SpinnerCircularFixed } from "spinners-react";
 import { RandomPlaylist } from "../components/RandomPlaylist";
@@ -7,6 +8,7 @@ import { SearchPlaylists } from "../components/SearchPlaylists.tsx";
 import { motion } from "framer-motion";
 import { useRef, useEffect, useState } from "react";
 import { formatDate } from "../helpers/dateHelpers.ts";
+import { UpIcon } from "../icons/UpIcon.tsx";
 
 type User = {
   country: string;
@@ -35,7 +37,14 @@ type UserResponse = {
   lastSyncedAt: string | null;
 };
 
+export type SyncProgressResponse = {
+  totalPlaylists: number | null;
+  syncedPlaylists: number;
+};
+
 export const Profile = () => {
+  const queryClient = useQueryClient();
+
   const ref = useRef<HTMLDivElement>(null);
   const [showScrollToTop, setShowScrollToTop] = useState(false);
   const [showOnlyOwnPlaylists, setShowOnlyOwnPlaylists] = useState(false);
@@ -56,14 +65,49 @@ export const Profile = () => {
     },
   });
 
+  const {
+    isPending: isSyncingPlaylists,
+    mutate: syncPlaylists,
+    error: syncError,
+    isError: isSyncError,
+  } = useMutation({
+    mutationKey: ["syncPlaylists"],
+    mutationFn: async () => {
+      const res = await fetch("/api/sync-playlists", { method: "POST" });
+      if (!res.ok) {
+        const errorMessage = await res.text();
+        throw new Error(`HTTP Error ${errorMessage}`);
+      }
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ["profile"] }),
+  });
+
+  const { data: syncProgressData } = useQuery<SyncProgressResponse>({
+    queryKey: ["syncProgress"],
+    queryFn: async () => {
+      const res = await fetch("/api/sync-progress");
+      if (!res.ok) throw new Error("Failed to fetch sync progress");
+      return res.json();
+    },
+    enabled: isSyncingPlaylists,
+    refetchInterval: 500,
+    staleTime: 500,
+  });
+
   useEffect(() => {
-    document.addEventListener("scroll", () => {
+    const handleScroll = () => {
       if (window.scrollY > 500) {
         setShowScrollToTop(true);
       } else {
         setShowScrollToTop(false);
       }
-    });
+    };
+
+    document.addEventListener("scroll", handleScroll);
+
+    return () => {
+      document.removeEventListener("scroll", handleScroll);
+    };
   }, []);
 
   if (isLoading) {
@@ -101,24 +145,53 @@ export const Profile = () => {
         height={150}
         alt="User's spotify profile"
       />
-      {lastSyncedAt == null ? (
-        <SyncPlaylistsButton />
+
+      {lastSyncedAt == null && !isSyncingPlaylists ? (
+        <div className="flex flex-col items-center gap-2 w-full">
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            className="text-center p-4 rounded-full bg-green-600 flex space-x-2 items-center"
+            onClick={() => syncPlaylists()}
+            disabled={isSyncingPlaylists}
+          >
+            Sync playlists
+          </motion.button>
+          {isSyncError && (
+            <p className="text-red-600">Error: {syncError?.message}</p>
+          )}
+        </div>
       ) : (
         <div className="flex flex-col items-center gap-4 w-full">
-          <div className="flex flex-col items-center space-x-1">
-            <p>You have {totalPlaylists} playlists saved</p>
-            <p>
-              Last updated: {lastSyncedAt ? formatDate(lastSyncedAt) : "never"}
-            </p>
-          </div>
+          {isSyncingPlaylists ? (
+            <PlaylistsSyncProgress
+              syncProgressData={syncProgressData}
+              isSyncingPlaylists={isSyncingPlaylists}
+            />
+          ) : (
+            <div className="flex flex-col items-center space-x-1">
+              <p>You have {totalPlaylists} playlists saved</p>
+              <p>
+                Last updated:{" "}
+                {lastSyncedAt ? formatDate(lastSyncedAt) : "never"}
+              </p>
+            </div>
+          )}
           <RandomPlaylist showOnlyOwnPlaylists={showOnlyOwnPlaylists} />
           <SearchPlaylists
-            totalPlaylists={totalPlaylists}
+            totalPlaylists={
+              isSyncingPlaylists &&
+              syncProgressData &&
+              syncProgressData?.syncedPlaylists
+                ? syncProgressData.syncedPlaylists
+                : totalPlaylists
+            }
             showOnlyOwnPlaylists={showOnlyOwnPlaylists}
             setShowOnlyOwnPlaylists={setShowOnlyOwnPlaylists}
           />
         </div>
       )}
+
       <LogoutButton />
       <motion.button
         onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
@@ -129,13 +202,7 @@ export const Profile = () => {
           (!showScrollToTop && "hidden")
         }
       >
-        <svg className="w-12 h-12 md:w-20 md:h-20" viewBox="0 0 100 100">
-          <polygon
-            points="47,75 47,50 38,50 50,28 62,50 53,50 53,75"
-            fill="black"
-            stroke="black"
-          />
-        </svg>
+        <UpIcon />
       </motion.button>
     </div>
   );

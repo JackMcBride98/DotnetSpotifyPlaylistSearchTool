@@ -10,7 +10,7 @@ public static class SearchPlaylists
 {
     public record Request(string SearchTerm, bool ShowOnlyOwnPlaylists);
 
-    public record Response(ICollection<PlaylistResponse> MatchingPlaylists);
+    public record Response(ICollection<PlaylistResponse> MatchingPlaylists, int TotalPlaylists);
 
     public record PlaylistResponse(
         string Id,
@@ -48,6 +48,8 @@ public static class SearchPlaylists
                 .Where(p => p.Users!.Any(u => u.UserId == spotifyUserProfile.Id))
                 .ToListAsync(ct);
 
+            var totalUserPlaylists = userPlaylists.Count;
+
             var matchingPlaylists = userPlaylists.Where(p =>
                 p.Tracks!.Any(t =>
                     t.Name.Contains(request.SearchTerm, StringComparison.OrdinalIgnoreCase)
@@ -84,7 +86,8 @@ public static class SearchPlaylists
                             ))
                             .ToList()
                     ))
-                    .ToList()
+                    .ToList(),
+                totalUserPlaylists
             );
         }
     }

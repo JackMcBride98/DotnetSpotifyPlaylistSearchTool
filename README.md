@@ -22,11 +22,12 @@ If you make changes to the database models run `dotnet ef migrations add <migrat
 
 
 # TODO
-- Make random playlist query more performant
-- Search and Random whilst syncing?!
 - Create background job for syncing playlists
 - Create backend tests
 - Create frontend tests
+- Return home when errors
+- Redirect to home when can't find user or spotify client?
+- Advise users against refreshing or closing page during sync
 - NUKE?
 - DB Up?
 - Client Gen?
