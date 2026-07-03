@@ -42,15 +42,7 @@ public sealed class CleanTask : FrostingTask<BuildContext>
     public override void Run(BuildContext context)
     {
         context.Information("Cleaning solution artifacts safely...");
-        
-        var targets = context.GetDirectories("../**/bin")
-            .Concat(context.GetDirectories("../**/obj"))
-            .Where(dir => !dir.FullPath.Contains("/build/")); // Don't 
-
-        foreach (var dir in targets)
-        {
-            context.CleanDirectory(dir);
-        }
+        context.DotNetClean("../SpotifyPlaylistSearchTool.slnx");
     }
 }
 

@@ -1,7 +1,6 @@
 <Solution>
   <Project Path="SpotifyPlaylistSearchTool.Api/SpotifyPlaylistSearchTool.Api.csproj" />
   <Project Path="SpotifyPlaylistSearchTool.Database/SpotifyPlaylistSearchTool.Database.csproj" />
-  <Project Path="build/Build.csproj" />
   
   <Folder Name="/Client/"/>
 </Solution>

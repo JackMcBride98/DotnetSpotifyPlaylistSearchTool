@@ -52,5 +52,3 @@ if (builder.Environment.IsDevelopment())
 }
 
 app.Run();
-
-Console.WriteLine("Why?");

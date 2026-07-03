@@ -6,4 +6,4 @@
     $RemainingArgs
 )
 
-dotnet run --project ./build/Build.csproj --no-build --no-restore -- --target=$Target $RemainingArgs
+dotnet run --project ./build/Build.csproj --no-build --no-restore --target=$Target $RemainingArgs
