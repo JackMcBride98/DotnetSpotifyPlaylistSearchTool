@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using NodaTime;
 
-namespace DotnetSpotifyPlaylistSearchTool.Database;
+namespace SpotifyPlaylistSearchTool.Api.Database;
 
 public class User(string userId, string username, string accessToken, string refreshToken)
 {

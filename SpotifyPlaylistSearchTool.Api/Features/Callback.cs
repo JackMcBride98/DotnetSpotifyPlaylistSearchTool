@@ -1,10 +1,11 @@
-﻿using DotnetSpotifyPlaylistSearchTool.Database;
-using FastEndpoints;
+﻿using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
-using SpotifyAPI.Web;
 using Microsoft.Extensions.Options;
+using SpotifyAPI.Web;
+using SpotifyPlaylistSearchTool.Api.Configuration;
+using SpotifyPlaylistSearchTool.Api.Database;
 
-namespace DotnetSpotifyPlaylistSearchTool.Features;
+namespace SpotifyPlaylistSearchTool.Api.Features;
 
 public static class Callback
 {

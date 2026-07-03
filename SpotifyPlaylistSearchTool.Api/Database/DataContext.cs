@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-namespace DotnetSpotifyPlaylistSearchTool.Database;
+namespace SpotifyPlaylistSearchTool.Api.Database;
 
 public class DataContext(DbContextOptions<DataContext> options) : DbContext(options)
 {

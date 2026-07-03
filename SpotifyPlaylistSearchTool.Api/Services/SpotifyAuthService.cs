@@ -1,9 +1,10 @@
-using SpotifyAPI.Web;
-using DotnetSpotifyPlaylistSearchTool.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using SpotifyAPI.Web;
+using SpotifyPlaylistSearchTool.Api.Configuration;
+using SpotifyPlaylistSearchTool.Api.Database;
 
-namespace DotnetSpotifyPlaylistSearchTool.Services;
+namespace SpotifyPlaylistSearchTool.Api.Services;
 
 public interface ISpotifyAuthService
 {

@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace DotnetSpotifyPlaylistSearchTool.Database;
+namespace SpotifyPlaylistSearchTool.Api.Database;
 
 public class Image(string url, int height, int width)
 {

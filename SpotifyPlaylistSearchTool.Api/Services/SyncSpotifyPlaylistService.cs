@@ -1,10 +1,10 @@
-﻿using DotnetSpotifyPlaylistSearchTool.Database;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using NodaTime;
 using SpotifyAPI.Web;
-using Image = DotnetSpotifyPlaylistSearchTool.Database.Image;
+using SpotifyPlaylistSearchTool.Api.Database;
+using Image = SpotifyPlaylistSearchTool.Api.Database.Image;
 
-namespace DotnetSpotifyPlaylistSearchTool.Services;
+namespace SpotifyPlaylistSearchTool.Api.Services;
 
 public interface ISyncSpotifyPlaylistService
 {

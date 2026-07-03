@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace DotnetSpotifyPlaylistSearchTool.Database;
+namespace SpotifyPlaylistSearchTool.Api.Database;
 
 public class Playlist(string playlistId, string name, string description, string ownerName, string snapshotId)
 {

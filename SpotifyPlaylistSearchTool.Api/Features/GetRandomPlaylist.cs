@@ -1,10 +1,9 @@
-﻿using DotnetSpotifyPlaylistSearchTool.Database;
-using DotnetSpotifyPlaylistSearchTool.Services;
-using FastEndpoints;
+﻿using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
-using SpotifyAPI.Web;
+using SpotifyPlaylistSearchTool.Api.Database;
+using SpotifyPlaylistSearchTool.Api.Services;
 
-namespace DotnetSpotifyPlaylistSearchTool.Features;
+namespace SpotifyPlaylistSearchTool.Api.Features;
 
 public static class GetRandomPlaylist
 {

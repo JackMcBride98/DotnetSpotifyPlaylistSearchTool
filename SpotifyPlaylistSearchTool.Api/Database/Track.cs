@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace DotnetSpotifyPlaylistSearchTool.Database;
+namespace SpotifyPlaylistSearchTool.Api.Database;
 
 public class Track(int index, string name, string artistName, string playlistId)
 {

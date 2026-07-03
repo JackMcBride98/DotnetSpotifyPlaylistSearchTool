@@ -1,7 +1,8 @@
-using DotnetSpotifyPlaylistSearchTool.Database;
-using DotnetSpotifyPlaylistSearchTool.Services;
 using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
+using SpotifyPlaylistSearchTool.Api.Configuration;
+using SpotifyPlaylistSearchTool.Api.Database;
+using SpotifyPlaylistSearchTool.Api.Services;
 
 var builder = WebApplication.CreateBuilder();
 

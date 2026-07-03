@@ -31,7 +31,12 @@ Run the frontend by navigating to the `/client` directory and then running `npm 
 
 
 # TODO
-- NUKE?
+- Cake
+  - CreateLocalDatabase
+  - DestroyLocalDatabase
+  - ResetLocalDatabase
+  - MigrateLocalDatabase
+  - shim so we can do cake Task
 - Create backend tests
 - Test for pending model changes database vs data model? context.Database.HasPendingModelChanges();
 - Create frontend tests (do we need this)

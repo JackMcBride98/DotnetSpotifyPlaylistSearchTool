@@ -1,5 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 
+namespace SpotifyPlaylistSearchTool.Api.Configuration;
+
 public class SpotifyOptions
 {
   public const string Position = "Spotify";

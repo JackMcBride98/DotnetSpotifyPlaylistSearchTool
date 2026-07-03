@@ -1,8 +1,9 @@
 using FastEndpoints;
-using SpotifyAPI.Web;
 using Microsoft.Extensions.Options;
+using SpotifyAPI.Web;
+using SpotifyPlaylistSearchTool.Api.Configuration;
 
-namespace DotnetSpotifyPlaylistSearchTool.Features;
+namespace SpotifyPlaylistSearchTool.Api.Features;
 
 public static class LogIn
 {
