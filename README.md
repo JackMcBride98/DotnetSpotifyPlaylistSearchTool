@@ -14,10 +14,13 @@ The user's playlists are fetched via the Spotify API andsaved into a PostgresSQL
 This is used instead of EFCore migrations, to allow complete control of the generated SQL, allowing more flexibility in for example data migrations. 
 There are no down migrations as DbUp is opinionated against them. Although they could be added, there is a package to handle that. See DbUp documentation.
 
-# Running the app locally
-First create the database using the `./SpotfiyPlaylistSearchTool.Database/docker-compose.yaml` file. Run `docker-compose up -d`
+`./build` contains the Cake Frosting project which organises local scripts for the project. Run ./cake in the root directory to see a list of commands
+(side note for self) These take a while on my machine, I'm unsure if its the way I've set it up or my computer being not so good.
 
-For now (before we bring in nuke) run the database migrations by running dotnet run in the `./SpotifyPlaylistSearchTool.Database` project folder
+# Running the app locally
+First create the local database by running `./cake CreateLocalDatabase`
+
+Then migrate the local database by running `./cake MigrateLocalDatabase`
 
 Within the `./SpotifyPlaylistSearchTool.Api` folder
 Update `appsettings.Development.json` with the Spotify API client ID and secret, these can be found through the Spotify Developer Dashboard.
@@ -27,16 +30,10 @@ Then run the backend with `dotnet watch run` and go to `http://localhost:5030/`
 Run the frontend by navigating to the `/client` directory and then running `npm run dev`
 
 # Running migrations
-(nuke will handle this soon)
+Use `./cake MigrateLocalDatabase` to run the latest migrations e.g. if you have added any new ones in development
 
 
 # TODO
-- Cake
-  - CreateLocalDatabase
-  - DestroyLocalDatabase
-  - ResetLocalDatabase
-  - MigrateLocalDatabase
-  - shim so we can do cake Task
 - Create backend tests
 - Test for pending model changes database vs data model? context.Database.HasPendingModelChanges();
 - Create frontend tests (do we need this)

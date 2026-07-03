@@ -2,6 +2,7 @@ using System;
 using Cake.Common;
 using Cake.Common.Diagnostics;
 using Cake.Common.Tools.DotNet;
+using Cake.Common.Tools.DotNet.Run;
 using Cake.Core;
 using Cake.Core.IO;
 using Cake.Frosting;
@@ -79,6 +80,58 @@ public sealed class CreateLocalDatabase : FrostingTask<BuildContext>
         });
 
         context.Information("Database container initialized successfully! Moving to next step.");
+    }
+}
+
+[TaskName("DestroyLocalDatabase")]
+public sealed class DestroyLocalDatabase : FrostingTask<BuildContext>
+{
+    public override void Run(BuildContext context)
+    {
+        context.Warning("Destroying local database container and wiping volumes...");
+
+        context.StartProcess("docker", new ProcessSettings
+        {
+            Arguments = "compose down -v",
+            WorkingDirectory = context.DbDirectoryPath
+        });
+
+        context.Information("Database destroyed completely.");
+    }
+}
+
+[TaskName("MigrateLocalDatabase")]
+[IsDependentOn(typeof(CreateLocalDatabase))]
+public sealed class MigrateLocalDatabase : FrostingTask<BuildContext>
+{
+    public override void Run(BuildContext context)
+    {
+        context.Information("Running DbUp database migrations...");
+
+        context.DotNetRun(context.DbUpProjectPath, new DotNetRunSettings
+        {
+            ArgumentCustomization = args => args.AppendQuoted(context.DbConnectionString)
+        });
+
+        context.Information("Database migrations applied successfully.");
+    }
+}
+
+[TaskName("ResetLocalDatabase")]
+public sealed class ResetLocalDatabase : FrostingTask<BuildContext>
+{
+    public override void Run(BuildContext context)
+    {
+        context.Information("Executing full database reset (Drop + Re-migrate) via DbUp...");
+
+        context.DotNetRun(context.DbUpProjectPath, new DotNetRunSettings
+        {
+            ArgumentCustomization = args => args
+                .AppendQuoted(context.DbConnectionString)
+                .Append("--reset")
+        });
+
+        context.Information("Local database environment has been completely reset and migrated!");
     }
 }
 
