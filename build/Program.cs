@@ -1,11 +1,9 @@
 using System;
-using System.Linq;
-using System.Threading.Tasks;
+using Cake.Common;
 using Cake.Common.Diagnostics;
-using Cake.Common.IO;
 using Cake.Common.Tools.DotNet;
 using Cake.Core;
-using Cake.Core.Diagnostics;
+using Cake.Core.IO;
 using Cake.Frosting;
 
 namespace Build;
@@ -24,15 +22,19 @@ public class BuildContext : FrostingContext
 {
     public bool Delay { get; set; }
     public string DbConnectionString { get;  }
+    public string DbDirectoryPath { get; }
     public string DbUpProjectPath { get; }
+    public string ApiProjectPath { get;  }
 
     public BuildContext(ICakeContext context)
         : base(context)
     {
         Delay = context.Arguments.HasArgument("delay");
         DbUpProjectPath = "../SpotifyPlaylistSearchTool.Database/SpotifyPlaylistSearchTool.Database.csproj";
+        DbDirectoryPath = "../SpotifyPlaylistSearchTool.Database";
         DbConnectionString =
             "Host=localhost;Port=5433;Database=SpotifyPlaylistSearchTool;Username=postgres;Password=mysecretpassword";
+        ApiProjectPath = "../SpotifyPlaylistSearchTool.Api/SpotifyPlaylistSearchTool.Api.csproj";
     }
 }
 
@@ -42,7 +44,10 @@ public sealed class CleanTask : FrostingTask<BuildContext>
     public override void Run(BuildContext context)
     {
         context.Information("Cleaning solution artifacts safely...");
-        context.DotNetClean("../SpotifyPlaylistSearchTool.slnx");
+        // Clean all other projects in the solution except the build one, couldn't find a better way to exclude this 
+        // project from the clean task. Which meant it tries to clean itself, which causes issues.
+        context.DotNetClean(context.DbUpProjectPath);
+        context.DotNetClean(context.ApiProjectPath);
     }
 }
 
@@ -53,7 +58,27 @@ public sealed class BuildTask : FrostingTask<BuildContext>
     public override void Run(BuildContext context)
     {
         context.Information("Building solution...");
-        context.DotNetBuild("../SpotifyPlaylistSearchTool.slnx");
+        context.DotNetBuild(context.DbUpProjectPath);
+        context.DotNetBuild(context.ApiProjectPath);
+    }
+}
+
+[TaskName("CreateLocalDatabase")]
+[IsDependentOn(typeof(BuildTask))]
+public sealed class CreateLocalDatabase : FrostingTask<BuildContext>
+{
+    public override void Run(BuildContext context)
+    {
+        context.Information("Starting local database container in detached mode...");
+        
+        // Execute docker compose directly, pointing to your database directory
+        context.StartProcess("docker", new ProcessSettings 
+        {
+            Arguments = "compose up -d",
+            WorkingDirectory = context.DbDirectoryPath
+        });
+
+        context.Information("Database container initialized successfully! Moving to next step.");
     }
 }
 
