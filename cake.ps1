@@ -1,11 +1,9 @@
 ﻿param(
-    [string]$Target = ""
+    [Parameter(Mandatory = $false, Position = 0)]
+    [string]$Target = "Default",
+    
+    [Parameter(ValueFromRemainingArguments = $true)]
+    $RemainingArgs
 )
 
-if ([string]::IsNullOrWhiteSpace($Target)) {
-    # No argument passed: Run the default task list directly
-    dotnet run --project ./build/Build.csproj --no-restore
-} else {
-    # Argument passed: Forward it explicitly
-    dotnet run --project ./build/Build.csproj --no-restore -- --target=$Target
-}
+dotnet run --project ./build/Build.csproj --no-build --no-restore -- --target=$Target $RemainingArgs

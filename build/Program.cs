@@ -1,6 +1,8 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Cake.Common.Diagnostics;
+using Cake.Common.IO;
 using Cake.Common.Tools.DotNet;
 using Cake.Core;
 using Cake.Core.Diagnostics;
@@ -39,8 +41,16 @@ public sealed class CleanTask : FrostingTask<BuildContext>
 {
     public override void Run(BuildContext context)
     {
-        context.Information("Cleaning solution artifacts...");
-        context.DotNetClean("../SpotifyPlaylistSearchTool.slnx");
+        context.Information("Cleaning solution artifacts safely...");
+        
+        var targets = context.GetDirectories("../**/bin")
+            .Concat(context.GetDirectories("../**/obj"))
+            .Where(dir => !dir.FullPath.Contains("/build/")); // Don't 
+
+        foreach (var dir in targets)
+        {
+            context.CleanDirectory(dir);
+        }
     }
 }
 
@@ -52,32 +62,6 @@ public sealed class BuildTask : FrostingTask<BuildContext>
     {
         context.Information("Building solution...");
         context.DotNetBuild("../SpotifyPlaylistSearchTool.slnx");
-    }
-}
-
-[TaskName("Hello")]
-public sealed class HelloTask : FrostingTask<BuildContext>
-{
-    public override void Run(BuildContext context)
-    {
-        context.Log.Information("Hello");
-    }
-}
-
-[TaskName("World")]
-[IsDependentOn(typeof(HelloTask))]
-public sealed class WorldTask : AsyncFrostingTask<BuildContext>
-{
-    // Tasks can be asynchronous
-    public override async Task RunAsync(BuildContext context)
-    {
-        if (context.Delay)
-        {
-            context.Log.Information("Waiting...");
-            await Task.Delay(1500);
-        }
-
-        context.Log.Information("World");
     }
 }
 
