@@ -1,8 +1,9 @@
 # Overview
 
-This is a project used to search a Spotify User's saved playlists by its contained tracks title and artist.
+This is a project used to search a Spotify User's saved playlists by their contained tracks title and artist.
 
-The user's playlists are fetched via the Spotify API andsaved into a PostgresSQL Database the first time they use the app and they updated periodically by a background job. This helps reduce the calls to Spotify API.
+The user's playlists are fetched via the Spotify API and saved into a PostgresSQL Database the first time they use the app
+and then updated periodically (weekly if the user was active in the last week) by a background job. This helps reduce the calls to Spotify API.
 
 # Project folder structure
 
@@ -25,6 +26,8 @@ Then migrate the local database by running `./cake MigrateLocalDatabase`
 Within the `./SpotifyPlaylistSearchTool.Api` folder
 Update `appsettings.Development.json` with the Spotify API client ID and secret, these can be found through the Spotify Developer Dashboard.
 
+Update the Database::ConnectionString in the appsettings to `"Host=localhost;Port=5433;Database=SpotifyPlaylistSearchTool;Username=postgres;Password=mysecretpassword"`
+
 Then run the backend with `dotnet watch run` and go to `http://localhost:5030/`
 
 Run the frontend by navigating to the `/client` directory and then running `npm run dev`
@@ -37,15 +40,16 @@ Use `./cake MigrateLocalDatabase` to run the latest migrations e.g. if you have 
 - Create backend tests
 - Test for pending model changes database vs data model? context.Database.HasPendingModelChanges();
 - Create frontend tests (do we need this)
+- Prettier setup
+- ESLint setup (Job for format and lint frontend)
+- CI/CD pipelines
 - Client Gen?
 - Better logging for SyncSpotifyPlaylistService
 - Create background job for syncing playlists
 
-- Prettier setup
 - Update branding (purple?)
 - Return home when errors
 - Redirect to home when can't find user or spotify client?
-- Advise users against refreshing or closing page during sync
 - Clicking Link on Random playlist retriggers the request and loads in a new random playlist
 - PWA
 - AWS Deployment

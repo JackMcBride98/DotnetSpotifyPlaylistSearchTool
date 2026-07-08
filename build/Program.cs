@@ -26,6 +26,7 @@ public class BuildContext : FrostingContext
     public string DbDirectoryPath { get; }
     public string DbUpProjectPath { get; }
     public string ApiProjectPath { get;  }
+    public string ClientDirectoryPath { get;  }
 
     public BuildContext(ICakeContext context)
         : base(context)
@@ -36,6 +37,7 @@ public class BuildContext : FrostingContext
         DbConnectionString =
             "Host=localhost;Port=5433;Database=SpotifyPlaylistSearchTool;Username=postgres;Password=mysecretpassword";
         ApiProjectPath = "../SpotifyPlaylistSearchTool.Api/SpotifyPlaylistSearchTool.Api.csproj";
+        ClientDirectoryPath = "../client";
     }
 }
 

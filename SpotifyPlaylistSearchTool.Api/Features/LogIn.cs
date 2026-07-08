@@ -27,10 +27,10 @@ public static class LogIn
             {
                 Scope =
                 [
-                    Scopes.PlaylistReadPrivate,
-                    Scopes.PlaylistReadCollaborative,
-                    Scopes.UserReadPrivate,
-                    Scopes.UserReadEmail,
+                    SpotifyAPI.Web.Scopes.PlaylistReadPrivate,
+                    SpotifyAPI.Web.Scopes.PlaylistReadCollaborative,
+                    SpotifyAPI.Web.Scopes.UserReadPrivate,
+                    SpotifyAPI.Web.Scopes.UserReadEmail,
                 ],
             };
 

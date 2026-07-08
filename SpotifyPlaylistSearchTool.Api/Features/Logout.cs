@@ -7,7 +7,7 @@ namespace SpotifyPlaylistSearchTool.Api.Features;
 
 public static class Logout
 {
-    public class Endpoint(DataContext dataContext) : EndpointWithoutRequest<EmptyResponse>
+    public class Endpoint(DataContext dataContext) : EndpointWithoutRequest<FastEndpoints.Void>
     {
         public override void Configure()
         {
@@ -15,7 +15,7 @@ public static class Logout
             AllowAnonymous();
         }
 
-        public override async Task<EmptyResponse> ExecuteAsync(CancellationToken ct)
+        public override async Task<FastEndpoints.Void> ExecuteAsync(CancellationToken ct)
         {
             if (!HttpContext.Request.Cookies.TryGetValue("AccessToken", out var accessToken))
             {
@@ -42,7 +42,7 @@ public static class Logout
 
             await dataContext.SaveChangesAsync(ct);
 
-            return new EmptyResponse();
+            return await Send.NoContentAsync(ct);
         }
     }
 }
