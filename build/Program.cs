@@ -3,6 +3,7 @@ using Cake.Common;
 using Cake.Common.Diagnostics;
 using Cake.Common.Tools.DotNet;
 using Cake.Common.Tools.DotNet.Run;
+using Cake.Common.Tools.DotNet.Test;
 using Cake.Core;
 using Cake.Core.IO;
 using Cake.Frosting;
@@ -22,11 +23,13 @@ public static class Program
 public class BuildContext : FrostingContext
 {
     public bool Delay { get; set; }
-    public string DbConnectionString { get;  }
+    public string LocalDbConnectionString { get;  }
+    public string LocalTestDbConnectionString { get;  }
     public string DbDirectoryPath { get; }
     public string DbUpProjectPath { get; }
     public string ApiProjectPath { get;  }
     public string ClientDirectoryPath { get;  }
+    public string BackendE2ETestsProjectPath { get;  }
 
     public BuildContext(ICakeContext context)
         : base(context)
@@ -34,10 +37,13 @@ public class BuildContext : FrostingContext
         Delay = context.Arguments.HasArgument("delay");
         DbUpProjectPath = "../SpotifyPlaylistSearchTool.Database/SpotifyPlaylistSearchTool.Database.csproj";
         DbDirectoryPath = "../SpotifyPlaylistSearchTool.Database";
-        DbConnectionString =
+        LocalDbConnectionString =
             "Host=localhost;Port=5433;Database=SpotifyPlaylistSearchTool;Username=postgres;Password=mysecretpassword";
+        LocalTestDbConnectionString =
+            "Host=localhost;Port=5434;Database=SpotifyPlaylistSearchToolTest;Username=postgres;Password=mysecretpassword";
         ApiProjectPath = "../SpotifyPlaylistSearchTool.Api/SpotifyPlaylistSearchTool.Api.csproj";
         ClientDirectoryPath = "../client";
+        BackendE2ETestsProjectPath = "../BackendE2ETests/Tests/Tests.csproj";
     }
 }
 
@@ -51,6 +57,7 @@ public sealed class CleanTask : FrostingTask<BuildContext>
         // project from the clean task. Which meant it tries to clean itself, which causes issues.
         context.DotNetClean(context.DbUpProjectPath);
         context.DotNetClean(context.ApiProjectPath);
+        context.DotNetClean(context.BackendE2ETestsProjectPath);
     }
 }
 
@@ -63,6 +70,7 @@ public sealed class BuildTask : FrostingTask<BuildContext>
         context.Information("Building solution...");
         context.DotNetBuild(context.DbUpProjectPath);
         context.DotNetBuild(context.ApiProjectPath);
+        context.DotNetBuild(context.BackendE2ETestsProjectPath);
     }
 }
 
@@ -103,7 +111,6 @@ public sealed class DestroyLocalDatabase : FrostingTask<BuildContext>
 }
 
 [TaskName("MigrateLocalDatabase")]
-[IsDependentOn(typeof(CreateLocalDatabase))]
 public sealed class MigrateLocalDatabase : FrostingTask<BuildContext>
 {
     public override void Run(BuildContext context)
@@ -112,10 +119,21 @@ public sealed class MigrateLocalDatabase : FrostingTask<BuildContext>
 
         context.DotNetRun(context.DbUpProjectPath, new DotNetRunSettings
         {
-            ArgumentCustomization = args => args.AppendQuoted(context.DbConnectionString)
+            ArgumentCustomization = args => args.AppendQuoted(context.LocalDbConnectionString)
         });
 
         context.Information("Database migrations applied successfully.");
+    }
+}
+
+[TaskName("SetupLocalDatabase")] 
+[IsDependentOn(typeof(CreateLocalDatabase))]
+[IsDependentOn(typeof(MigrateLocalDatabase))]
+public sealed class SetupLocalDatabase : FrostingTask<BuildContext>
+{
+    public override void Run(BuildContext context)
+    {
+        context.Information("Local Development Database Setup Complete!");
     }
 }
 
@@ -129,11 +147,113 @@ public sealed class ResetLocalDatabase : FrostingTask<BuildContext>
         context.DotNetRun(context.DbUpProjectPath, new DotNetRunSettings
         {
             ArgumentCustomization = args => args
-                .AppendQuoted(context.DbConnectionString)
+                .AppendQuoted(context.LocalDbConnectionString)
                 .Append("--reset")
         });
 
         context.Information("Local database environment has been completely reset and migrated!");
+    }
+}
+
+[TaskName("CreateTestDatabase")]
+[IsDependentOn(typeof(BuildTask))]
+public sealed class CreateTestDatabase : FrostingTask<BuildContext>
+{
+    public override void Run(BuildContext context)
+    {
+        context.Information("Starting local testing database container...");
+        
+        context.StartProcess("docker", new ProcessSettings 
+        {
+            Arguments = "compose -f docker-compose.test.yml up -d",
+            WorkingDirectory = context.DbDirectoryPath
+        });
+
+        context.Information("Testing database container initialized.");
+    }
+}
+
+[TaskName("DestroyTestDatabase")]
+public sealed class DestroyTestDatabase : FrostingTask<BuildContext>
+{
+    public override void Run(BuildContext context)
+    {
+        context.Warning("Destroying test database container and wiping volumes...");
+
+        context.StartProcess("docker", new ProcessSettings
+        {
+            Arguments = "compose -f docker-compose.test.yml down -v",
+            WorkingDirectory = context.DbDirectoryPath
+        });
+
+        context.Information("Test database destroyed completely.");
+    }
+}
+
+[TaskName("MigrateTestDatabase")]
+public sealed class MigrateTestDatabase : FrostingTask<BuildContext>
+{
+    public override void Run(BuildContext context)
+    {
+        context.Information("Running DbUp database migrations against the Test environment...");
+
+        context.DotNetRun(context.DbUpProjectPath, new DotNetRunSettings
+        {
+            ArgumentCustomization = args => args.AppendQuoted(context.LocalTestDbConnectionString)
+        });
+
+        context.Information("Test database migrations applied successfully.");
+    }
+}
+
+[TaskName("ResetTestDatabase")]
+public sealed class ResetTestDatabase : FrostingTask<BuildContext>
+{
+    public override void Run(BuildContext context)
+    {
+        context.Information("Executing full test database reset (Drop + Re-migrate) via DbUp...");
+
+        context.DotNetRun(context.DbUpProjectPath, new DotNetRunSettings
+        {
+            ArgumentCustomization = args => args
+                .AppendQuoted(context.LocalTestDbConnectionString)
+                .Append("--reset")
+        });
+
+        context.Information("Test database environment has been completely reset and migrated!");
+    }
+}
+
+[TaskName("SetupLocalTestDatabase")]
+[IsDependentOn(typeof(CreateTestDatabase))]
+[IsDependentOn(typeof(MigrateTestDatabase))]
+public sealed class SetupLocalTestDatabase : FrostingTask<BuildContext>
+{
+    public override void Run(BuildContext context)
+    {
+        context.Information("Local Test Database Environment Setup Complete!");
+    }
+}
+
+[TaskName("RunBackendE2ETests")]
+[IsDependentOn(typeof(BuildTask))]
+[IsDependentOn(typeof(ResetLocalDatabase))]
+public sealed class RunBackendE2ETests : FrostingTask<BuildContext>
+{
+    public override void Run(BuildContext context)
+    {
+        context.Information("Executing Backend E2E/Integration tests...");
+
+        var testSettings = new DotNetTestSettings
+        {
+            NoBuild = true,
+            NoRestore = true,
+            Configuration = "Debug",
+        };
+
+        context.DotNetTest(context.BackendE2ETestsProjectPath, testSettings);
+
+        context.Information("All Backend E2E tests completed successfully!");
     }
 }
 

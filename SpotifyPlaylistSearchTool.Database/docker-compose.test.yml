@@ -1,13 +1,13 @@
-name: spotify-playlist-search-tool
+﻿name: spotify-playlist-search-tool-test
 
 services:
   db:
     image: postgres
-    container_name: spotify-playlist-search-tool-db
+    container_name: spotify-playlist-search-tool-test-db
     restart: always
     environment:
       POSTGRES_PASSWORD: mysecretpassword
     volumes:
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
-      - "5433:5432"
+      - "5434:5432"
