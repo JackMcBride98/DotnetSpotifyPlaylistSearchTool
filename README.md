@@ -47,6 +47,7 @@ environment variable of Rider's test environment to "Testing" so that the test d
 # TODO
 - Thoroughly test all endpoints
 - Test for pending model changes database vs data model? context.Database.HasPendingModelChanges();
+- Update vulnerable packages to remove warnings, pragma ignore the obsolete warning or remove use of Publisher?
 - CSharpier format and C# lint steps?
 - Create frontend tests (do we need this)
 - Prettier setup

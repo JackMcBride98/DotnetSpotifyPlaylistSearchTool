@@ -7,7 +7,7 @@ using Image = SpotifyPlaylistSearchTool.Api.Database.Image;
 
 namespace Tests.Features;
 
-public class SearchPlaylistsTests(App App) : TestBase<App>
+public class SearchPlaylistsTests(App app) : TestBase(app)
 {
     private const string TestUserId = "spotify-user-123";
     private const string TestUserName = "Alex Smith";
