@@ -18,6 +18,9 @@ There are no down migrations as DbUp is opinionated against them. Although they 
 `./build` contains the Cake Frosting project which organises local scripts for the project. Run ./cake in the root directory to see a list of commands
 (side note for self) These take a while on my machine, I'm unsure if its the way I've set it up or my computer being not so good.
 
+`./BackendE2ETests` contains integration/end-to-end tests for the backend API. These are run against a local test database 
+and use mock the results of Spotify API. These are setup as reccomened by FastEndpoints [documentation](https://fast-endpoints.com/docs/integration-unit-testing).
+
 # Running the app locally
 First create the local database by running `./cake CreateLocalDatabase`
 
@@ -35,10 +38,16 @@ Run the frontend by navigating to the `/client` directory and then running `npm 
 # Running migrations
 Use `./cake MigrateLocalDatabase` to run the latest migrations e.g. if you have added any new ones in development
 
+# Testing
+To run the BackendE2ETests, first create a local test database by running `./cake CreateLocalTestDatabase` 
+and then run the tests with `./cake RunBackendE2ETests` (you can run them within Rider as well, make sure to change the 
+environment variable of Rider's test environment to "Testing" so that the test database is used instead of the development database)
+
 
 # TODO
-- Create backend tests
+- Thoroughly test all endpoints
 - Test for pending model changes database vs data model? context.Database.HasPendingModelChanges();
+- CSharpier format and C# lint steps?
 - Create frontend tests (do we need this)
 - Prettier setup
 - ESLint setup (Job for format and lint frontend)
