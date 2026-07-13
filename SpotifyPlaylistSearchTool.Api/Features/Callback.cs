@@ -20,7 +20,10 @@ public static class Callback
             AllowAnonymous();
         }
 
-        public override async Task<FastEndpoints.Void> HandleAsync(Request req, CancellationToken ct)
+        public override async Task<FastEndpoints.Void> HandleAsync(
+            Request req,
+            CancellationToken ct
+        )
         {
             var response = await new OAuthClient().RequestToken(
                 new AuthorizationCodeTokenRequest(
@@ -84,5 +87,5 @@ public static class Callback
             await dataContext.SaveChangesAsync(ct);
             return await Send.ResultAsync(Results.Redirect("/profile"));
         }
-   }
+    }
 }

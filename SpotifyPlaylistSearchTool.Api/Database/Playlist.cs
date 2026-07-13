@@ -2,7 +2,13 @@
 
 namespace SpotifyPlaylistSearchTool.Api.Database;
 
-public class Playlist(string playlistId, string name, string description, string ownerName, string snapshotId)
+public class Playlist(
+    string playlistId,
+    string name,
+    string description,
+    string ownerName,
+    string snapshotId
+)
 {
     [MaxLength(100)]
     public string PlaylistId { get; set; } = playlistId;

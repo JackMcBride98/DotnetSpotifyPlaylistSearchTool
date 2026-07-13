@@ -27,7 +27,8 @@ public static class GetRandomPlaylist
                 ct
             );
 
-            var userPlaylistCount = await dataContext.Playlists.Include(p => p.Users)
+            var userPlaylistCount = await dataContext
+                .Playlists.Include(p => p.Users)
                 .Where(p => p.Users!.Any(u => u.UserId == spotifyUserProfile.Id))
                 .CountAsync(ct);
 
@@ -36,14 +37,13 @@ public static class GetRandomPlaylist
 
             var skip = new Random().Next(userPlaylistCount);
 
-            var randomPlaylist = await dataContext.Playlists
-                .Include(p => p.Tracks)
+            var randomPlaylist = await dataContext
+                .Playlists.Include(p => p.Tracks)
                 .Include(p => p.Image)
                 .Where(p => p.Users!.Any(u => u.UserId == spotifyUserProfile.Id))
                 .Skip(skip)
                 .Take(1)
                 .SingleOrDefaultAsync(ct);
-
 
             if (randomPlaylist == null)
             {

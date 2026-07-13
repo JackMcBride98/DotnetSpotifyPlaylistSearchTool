@@ -7,9 +7,10 @@ class Program
 {
     static int Main(string[] args)
     {
-        var connectionString = args.FirstOrDefault() 
+        var connectionString =
+            args.FirstOrDefault()
             ?? "Host=localhost;Port=5433;Database=SpotifyPlaylistSearchTool;Username=postgres;Password=mysecretpassword";
-        
+
         bool shouldDrop = args.Contains("--drop") || args.Contains("--reset");
 
         if (shouldDrop)
@@ -19,7 +20,7 @@ class Program
             Console.ResetColor();
 
             DropDatabase.For.PostgresqlDatabase(connectionString);
-            
+
             Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine("Database dropped successfully.");
             Console.ResetColor();
@@ -34,8 +35,8 @@ class Program
 
         EnsureDatabase.For.PostgresqlDatabase(connectionString);
 
-        var upgrader = DeployChanges.To
-            .PostgresqlDatabase(connectionString)
+        var upgrader = DeployChanges
+            .To.PostgresqlDatabase(connectionString)
             .WithScriptsEmbeddedInAssembly(Assembly.GetExecutingAssembly())
             .LogToConsole()
             .Build();

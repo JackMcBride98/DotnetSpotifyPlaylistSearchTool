@@ -5,6 +5,8 @@ This is a project used to search a Spotify User's saved playlists by their conta
 The user's playlists are fetched via the Spotify API and saved into a PostgresSQL Database the first time they use the app
 and then updated periodically (weekly if the user was active in the last week) by a background job. This helps reduce the calls to Spotify API.
 
+The project uses Cake (C# Make) as a build automation system. Run ./cake at the root for a list of commands.
+
 # Project folder structure
 
 `/client` contains the vite, typscript and React frontend
@@ -41,14 +43,14 @@ Use `./cake MigrateLocalDatabase` to run the latest migrations e.g. if you have 
 # Testing
 To run the BackendE2ETests, first create a local test database by running `./cake CreateLocalTestDatabase` 
 and then run the tests with `./cake RunBackendE2ETests` (you can run them within Rider as well, make sure to change the 
-environment variable of Rider's test environment to "Testing" so that the test database is used instead of the development database)
+environment variable of Rider's test environment to "Testing" so that the test database is used instead of the development database,
+this is set in committed DotSettings.user, so you may not need to do this.)
 
 
 # TODO
 - Thoroughly test all endpoints
+- Builders for test data?
 - Test for pending model changes database vs data model? context.Database.HasPendingModelChanges();
-- Update vulnerable packages to remove warnings, pragma ignore the obsolete warning or remove use of Publisher?
-- CSharpier format and C# lint steps?
 - Create frontend tests (do we need this)
 - Prettier setup
 - ESLint setup (Job for format and lint frontend)

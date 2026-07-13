@@ -9,7 +9,8 @@ public static class LogIn
 {
     public record Response(Uri LoginUri);
 
-    public class Endpoint(IOptions<SpotifyOptions> spotifyOptions) : EndpointWithoutRequest<Response>
+    public class Endpoint(IOptions<SpotifyOptions> spotifyOptions)
+        : EndpointWithoutRequest<Response>
     {
         public override void Configure()
         {

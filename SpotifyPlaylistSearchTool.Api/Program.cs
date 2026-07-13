@@ -20,7 +20,8 @@ builder.Services.AddDbContextPool<DataContext>(options =>
 });
 builder.Services.AddFastEndpoints();
 
-builder.Services.AddOptions<SpotifyOptions>()
+builder
+    .Services.AddOptions<SpotifyOptions>()
     .Bind(builder.Configuration.GetSection(SpotifyOptions.Position))
     .ValidateDataAnnotations()
     .ValidateOnStart();

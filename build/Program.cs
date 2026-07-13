@@ -2,8 +2,10 @@ using System;
 using Cake.Common;
 using Cake.Common.Diagnostics;
 using Cake.Common.Tools.DotNet;
+using Cake.Common.Tools.DotNet.Format;
 using Cake.Common.Tools.DotNet.Run;
 using Cake.Common.Tools.DotNet.Test;
+using Cake.Common.Tools.DotNet.Tool;
 using Cake.Core;
 using Cake.Core.IO;
 using Cake.Frosting;
@@ -14,28 +16,27 @@ public static class Program
 {
     public static int Main(string[] args)
     {
-        return new CakeHost()
-            .UseContext<BuildContext>()
-            .Run(args);
+        return new CakeHost().UseContext<BuildContext>().Run(args);
     }
 }
 
 public class BuildContext : FrostingContext
 {
     public bool Delay { get; set; }
-    public string LocalDbConnectionString { get;  }
-    public string LocalTestDbConnectionString { get;  }
+    public string LocalDbConnectionString { get; }
+    public string LocalTestDbConnectionString { get; }
     public string DbDirectoryPath { get; }
     public string DbUpProjectPath { get; }
-    public string ApiProjectPath { get;  }
-    public string ClientDirectoryPath { get;  }
-    public string BackendE2ETestsProjectPath { get;  }
+    public string ApiProjectPath { get; }
+    public string ClientDirectoryPath { get; }
+    public string BackendE2ETestsProjectPath { get; }
 
     public BuildContext(ICakeContext context)
         : base(context)
     {
         Delay = context.Arguments.HasArgument("delay");
-        DbUpProjectPath = "../SpotifyPlaylistSearchTool.Database/SpotifyPlaylistSearchTool.Database.csproj";
+        DbUpProjectPath =
+            "../SpotifyPlaylistSearchTool.Database/SpotifyPlaylistSearchTool.Database.csproj";
         DbDirectoryPath = "../SpotifyPlaylistSearchTool.Database";
         LocalDbConnectionString =
             "Host=localhost;Port=5433;Database=SpotifyPlaylistSearchTool;Username=postgres;Password=mysecretpassword";
@@ -53,7 +54,7 @@ public sealed class CleanTask : FrostingTask<BuildContext>
     public override void Run(BuildContext context)
     {
         context.Information("Cleaning solution artifacts safely...");
-        // Clean all other projects in the solution except the build one, couldn't find a better way to exclude this 
+        // Clean all other projects in the solution except the build one, couldn't find a better way to exclude this
         // project from the clean task. Which meant it tries to clean itself, which causes issues.
         context.DotNetClean(context.DbUpProjectPath);
         context.DotNetClean(context.ApiProjectPath);
@@ -61,8 +62,50 @@ public sealed class CleanTask : FrostingTask<BuildContext>
     }
 }
 
+[TaskName("Format")]
+public sealed class FormatTask : FrostingTask<ICakeContext>
+{
+    public override void Run(ICakeContext context)
+    {
+        context.DotNetTool(
+            "csharpier",
+            new DotNetToolSettings { ArgumentCustomization = args => args.Append("format ../") }
+        );
+
+        context.DotNetFormat(
+            "../SpotifyPlaylistSearchTool.slnx",
+            new DotNetFormatSettings
+            {
+                VerifyNoChanges = false,
+                Diagnostics = new[] { "style", "analyzers" },
+            }
+        );
+    }
+}
+
+[TaskName("LintBackend")]
+public sealed class LintBackendTask : FrostingTask<BuildContext>
+{
+    public override void Run(BuildContext context)
+    {
+        context.DotNetTool(
+            "csharpier",
+            new DotNetToolSettings { ArgumentCustomization = args => args.Append("check ../") }
+        );
+
+        context.DotNetFormat(
+            "../SpotifyPlaylistSearchTool.slnx",
+            new DotNetFormatSettings
+            {
+                VerifyNoChanges = true,
+                Diagnostics = new[] { "style", "analyzers" },
+            }
+        );
+    }
+}
+
 [TaskName("Build")]
-[IsDependentOn(typeof(CleanTask))] 
+[IsDependentOn(typeof(CleanTask))]
 public sealed class BuildTask : FrostingTask<BuildContext>
 {
     public override void Run(BuildContext context)
@@ -81,13 +124,16 @@ public sealed class CreateLocalDatabase : FrostingTask<BuildContext>
     public override void Run(BuildContext context)
     {
         context.Information("Starting local database container in detached mode...");
-        
+
         // Execute docker compose directly, pointing to your database directory
-        context.StartProcess("docker", new ProcessSettings 
-        {
-            Arguments = "compose up -d",
-            WorkingDirectory = context.DbDirectoryPath
-        });
+        context.StartProcess(
+            "docker",
+            new ProcessSettings
+            {
+                Arguments = "compose up -d",
+                WorkingDirectory = context.DbDirectoryPath,
+            }
+        );
 
         context.Information("Database container initialized successfully! Moving to next step.");
     }
@@ -100,11 +146,14 @@ public sealed class DestroyLocalDatabase : FrostingTask<BuildContext>
     {
         context.Warning("Destroying local database container and wiping volumes...");
 
-        context.StartProcess("docker", new ProcessSettings
-        {
-            Arguments = "compose down -v",
-            WorkingDirectory = context.DbDirectoryPath
-        });
+        context.StartProcess(
+            "docker",
+            new ProcessSettings
+            {
+                Arguments = "compose down -v",
+                WorkingDirectory = context.DbDirectoryPath,
+            }
+        );
 
         context.Information("Database destroyed completely.");
     }
@@ -117,16 +166,19 @@ public sealed class MigrateLocalDatabase : FrostingTask<BuildContext>
     {
         context.Information("Running DbUp database migrations...");
 
-        context.DotNetRun(context.DbUpProjectPath, new DotNetRunSettings
-        {
-            ArgumentCustomization = args => args.AppendQuoted(context.LocalDbConnectionString)
-        });
+        context.DotNetRun(
+            context.DbUpProjectPath,
+            new DotNetRunSettings
+            {
+                ArgumentCustomization = args => args.AppendQuoted(context.LocalDbConnectionString),
+            }
+        );
 
         context.Information("Database migrations applied successfully.");
     }
 }
 
-[TaskName("SetupLocalDatabase")] 
+[TaskName("SetupLocalDatabase")]
 [IsDependentOn(typeof(CreateLocalDatabase))]
 [IsDependentOn(typeof(MigrateLocalDatabase))]
 public sealed class SetupLocalDatabase : FrostingTask<BuildContext>
@@ -144,12 +196,14 @@ public sealed class ResetLocalDatabase : FrostingTask<BuildContext>
     {
         context.Information("Executing full database reset (Drop + Re-migrate) via DbUp...");
 
-        context.DotNetRun(context.DbUpProjectPath, new DotNetRunSettings
-        {
-            ArgumentCustomization = args => args
-                .AppendQuoted(context.LocalDbConnectionString)
-                .Append("--reset")
-        });
+        context.DotNetRun(
+            context.DbUpProjectPath,
+            new DotNetRunSettings
+            {
+                ArgumentCustomization = args =>
+                    args.AppendQuoted(context.LocalDbConnectionString).Append("--reset"),
+            }
+        );
 
         context.Information("Local database environment has been completely reset and migrated!");
     }
@@ -162,12 +216,15 @@ public sealed class CreateTestDatabase : FrostingTask<BuildContext>
     public override void Run(BuildContext context)
     {
         context.Information("Starting local testing database container...");
-        
-        context.StartProcess("docker", new ProcessSettings 
-        {
-            Arguments = "compose -f docker-compose.test.yml up -d",
-            WorkingDirectory = context.DbDirectoryPath
-        });
+
+        context.StartProcess(
+            "docker",
+            new ProcessSettings
+            {
+                Arguments = "compose -f docker-compose.test.yml up -d",
+                WorkingDirectory = context.DbDirectoryPath,
+            }
+        );
 
         context.Information("Testing database container initialized.");
     }
@@ -180,11 +237,14 @@ public sealed class DestroyTestDatabase : FrostingTask<BuildContext>
     {
         context.Warning("Destroying test database container and wiping volumes...");
 
-        context.StartProcess("docker", new ProcessSettings
-        {
-            Arguments = "compose -f docker-compose.test.yml down -v",
-            WorkingDirectory = context.DbDirectoryPath
-        });
+        context.StartProcess(
+            "docker",
+            new ProcessSettings
+            {
+                Arguments = "compose -f docker-compose.test.yml down -v",
+                WorkingDirectory = context.DbDirectoryPath,
+            }
+        );
 
         context.Information("Test database destroyed completely.");
     }
@@ -197,10 +257,14 @@ public sealed class MigrateTestDatabase : FrostingTask<BuildContext>
     {
         context.Information("Running DbUp database migrations against the Test environment...");
 
-        context.DotNetRun(context.DbUpProjectPath, new DotNetRunSettings
-        {
-            ArgumentCustomization = args => args.AppendQuoted(context.LocalTestDbConnectionString)
-        });
+        context.DotNetRun(
+            context.DbUpProjectPath,
+            new DotNetRunSettings
+            {
+                ArgumentCustomization = args =>
+                    args.AppendQuoted(context.LocalTestDbConnectionString),
+            }
+        );
 
         context.Information("Test database migrations applied successfully.");
     }
@@ -213,12 +277,14 @@ public sealed class ResetTestDatabase : FrostingTask<BuildContext>
     {
         context.Information("Executing full test database reset (Drop + Re-migrate) via DbUp...");
 
-        context.DotNetRun(context.DbUpProjectPath, new DotNetRunSettings
-        {
-            ArgumentCustomization = args => args
-                .AppendQuoted(context.LocalTestDbConnectionString)
-                .Append("--reset")
-        });
+        context.DotNetRun(
+            context.DbUpProjectPath,
+            new DotNetRunSettings
+            {
+                ArgumentCustomization = args =>
+                    args.AppendQuoted(context.LocalTestDbConnectionString).Append("--reset"),
+            }
+        );
 
         context.Information("Test database environment has been completely reset and migrated!");
     }
@@ -278,12 +344,12 @@ public sealed class DefaultTask : FrostingTask<BuildContext>
         foreach (var task in _engine.Tasks)
         {
             // Skip showing the Default task itself to keep the output clean
-            if (task.Name.Equals("Default", StringComparison.OrdinalIgnoreCase)) 
+            if (task.Name.Equals("Default", StringComparison.OrdinalIgnoreCase))
                 continue;
 
             context.Information($"  -> {task.Name}");
         }
-        
+
         context.Information("--------------------------------------------------");
         context.Information("Example usage: dotnet cake --target=MigrateLocalDatabase");
     }

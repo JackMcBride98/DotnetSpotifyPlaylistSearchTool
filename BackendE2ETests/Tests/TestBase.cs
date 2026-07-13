@@ -11,7 +11,7 @@ public abstract class TestBase(App app) : IClassFixture<App>, IAsyncLifetime
     public async ValueTask InitializeAsync()
     {
         App.MockSpotifyAuth.ClearReceivedCalls();
-        
+
         await ResetDatabaseAsync();
     }
 
@@ -21,13 +21,16 @@ public abstract class TestBase(App app) : IClassFixture<App>, IAsyncLifetime
     {
         await using var conn = new Npgsql.NpgsqlConnection(App.DatabaseConnectionString);
         await conn.OpenAsync();
-        
-        var respawner = await Respawner.CreateAsync(conn, new RespawnerOptions
-        {
-            DbAdapter = DbAdapter.Postgres,
-            TablesToIgnore = ["schemaversions"],
-            SchemasToInclude = ["public"]
-        });
+
+        var respawner = await Respawner.CreateAsync(
+            conn,
+            new RespawnerOptions
+            {
+                DbAdapter = DbAdapter.Postgres,
+                TablesToIgnore = ["schemaversions"],
+                SchemasToInclude = ["public"],
+            }
+        );
 
         await respawner.ResetAsync(conn);
     }
