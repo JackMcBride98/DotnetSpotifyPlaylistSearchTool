@@ -82,7 +82,7 @@ jobs:
       - name: Start Test Database Container
         uses: cake-build/cake-action@v3
         with:
-          project-path: build/build.csproj
+          project-path: build/Build.csproj
           target: CreateTestDatabase
           verbosity: Normal
           arguments: |
@@ -91,7 +91,7 @@ jobs:
       - name: Migrate Test Database
         uses: cake-build/cake-action@v3
         with:
-          project-path: build/build.csproj
+          project-path: build/Build.csproj
           target: MigrateTestDatabase
           verbosity: Normal
           arguments: |
