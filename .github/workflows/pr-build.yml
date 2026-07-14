@@ -8,8 +8,14 @@ jobs:
     name: Lint & Format Verification
     runs-on: ubuntu-latest
     steps:
-      - name: Setup Environment
-        uses: ./.github/actions/setup-env
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+          cache: true
 
       - name: Restore Local Tools
         shell: bash
@@ -26,8 +32,14 @@ jobs:
     name: Build Solution
     runs-on: ubuntu-latest
     steps:
-      - name: Setup Environment
-        uses: ./.github/actions/setup-env
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+          cache: true
 
       - name: Run Cake Build Task
         uses: cake-build/cake-action@v3
@@ -50,8 +62,14 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - name: Setup Environment
-        uses: ./.github/actions/setup-env
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+          cache: true
 
       - name: Download Compiled Binaries
         uses: actions/download-artifact@v4
