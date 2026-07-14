@@ -1,5 +1,6 @@
 ﻿using NSubstitute;
 using Respawn;
+using Respawn.Graph;
 
 namespace Tests;
 
@@ -27,7 +28,7 @@ public abstract class TestBase(App app) : IClassFixture<App>, IAsyncLifetime
             new RespawnerOptions
             {
                 DbAdapter = DbAdapter.Postgres,
-                TablesToIgnore = ["schemaversions"],
+                TablesToIgnore = new Table[] { new Table("public", "schemaversions") },
                 SchemasToInclude = ["public"],
             }
         );

@@ -78,6 +78,11 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: compiled-binaries
+
+      - name: Restore Executable Permissions
+          run: |
+            echo "Restoring execute permissions to compiled binaries..."
+            find . -type f -path "*/bin/*" ! -name "*.*" -exec chmod +x {} +
       
       - name: Start Test Database Container
         uses: cake-build/cake-action@v3

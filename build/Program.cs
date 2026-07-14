@@ -290,10 +290,10 @@ public sealed class ResetTestDatabase : FrostingTask<BuildContext>
     }
 }
 
-[TaskName("SetupLocalTestDatabase")]
+[TaskName("SetupTestDatabase")]
 [IsDependentOn(typeof(CreateTestDatabase))]
 [IsDependentOn(typeof(MigrateTestDatabase))]
-public sealed class SetupLocalTestDatabase : FrostingTask<BuildContext>
+public sealed class SetupTestDatabase : FrostingTask<BuildContext>
 {
     public override void Run(BuildContext context)
     {
@@ -326,7 +326,7 @@ public sealed class RunBackendE2ETests : FrostingTask<BuildContext>
 // Make this task run what is run in the CI pipeline so developers can run it locally
 [TaskName("CI")]
 [IsDependentOn(typeof(LintBackendTask))]
-[IsDependentOn(typeof(SetupLocalTestDatabase))]
+[IsDependentOn(typeof(SetupTestDatabase))]
 [IsDependentOn(typeof(RunBackendE2ETests))]
 public sealed class CITask : FrostingTask<BuildContext>
 {

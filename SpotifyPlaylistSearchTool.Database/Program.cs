@@ -38,6 +38,7 @@ class Program
         var upgrader = DeployChanges
             .To.PostgresqlDatabase(connectionString)
             .WithScriptsEmbeddedInAssembly(Assembly.GetExecutingAssembly())
+            .JournalToPostgresqlTable("public", "schemaversions")
             .LogToConsole()
             .Build();
 
