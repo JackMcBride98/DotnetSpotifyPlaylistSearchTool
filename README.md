@@ -48,6 +48,9 @@ this is set in committed DotSettings.user, so you may not need to do this.)
 
 
 # TODO
+- Setup main branch protection rules
+- Make squash merge default/ only acceptable merge strategy??
+- lint and format yml files?
 - Thoroughly test all endpoints
 - Builders for test data?
 - Test for pending model changes database vs data model? context.Database.HasPendingModelChanges();
