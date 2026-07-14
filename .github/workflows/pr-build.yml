@@ -25,7 +25,7 @@ jobs:
       - name: Run Backend Linter
         uses: cake-build/cake-action@v3
         with:
-          project-path: build/build.csproj
+          project-path: build/Build.csproj
           target: LintBackend
           verbosity: Normal
 
@@ -46,7 +46,7 @@ jobs:
       - name: Run Cake Build Task
         uses: cake-build/cake-action@v3
         with:
-          project-path: build/build.csproj
+          project-path: build/Build.csproj
           target: Build
           verbosity: Normal
 
@@ -82,14 +82,14 @@ jobs:
       - name: Setup Local Test Database
         uses: cake-build/cake-action@v3
         with:
-          project-path: build/build.csproj
+          project-path: build/Build.csproj
           target: SetupLocalTestDatabase
           verbosity: Normal
 
       - name: Run E2E Integration Tests
         uses: cake-build/cake-action@v3
         with:
-          project-path: build/build.csproj
+          project-path: build/Build.csproj
           target: RunBackendE2ETests
           exclusive: true
           verbosity: Normal
@@ -98,6 +98,6 @@ jobs:
         if: always()
         uses: cake-build/cake-action@v3
         with:
-          project-path: build/build.csproj
+          project-path: build/Build.csproj
           target: DestroyTestDatabase
           verbosity: Normal
