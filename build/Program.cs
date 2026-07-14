@@ -303,7 +303,7 @@ public sealed class SetupLocalTestDatabase : FrostingTask<BuildContext>
 
 [TaskName("RunBackendE2ETests")]
 [IsDependentOn(typeof(BuildTask))]
-[IsDependentOn(typeof(ResetLocalDatabase))]
+[IsDependentOn(typeof(ResetTestDatabase))]
 public sealed class RunBackendE2ETests : FrostingTask<BuildContext>
 {
     public override void Run(BuildContext context)

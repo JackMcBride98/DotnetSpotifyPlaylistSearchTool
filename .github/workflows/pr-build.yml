@@ -79,20 +79,32 @@ jobs:
         with:
           name: compiled-binaries
       
-      - name: Setup Local Test Database
+      - name: Start Test Database Container
         uses: cake-build/cake-action@v3
         with:
-          project-path: build/Build.csproj
-          target: SetupLocalTestDatabase
+          project-path: build/build.csproj
+          target: CreateTestDatabase
           verbosity: Normal
+          arguments: |
+            exclusive: true
+
+      - name: Migrate Test Database
+        uses: cake-build/cake-action@v3
+        with:
+          project-path: build/build.csproj
+          target: MigrateTestDatabase
+          verbosity: Normal
+          arguments: |
+            exclusive: true
 
       - name: Run E2E Integration Tests
         uses: cake-build/cake-action@v3
         with:
           project-path: build/Build.csproj
           target: RunBackendE2ETests
-          exclusive: true
           verbosity: Normal
+          arguments: |
+            exclusive: true
 
       - name: Clean up Test Database
         if: always()
