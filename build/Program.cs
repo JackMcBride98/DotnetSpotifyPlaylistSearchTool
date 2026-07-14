@@ -323,6 +323,16 @@ public sealed class RunBackendE2ETests : FrostingTask<BuildContext>
     }
 }
 
+// Make this task run what is run in the CI pipeline so developers can run it locally
+[TaskName("CI")]
+[IsDependentOn(typeof(LintBackendTask))]
+[IsDependentOn(typeof(SetupLocalTestDatabase))]
+[IsDependentOn(typeof(RunBackendE2ETests))]
+public sealed class CITask : FrostingTask<BuildContext>
+{
+    public override void Run(BuildContext context) { }
+}
+
 [TaskName("Default")]
 public sealed class DefaultTask : FrostingTask<BuildContext>
 {

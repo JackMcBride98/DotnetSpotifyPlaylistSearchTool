@@ -54,7 +54,6 @@ this is set in committed DotSettings.user, so you may not need to do this.)
 - Create frontend tests (do we need this)
 - Prettier setup
 - ESLint setup (Job for format and lint frontend)
-- CI/CD pipelines
 - Client Gen?
 - Better logging for SyncSpotifyPlaylistService
 - Create background job for syncing playlists

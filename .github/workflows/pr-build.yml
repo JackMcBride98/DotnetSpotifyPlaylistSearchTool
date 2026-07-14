@@ -1,0 +1,82 @@
+﻿name: Pull Request Verification
+
+on:
+  pull_request:
+
+jobs:
+  lint:
+    name: Lint & Format Verification
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Environment
+        uses: ./.github/actions/setup-env
+
+      - name: Restore Local Tools
+        shell: bash
+        run: dotnet tool restore
+
+      - name: Run Backend Linter
+        uses: cake-build/cake-action@v3
+        with:
+          project-path: build/build.csproj
+          target: LintBackend
+          verbosity: Normal
+
+  build:
+    name: Build Solution
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Environment
+        uses: ./.github/actions/setup-env
+
+      - name: Run Cake Build Task
+        uses: cake-build/cake-action@v3
+        with:
+          project-path: build/build.csproj
+          target: Build
+          verbosity: Normal
+
+      - name: Upload Compiled Binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: compiled-binaries
+          path: |
+            **/bin/
+            **/obj/
+          retention-days: 1
+
+  test:
+    name: Backend E2E Tests
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Environment
+        uses: ./.github/actions/setup-env
+
+      - name: Download Compiled Binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: compiled-binaries
+      
+      - name: Setup Local Test Database
+        uses: cake-build/cake-action@v3
+        with:
+          project-path: build/build.csproj
+          target: SetupLocalTestDatabase
+          verbosity: Normal
+
+      - name: Run E2E Integration Tests
+        uses: cake-build/cake-action@v3
+        with:
+          project-path: build/build.csproj
+          target: RunBackendE2ETests
+          exclusive: true
+          verbosity: Normal
+
+      - name: Clean up Test Database
+        if: always()
+        uses: cake-build/cake-action@v3
+        with:
+          project-path: build/build.csproj
+          target: DestroyTestDatabase
+          verbosity: Normal
