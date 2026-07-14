@@ -1,11 +1,11 @@
-﻿name: Pull Request Verification
+﻿name: Pull Request Checks
 
 on:
   pull_request:
 
 jobs:
   lint:
-    name: Lint & Format Verification
+    name: Lint & Format
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
