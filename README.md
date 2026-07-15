@@ -54,11 +54,16 @@ and then run the tests with `./cake RunBackendE2ETests` (you can run them within
 environment variable of Rider's test environment to "Testing" so that the test database is used instead of the development database,
 this is set in committed DotSettings.user, so you may not need to do this.)
 
+# CI Pipelines
+Pipelines are ran using Github Actions. These live in ./github/workflows. They call jobs defined in the Cake Frosting
+build project. 
+
+Pipelines can be ran locally using act-cli `choco install act-cli`
+Then at root level run `act pull_request`
+If you want to test them locally
+
 
 # TODO
-- Setup main branch protection rules
-- Make squash merge default/ only acceptable merge strategy??
-- lint and format yml files?
 - Thoroughly test all endpoints
 - Builders for test data?
 - Test for pending model changes database vs data model? context.Database.HasPendingModelChanges();
