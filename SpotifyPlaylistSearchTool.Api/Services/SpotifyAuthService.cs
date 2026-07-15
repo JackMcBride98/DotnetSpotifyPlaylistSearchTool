@@ -16,7 +16,10 @@ public interface ISpotifyAuthService
 public class SpotifyAuthService(IOptions<SpotifyOptions> spotifyOptions, DataContext dataContext)
     : ISpotifyAuthService
 {
-    public async Task<AuthorizationCodeTokenResponse> RequestTokenAsync(string code, CancellationToken ct)
+    public async Task<AuthorizationCodeTokenResponse> RequestTokenAsync(
+        string code,
+        CancellationToken ct
+    )
     {
         return await new OAuthClient().RequestToken(
             new AuthorizationCodeTokenRequest(
@@ -28,7 +31,7 @@ public class SpotifyAuthService(IOptions<SpotifyOptions> spotifyOptions, DataCon
             cancel: ct
         );
     }
-    
+
     public async Task<SpotifyClient> GetSpotifyClientAsync(
         HttpContext httpContext,
         CancellationToken ct
