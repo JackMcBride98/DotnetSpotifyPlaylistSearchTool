@@ -1,4 +1,4 @@
-﻿using FastEndpoints;
+﻿using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using SpotifyAPI.Web;
@@ -10,6 +10,14 @@ namespace SpotifyPlaylistSearchTool.Api.Features;
 public static class Callback
 {
     public record Request(string Code);
+
+    public class Validator : Validator<Request>
+    {
+        public Validator()
+        {
+            RuleFor(x => x.Code).NotEmpty().WithMessage("Authorization code is required.");
+        }
+    }
 
     public class Endpoint(DataContext dataContext, IOptions<SpotifyOptions> spotifyOptions)
         : Endpoint<Request, EmptyResponse>
