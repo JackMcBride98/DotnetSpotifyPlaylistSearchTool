@@ -101,6 +101,18 @@ public sealed class LintBackendTask : FrostingTask<BuildContext>
                 Diagnostics = new[] { "style", "analyzers" },
             }
         );
+        Console.WriteLine("dotnet format passed");
+
+        var exitCode = context.StartProcess(
+            "yamllint",
+            new ProcessSettings { Arguments = ".", WorkingDirectory = "../" }
+        );
+
+        if (exitCode != 0)
+        {
+            throw new CakeException($"yamllint failed with exit code {exitCode}");
+        }
+        Console.WriteLine("yamllint passed");
     }
 }
 

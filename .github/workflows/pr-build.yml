@@ -1,6 +1,6 @@
 ﻿name: Pull Request Checks
 
-on:
+"on":
   pull_request:
 
 jobs:
@@ -10,6 +10,11 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+
+      - name: Install yamllint
+        run: |
+            sudo apt-get update
+            sudo apt-get install -y yamllint
 
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v4
@@ -83,7 +88,7 @@ jobs:
         run: |
           echo "Restoring execute permissions to compiled binaries..."
           find . -type f -path "*/bin/*" ! -name "*.*" -exec chmod +x {} +
-      
+
       - name: Start Test Database Container
         uses: cake-build/cake-action@v3
         with:

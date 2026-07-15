@@ -7,6 +7,14 @@ and then updated periodically (weekly if the user was active in the last week) b
 
 The project uses Cake (C# Make) as a build automation system. Run ./cake at the root for a list of commands.
 
+# Prerequisites
+- .NET 10 SDK
+- node 24+
+- Docker Desktop (for running PostgresSQL database)
+- Install yamllint
+- CSharpier extension for formatting C# code
+- Most likely only works on a Windows machine, as developed in Windows using Rider IDE and VsCode
+
 # Project folder structure
 
 `/client` contains the vite, typscript and React frontend
