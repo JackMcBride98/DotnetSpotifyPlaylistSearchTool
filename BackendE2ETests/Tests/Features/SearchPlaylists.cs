@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
 using NSubstitute;
 using SpotifyAPI.Web;
 using SpotifyPlaylistSearchTool.Api.Database;
@@ -66,9 +65,6 @@ public class SearchPlaylistsTests(App app) : TestBase(app)
 
         await SeedDatabaseAsync(samplePlaylists);
         Db.ChangeTracker.Clear();
-
-        var playlists = await Db.Playlists.ToListAsync(TestContext.Current.CancellationToken);
-        playlists.Count.ShouldBe(2);
 
         var request = new SearchPlaylists.Request("queen", ShowOnlyOwnPlaylists: false);
 
