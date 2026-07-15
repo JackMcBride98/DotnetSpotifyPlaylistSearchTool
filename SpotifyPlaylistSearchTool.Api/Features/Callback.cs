@@ -1,9 +1,11 @@
-﻿using FastEndpoints;
+﻿using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using SpotifyAPI.Web;
 using SpotifyPlaylistSearchTool.Api.Configuration;
 using SpotifyPlaylistSearchTool.Api.Database;
+using SpotifyPlaylistSearchTool.Api.Services;
+using Void = FastEndpoints.Void;
 
 namespace SpotifyPlaylistSearchTool.Api.Features;
 
@@ -11,7 +13,15 @@ public static class Callback
 {
     public record Request(string Code);
 
-    public class Endpoint(DataContext dataContext, IOptions<SpotifyOptions> spotifyOptions)
+    public class Validator : Validator<Request>
+    {
+        public Validator()
+        {
+            RuleFor(x => x.Code).NotEmpty().WithMessage("Authorization code is required.");
+        }
+    }
+
+    public class Endpoint(DataContext dataContext, ISpotifyAuthService spotifyAuthService)
         : Endpoint<Request, EmptyResponse>
     {
         public override void Configure()
@@ -20,20 +30,22 @@ public static class Callback
             AllowAnonymous();
         }
 
-        public override async Task<FastEndpoints.Void> HandleAsync(
-            Request req,
-            CancellationToken ct
-        )
+        public override async Task<Void> HandleAsync(Request req, CancellationToken ct)
         {
-            var response = await new OAuthClient().RequestToken(
-                new AuthorizationCodeTokenRequest(
-                    spotifyOptions.Value.ClientId,
-                    spotifyOptions.Value.ClientSecret,
-                    req.Code,
-                    new Uri(spotifyOptions.Value.RedirectUri)
-                ),
-                cancel: ct
-            );
+            AuthorizationCodeTokenResponse response;
+
+            try
+            {
+                response = await spotifyAuthService.RequestTokenAsync(req.Code, ct);
+            }
+            catch (APIException ex)
+            {
+                // Add logging here
+                AddError(r => r.Code, $"Spotify authentication failed: {ex.Message}");
+
+                await Send.ErrorsAsync(StatusCodes.Status400BadRequest, ct);
+                return new Void();
+            }
 
             // Set HTTP Cookies for access and refresh tokens
             HttpContext.Response.Cookies.Append(
@@ -60,8 +72,7 @@ public static class Callback
                 }
             );
 
-            var spotify = new SpotifyClient(response.AccessToken);
-            var currentUser = await spotify.UserProfile.Current(ct);
+            var currentUser = await spotifyAuthService.GetCurrentUserProfileAsync(HttpContext, ct);
 
             var userOrNull = await dataContext.Users.SingleOrDefaultAsync(
                 u => u.UserId == currentUser.Id,
@@ -80,6 +91,7 @@ public static class Callback
             }
             else
             {
+                userOrNull.Username = currentUser.DisplayName;
                 userOrNull.AccessToken = response.AccessToken;
                 userOrNull.RefreshToken = response.RefreshToken;
             }

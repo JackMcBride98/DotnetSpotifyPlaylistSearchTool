@@ -14,11 +14,8 @@ public class SearchPlaylistsTests(App app) : TestBase(app)
 
     private async Task SeedDatabaseAsync(List<Playlist> playlists)
     {
-        using var scope = App.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<DataContext>();
-
-        db.Playlists.AddRange(playlists);
-        await db.SaveChangesAsync();
+        Db.Playlists.AddRange(playlists);
+        await Db.SaveChangesAsync();
     }
 
     private void ConfigureMockUser(string id, string displayName)
@@ -37,6 +34,9 @@ public class SearchPlaylistsTests(App app) : TestBase(app)
         ConfigureMockUser(TestUserId, TestUserName);
 
         var user = new User(TestUserId, TestUserName, "access-token", "refresh-token");
+        Db.Users.Add(user);
+        await Db.SaveChangesAsync(TestContext.Current.CancellationToken);
+
         var samplePlaylists = new List<Playlist>
         {
             new Playlist(
@@ -64,6 +64,7 @@ public class SearchPlaylistsTests(App app) : TestBase(app)
         };
 
         await SeedDatabaseAsync(samplePlaylists);
+        Db.ChangeTracker.Clear();
 
         var request = new SearchPlaylists.Request("queen", ShowOnlyOwnPlaylists: false);
 
