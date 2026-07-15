@@ -7,6 +7,14 @@ and then updated periodically (weekly if the user was active in the last week) b
 
 The project uses Cake (C# Make) as a build automation system. Run ./cake at the root for a list of commands.
 
+# Prerequisites
+- .NET 10 SDK
+- node 24+
+- Docker Desktop (for running PostgresSQL database)
+- Install yamllint
+- CSharpier extension for formatting C# code
+- Most likely only works on a Windows machine, as developed in Windows using Rider IDE and VsCode
+
 # Project folder structure
 
 `/client` contains the vite, typscript and React frontend
@@ -48,13 +56,15 @@ this is set in committed DotSettings.user, so you may not need to do this.)
 
 
 # TODO
+- Setup main branch protection rules
+- Make squash merge default/ only acceptable merge strategy??
+- lint and format yml files?
 - Thoroughly test all endpoints
 - Builders for test data?
 - Test for pending model changes database vs data model? context.Database.HasPendingModelChanges();
 - Create frontend tests (do we need this)
 - Prettier setup
 - ESLint setup (Job for format and lint frontend)
-- CI/CD pipelines
 - Client Gen?
 - Better logging for SyncSpotifyPlaylistService
 - Create background job for syncing playlists

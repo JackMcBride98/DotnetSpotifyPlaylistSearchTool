@@ -1,0 +1,125 @@
+﻿name: Pull Request Checks
+
+"on":
+  pull_request:
+
+jobs:
+  lint:
+    name: Lint & Format
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install yamllint
+        run: |
+            sudo apt-get update
+            sudo apt-get install -y yamllint
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+          cache: true
+          cache-dependency-path: '**/packages.lock.json'
+
+      - name: Restore Local Tools
+        shell: bash
+        run: dotnet tool restore
+
+      - name: Run Backend Linter
+        uses: cake-build/cake-action@v3
+        with:
+          project-path: build/Build.csproj
+          target: LintBackend
+          verbosity: Normal
+
+  build:
+    name: Build Solution
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+          cache: true
+          cache-dependency-path: '**/packages.lock.json'
+
+      - name: Run Cake Build Task
+        uses: cake-build/cake-action@v3
+        with:
+          project-path: build/Build.csproj
+          target: Build
+          verbosity: Normal
+
+      - name: Upload Compiled Binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: compiled-binaries
+          path: |
+            **/bin/
+            **/obj/
+          retention-days: 1
+
+  test:
+    name: Backend E2E Tests
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+          cache: true
+          cache-dependency-path: '**/packages.lock.json'
+
+      - name: Download Compiled Binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: compiled-binaries
+
+      - name: Restore Executable Permissions
+        run: |
+          echo "Restoring execute permissions to compiled binaries..."
+          find . -type f -path "*/bin/*" ! -name "*.*" -exec chmod +x {} +
+
+      - name: Start Test Database Container
+        uses: cake-build/cake-action@v3
+        with:
+          project-path: build/Build.csproj
+          target: CreateTestDatabase
+          verbosity: Normal
+          arguments: |
+            exclusive: true
+
+      - name: Migrate Test Database
+        uses: cake-build/cake-action@v3
+        with:
+          project-path: build/Build.csproj
+          target: MigrateTestDatabase
+          verbosity: Normal
+          arguments: |
+            exclusive: true
+
+      - name: Run E2E Integration Tests
+        uses: cake-build/cake-action@v3
+        with:
+          project-path: build/Build.csproj
+          target: RunBackendE2ETests
+          verbosity: Normal
+          arguments: |
+            exclusive: true
+
+      - name: Clean up Test Database
+        if: always()
+        uses: cake-build/cake-action@v3
+        with:
+          project-path: build/Build.csproj
+          target: DestroyTestDatabase
+          verbosity: Normal

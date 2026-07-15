@@ -101,6 +101,18 @@ public sealed class LintBackendTask : FrostingTask<BuildContext>
                 Diagnostics = new[] { "style", "analyzers" },
             }
         );
+        Console.WriteLine("dotnet format passed");
+
+        var exitCode = context.StartProcess(
+            "yamllint",
+            new ProcessSettings { Arguments = ".", WorkingDirectory = "../" }
+        );
+
+        if (exitCode != 0)
+        {
+            throw new CakeException($"yamllint failed with exit code {exitCode}");
+        }
+        Console.WriteLine("yamllint passed");
     }
 }
 
@@ -290,10 +302,10 @@ public sealed class ResetTestDatabase : FrostingTask<BuildContext>
     }
 }
 
-[TaskName("SetupLocalTestDatabase")]
+[TaskName("SetupTestDatabase")]
 [IsDependentOn(typeof(CreateTestDatabase))]
 [IsDependentOn(typeof(MigrateTestDatabase))]
-public sealed class SetupLocalTestDatabase : FrostingTask<BuildContext>
+public sealed class SetupTestDatabase : FrostingTask<BuildContext>
 {
     public override void Run(BuildContext context)
     {
@@ -303,7 +315,7 @@ public sealed class SetupLocalTestDatabase : FrostingTask<BuildContext>
 
 [TaskName("RunBackendE2ETests")]
 [IsDependentOn(typeof(BuildTask))]
-[IsDependentOn(typeof(ResetLocalDatabase))]
+[IsDependentOn(typeof(ResetTestDatabase))]
 public sealed class RunBackendE2ETests : FrostingTask<BuildContext>
 {
     public override void Run(BuildContext context)
@@ -321,6 +333,16 @@ public sealed class RunBackendE2ETests : FrostingTask<BuildContext>
 
         context.Information("All Backend E2E tests completed successfully!");
     }
+}
+
+// Make this task run what is run in the CI pipeline so developers can run it locally
+[TaskName("CI")]
+[IsDependentOn(typeof(LintBackendTask))]
+[IsDependentOn(typeof(SetupTestDatabase))]
+[IsDependentOn(typeof(RunBackendE2ETests))]
+public sealed class CITask : FrostingTask<BuildContext>
+{
+    public override void Run(BuildContext context) { }
 }
 
 [TaskName("Default")]

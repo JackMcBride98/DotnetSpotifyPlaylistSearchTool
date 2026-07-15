@@ -17,10 +17,6 @@ public class SearchPlaylistsTests(App app) : TestBase(app)
         using var scope = App.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<DataContext>();
 
-        // Ensure database is clean between test runs
-        await db.Database.EnsureDeletedAsync();
-        await db.Database.EnsureCreatedAsync();
-
         db.Playlists.AddRange(playlists);
         await db.SaveChangesAsync();
     }

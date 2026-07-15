@@ -1,0 +1,17 @@
+{
+  "$schema": "https://alirezanet.github.io/Husky.Net/schema.json",
+  "tasks": [
+    {
+      "name": "yaml-linter",
+      "group": "pre-commit",
+      "command": "yamllint",
+      "args": [
+        "${staged}"
+      ],
+      "include": [
+        "**/*.yml",
+        "**/*.yaml"
+      ]
+    }
+  ]
+}
