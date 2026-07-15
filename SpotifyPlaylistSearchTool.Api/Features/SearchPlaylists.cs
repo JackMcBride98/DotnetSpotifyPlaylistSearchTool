@@ -48,6 +48,10 @@ public static class SearchPlaylists
                 .ToListAsync(ct);
 
             var totalUserPlaylists = userPlaylists.Count;
+            if (totalUserPlaylists != 2)
+            {
+                ThrowError("Could not find tests in the database");
+            }
 
             var matchingPlaylists = userPlaylists.Where(p =>
                 p.Tracks!.Any(t =>

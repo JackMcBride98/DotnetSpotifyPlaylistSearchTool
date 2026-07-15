@@ -8,6 +8,7 @@ namespace SpotifyPlaylistSearchTool.Api.Services;
 
 public interface ISpotifyAuthService
 {
+    Task<AuthorizationCodeTokenResponse> RequestTokenAsync(string code, CancellationToken ct);
     Task<SpotifyClient> GetSpotifyClientAsync(HttpContext httpContext, CancellationToken ct);
     Task<PrivateUser> GetCurrentUserProfileAsync(HttpContext httpContext, CancellationToken ct);
 }
@@ -15,6 +16,19 @@ public interface ISpotifyAuthService
 public class SpotifyAuthService(IOptions<SpotifyOptions> spotifyOptions, DataContext dataContext)
     : ISpotifyAuthService
 {
+    public async Task<AuthorizationCodeTokenResponse> RequestTokenAsync(string code, CancellationToken ct)
+    {
+        return await new OAuthClient().RequestToken(
+            new AuthorizationCodeTokenRequest(
+                spotifyOptions.Value.ClientId,
+                spotifyOptions.Value.ClientSecret,
+                code,
+                new Uri(spotifyOptions.Value.RedirectUri)
+            ),
+            cancel: ct
+        );
+    }
+    
     public async Task<SpotifyClient> GetSpotifyClientAsync(
         HttpContext httpContext,
         CancellationToken ct

@@ -1,6 +1,8 @@
-﻿using NSubstitute;
+﻿using Microsoft.Extensions.DependencyInjection;
+using NSubstitute;
 using Respawn;
 using Respawn.Graph;
+using SpotifyPlaylistSearchTool.Api.Database;
 
 namespace Tests;
 
@@ -9,14 +11,25 @@ public abstract class TestBase(App app) : IClassFixture<App>, IAsyncLifetime
     protected readonly App App = app;
     protected readonly HttpClient Client = app.Client;
 
+    private IServiceScope? _testScope;
+    protected DataContext Db { get; private set; } = null!;
+
     public async ValueTask InitializeAsync()
     {
         App.MockSpotifyAuth.ClearReceivedCalls();
 
         await ResetDatabaseAsync();
+
+        _testScope = App.Services.CreateScope();
+
+        Db = _testScope.ServiceProvider.GetRequiredService<DataContext>();
     }
 
-    public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+    public ValueTask DisposeAsync()
+    {
+        _testScope?.Dispose();
+        return ValueTask.CompletedTask;
+    }
 
     private async Task ResetDatabaseAsync()
     {
