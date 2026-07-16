@@ -9,8 +9,8 @@ namespace SpotifyPlaylistSearchTool.Api.Services;
 public interface ISpotifyAuthService
 {
     Task<AuthorizationCodeTokenResponse> RequestTokenAsync(string code, CancellationToken ct);
-    Task<SpotifyClient> GetSpotifyClientAsync(HttpContext httpContext, CancellationToken ct);
-    Task<PrivateUser> GetCurrentUserProfileAsync(HttpContext httpContext, CancellationToken ct);
+    Task<SpotifyClient> GetSpotifyClientAsync(HttpContext httpContext, CancellationToken ct, string? passedAccessToken = null);
+    Task<PrivateUser> GetCurrentUserProfileAsync(HttpContext httpContext, CancellationToken ct, string? passedAccessToken = null);
 }
 
 public class SpotifyAuthService(IOptions<SpotifyOptions> spotifyOptions, DataContext dataContext)
@@ -34,10 +34,11 @@ public class SpotifyAuthService(IOptions<SpotifyOptions> spotifyOptions, DataCon
 
     public async Task<SpotifyClient> GetSpotifyClientAsync(
         HttpContext httpContext,
-        CancellationToken ct
+        CancellationToken ct,
+        string? passedAccessToken = null
     )
     {
-        var accessToken = httpContext.Request.Cookies["AccessToken"];
+        var accessToken = passedAccessToken ?? httpContext.Request.Cookies["AccessToken"];
         var refreshToken = httpContext.Request.Cookies["RefreshToken"];
 
         if (string.IsNullOrEmpty(accessToken))
@@ -87,10 +88,11 @@ public class SpotifyAuthService(IOptions<SpotifyOptions> spotifyOptions, DataCon
 
     public async Task<PrivateUser> GetCurrentUserProfileAsync(
         HttpContext httpContext,
-        CancellationToken ct
+        CancellationToken ct,
+        string? passedAccessToken = null
     )
     {
-        var spotifyClient = await GetSpotifyClientAsync(httpContext, ct);
+        var spotifyClient = await GetSpotifyClientAsync(httpContext, ct, passedAccessToken);
         var profile = await spotifyClient.UserProfile.Current(ct);
 
         return profile;

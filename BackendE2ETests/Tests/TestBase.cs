@@ -1,5 +1,4 @@
-﻿using NSubstitute;
-using NSubstitute.ClearExtensions;
+﻿using NSubstitute.ClearExtensions;
 using Respawn;
 using Respawn.Graph;
 using SpotifyPlaylistSearchTool.Api.Database;
