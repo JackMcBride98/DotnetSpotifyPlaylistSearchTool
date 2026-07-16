@@ -201,7 +201,8 @@ public class CallbackTests(App app) : TestBase(app)
 
         App.MockSpotifyAuth.GetCurrentUserProfileAsync(
                 Arg.Any<HttpContext>(),
-                Arg.Any<CancellationToken>()
+                Arg.Any<CancellationToken>(),
+                accessToken
             )
             .Returns(mockUserProfile);
     }

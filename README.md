@@ -6,6 +6,7 @@ The user's playlists are fetched via the Spotify API and saved into a PostgresSQ
 and then updated periodically (weekly if the user was active in the last week) by a background job. This helps reduce the calls to Spotify API.
 
 The project uses Cake (C# Make) as a build automation system. Run ./cake at the root for a list of commands.
+Tip: You can use the --exclusive flag to run Cake tasks without running the tasks they are dependent on
 
 # Prerequisites
 - .NET 10 SDK

@@ -1,4 +1,3 @@
-using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
 using SpotifyAPI.Web;
 using SpotifyPlaylistSearchTool.Api.Database;
@@ -26,22 +25,25 @@ public class GetProfile
                 ct
             );
 
-            var user = await dataContext
+            var profileData = await dataContext
                 .Users.Where(u => u.UserId == spotifyUserProfile.Id)
+                .Select(u => new
+                {
+                    UpdatedAt = u.UpdatedAt,
+                    PlaylistCount = u.Playlists != null ? u.Playlists.Count : 0,
+                })
                 .SingleOrDefaultAsync(ct);
 
-            if (user == null)
+            if (profileData == null)
             {
                 ThrowError("User not found, try logging in again");
             }
 
-            var lastUpdatedAtOrNull = user.UpdatedAt.HasValue ? user.UpdatedAt.ToString() : null;
+            var lastUpdatedAtOrNull = profileData.UpdatedAt.HasValue
+                ? profileData.UpdatedAt.ToString()
+                : null;
 
-            var totalPlaylists = await dataContext
-                .Playlists.Include(p => p.Users)
-                .CountAsync(p => p.Users!.Any(u => u.UserId == spotifyUserProfile.Id), ct);
-
-            return new Response(spotifyUserProfile, totalPlaylists, lastUpdatedAtOrNull);
+            return new Response(spotifyUserProfile, profileData.PlaylistCount, lastUpdatedAtOrNull);
         }
     }
 }

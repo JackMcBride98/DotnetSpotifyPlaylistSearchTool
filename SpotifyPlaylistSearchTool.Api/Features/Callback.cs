@@ -1,8 +1,6 @@
 ﻿using FluentValidation;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using SpotifyAPI.Web;
-using SpotifyPlaylistSearchTool.Api.Configuration;
 using SpotifyPlaylistSearchTool.Api.Database;
 using SpotifyPlaylistSearchTool.Api.Services;
 using Void = FastEndpoints.Void;
@@ -72,7 +70,11 @@ public static class Callback
                 }
             );
 
-            var currentUser = await spotifyAuthService.GetCurrentUserProfileAsync(HttpContext, ct);
+            var currentUser = await spotifyAuthService.GetCurrentUserProfileAsync(
+                HttpContext,
+                ct,
+                response.AccessToken
+            );
 
             var userOrNull = await dataContext.Users.SingleOrDefaultAsync(
                 u => u.UserId == currentUser.Id,
