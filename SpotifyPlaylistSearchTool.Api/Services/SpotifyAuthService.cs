@@ -41,6 +41,8 @@ public class SpotifyAuthService(IOptions<SpotifyOptions> spotifyOptions, DataCon
         var accessToken = passedAccessToken ?? httpContext.Request.Cookies["AccessToken"];
         var refreshToken = httpContext.Request.Cookies["RefreshToken"];
 
+        var accessTokenUpdated = false;
+        
         if (string.IsNullOrEmpty(accessToken))
         {
             if (string.IsNullOrEmpty(refreshToken))
@@ -70,17 +72,21 @@ public class SpotifyAuthService(IOptions<SpotifyOptions> spotifyOptions, DataCon
             );
 
             accessToken = response.AccessToken;
+            accessTokenUpdated = true;
         }
 
         var spotifyClient = new SpotifyClient(accessToken);
-        var userId = (await spotifyClient.UserProfile.Current(ct)).Id;
-
-        var user = await dataContext.Users.Where(u => u.UserId == userId).SingleOrDefaultAsync(ct);
-
-        if (user != null)
+        if (accessTokenUpdated)
         {
-            user.AccessToken = accessToken;
-            await dataContext.SaveChangesAsync(ct);
+            var userId = (await spotifyClient.UserProfile.Current(ct)).Id;
+
+            var user = await dataContext.Users.Where(u => u.UserId == userId).SingleOrDefaultAsync(ct);
+
+            if (user != null)
+            {
+                user.AccessToken = accessToken;
+                await dataContext.SaveChangesAsync(ct);
+            }
         }
 
         return spotifyClient;
