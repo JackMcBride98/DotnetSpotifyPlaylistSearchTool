@@ -30,6 +30,7 @@ public class BuildContext : FrostingContext
     public string ApiProjectPath { get; }
     public string ClientDirectoryPath { get; }
     public string BackendE2ETestsProjectPath { get; }
+    public string BuildersProjectPath { get; }
 
     public BuildContext(ICakeContext context)
         : base(context)
@@ -45,6 +46,7 @@ public class BuildContext : FrostingContext
         ApiProjectPath = "../SpotifyPlaylistSearchTool.Api/SpotifyPlaylistSearchTool.Api.csproj";
         ClientDirectoryPath = "../client";
         BackendE2ETestsProjectPath = "../BackendE2ETests/Tests/Tests.csproj";
+        BuildersProjectPath = "../Builders/Builders.csproj";
     }
 }
 
@@ -59,6 +61,7 @@ public sealed class CleanTask : FrostingTask<BuildContext>
         context.DotNetClean(context.DbUpProjectPath);
         context.DotNetClean(context.ApiProjectPath);
         context.DotNetClean(context.BackendE2ETestsProjectPath);
+        context.DotNetClean(context.BuildersProjectPath);
     }
 }
 
@@ -126,6 +129,7 @@ public sealed class BuildTask : FrostingTask<BuildContext>
         context.DotNetBuild(context.DbUpProjectPath);
         context.DotNetBuild(context.ApiProjectPath);
         context.DotNetBuild(context.BackendE2ETestsProjectPath);
+        context.DotNetBuild(context.BuildersProjectPath);
     }
 }
 

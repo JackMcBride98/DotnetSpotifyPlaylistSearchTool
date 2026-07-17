@@ -29,5 +29,6 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\SpotifyPlaylistSearchTool.Api\SpotifyPlaylistSearchTool.Api.csproj" />
+        <ProjectReference Include="..\..\Builders\Builders.csproj" />
     </ItemGroup>
 </Project>
