@@ -1,9 +1,9 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Builders;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using SpotifyAPI.Web;
-using SpotifyPlaylistSearchTool.Api.Database;
 using Callback = SpotifyPlaylistSearchTool.Api.Features.Callback;
 
 namespace Tests.Features;
@@ -67,7 +67,7 @@ public class CallbackTests(App app) : TestBase(app)
     }
 
     [Fact]
-    public async Task Callback_TokenRequestSuccesful_ReturnsRedirectToProfile()
+    public async Task Callback_TokenRequestSuccessful_ReturnsRedirectToProfile()
     {
         // Arrange
         var request = new Callback.Request("valid_auth_code");
@@ -128,7 +128,7 @@ public class CallbackTests(App app) : TestBase(app)
     }
 
     [Fact]
-    public async Task Callback_TokenRequestSuccesful_UserDoesNotExist_CreatesNewUser()
+    public async Task Callback_TokenRequestSuccessful_UserDoesNotExist_CreatesNewUser()
     {
         // Arrange
         var request = new Callback.Request("valid_auth_code");
@@ -149,18 +149,13 @@ public class CallbackTests(App app) : TestBase(app)
     }
 
     [Fact]
-    public async Task Callback_TokenRequestSuccesful_UserAlreadyExists_UpdatesExistingUserTokens()
+    public async Task Callback_TokenRequestSuccessful_UserAlreadyExists_UpdatesExistingUserTokens()
     {
         // Arrange
         var request = new Callback.Request("valid_auth_code");
         ArrangeMockSuccessfulAuthResponse(request.Code);
 
-        var existingUser = new User(
-            DefaultSpotifyUserId,
-            "Old Display Name",
-            "old_access_token",
-            "old_refresh_token"
-        );
+        var existingUser = new UserBuilder { UserId = DefaultSpotifyUserId }.Build();
         Db.Users.Add(existingUser);
         await Db.SaveChangesAsync(TestContext.Current.CancellationToken);
 

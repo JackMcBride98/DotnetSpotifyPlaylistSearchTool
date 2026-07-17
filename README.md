@@ -74,6 +74,7 @@ If you want to test them locally
 - Client Gen?
 - Better logging for SyncSpotifyPlaylistService
 - Create background job for syncing playlists
+- Using owner name instead of ownerId for the only own playlists filter (this is not very safe e.g. multiple users with the same name)
 
 - Update branding (purple?)
 - Return home when errors

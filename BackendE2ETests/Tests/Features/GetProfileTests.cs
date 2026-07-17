@@ -1,8 +1,8 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Builders;
+using Microsoft.AspNetCore.Http;
 using NodaTime.Extensions;
 using NSubstitute;
 using SpotifyAPI.Web;
-using SpotifyPlaylistSearchTool.Api.Database;
 using GetProfile = SpotifyPlaylistSearchTool.Api.Features.GetProfile;
 
 namespace Tests.Features;
@@ -35,12 +35,11 @@ public class GetProfileTests(App app) : TestBase(app)
         // Arrange
         ArrangeMockSpotifyUser(DefaultSpotifyUserId, DefaultSpotifyDisplayName);
 
-        var existingUser = new User(
-            DefaultSpotifyUserId,
-            DefaultSpotifyDisplayName,
-            "fake_access_token",
-            "fake_refresh_token"
-        );
+        var existingUser = new UserBuilder
+        {
+            UserId = DefaultSpotifyUserId,
+            Username = DefaultSpotifyDisplayName,
+        }.Build();
         Db.Users.Add(existingUser);
         await Db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
@@ -66,34 +65,15 @@ public class GetProfileTests(App app) : TestBase(app)
         // Arrange
         ArrangeMockSpotifyUser(DefaultSpotifyUserId, DefaultSpotifyDisplayName);
 
-        var existingUser = new User(
-            DefaultSpotifyUserId,
-            DefaultSpotifyDisplayName,
-            "fake_access_token",
-            "fake_refresh_token"
-        );
-        Db.Users.Add(existingUser);
-
-        // Seed playlists matching your defined entity structure
-        var seedPlaylists = new List<Playlist>
+        var existingUser = new UserBuilder
         {
-            new Playlist(
-                "playlist-1",
-                "Rock Classics",
-                "Greatest rock tracks",
-                DefaultSpotifyDisplayName,
-                "snapshot-1"
-            )
-            {
-                Users = [existingUser],
-            },
-            new Playlist("playlist-2", "Chill Beats", "Top pop music", "Someone Else", "snapshot-2")
-            {
-                Users = [existingUser],
-            },
-        };
+            UserId = DefaultSpotifyUserId,
+            Username = DefaultSpotifyDisplayName,
+        }
+            .WithPlaylists(5)
+            .Build();
 
-        Db.Playlists.AddRange(seedPlaylists);
+        Db.Users.Add(existingUser);
         await Db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         // Act
@@ -106,7 +86,7 @@ public class GetProfileTests(App app) : TestBase(app)
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
 
         result.ShouldNotBeNull();
-        result.TotalPlaylists.ShouldBe(2);
+        result.TotalPlaylists.ShouldBe(5);
     }
 
     [Theory]
@@ -119,15 +99,12 @@ public class GetProfileTests(App app) : TestBase(app)
 
         var fixedDate = new DateTime(2026, 7, 16, 12, 0, 0, DateTimeKind.Utc).ToInstant();
 
-        var existingUser = new User(
-            DefaultSpotifyUserId,
-            DefaultSpotifyDisplayName,
-            "fake_access_token",
-            "fake_refresh_token"
-        )
+        var existingUser = new UserBuilder
         {
+            UserId = DefaultSpotifyUserId,
+            Username = DefaultSpotifyDisplayName,
             UpdatedAt = userHasNoUpdatedAt ? null : fixedDate,
-        };
+        }.Build();
 
         Db.Users.Add(existingUser);
         await Db.SaveChangesAsync(TestContext.Current.CancellationToken);

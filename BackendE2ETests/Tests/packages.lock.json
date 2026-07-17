@@ -818,6 +818,13 @@
           "xunit.v3.runner.common": "[3.2.2]"
         }
       },
+      "builders": {
+        "type": "Project",
+        "dependencies": {
+          "Bogus": "[35.6.5, )",
+          "SpotifyPlaylistSearchTool.Api": "[1.0.0, )"
+        }
+      },
       "spotifyplaylistsearchtool.api": {
         "type": "Project",
         "dependencies": {
