@@ -1,5 +1,4 @@
-﻿using FastEndpoints;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using SpotifyPlaylistSearchTool.Api.Database;
 using SpotifyPlaylistSearchTool.Api.Services;
 
@@ -7,6 +6,7 @@ namespace SpotifyPlaylistSearchTool.Api.Features;
 
 public static class GetRandomPlaylist
 {
+    // Possible remove the request from this
     public record Request(bool OnlyOwnPlaylists);
 
     public record Response(SearchPlaylists.PlaylistResponse RandomPlaylist);
@@ -27,43 +27,31 @@ public static class GetRandomPlaylist
                 ct
             );
 
-            var userPlaylistCount = await dataContext
-                .Playlists.Include(p => p.Users)
-                .Where(p => p.Users!.Any(u => u.UserId == spotifyUserProfile.Id))
-                .CountAsync(ct);
+            var randomPlaylistResponse = await dataContext
+                .Playlists.Where(p => p.Users!.Any(u => u.UserId == spotifyUserProfile.Id))
+                .OrderBy(p => EF.Functions.Random())
+                .Select(p => new SearchPlaylists.PlaylistResponse(
+                    p.PlaylistId,
+                    p.Name,
+                    p.Description,
+                    p.OwnerName,
+                    new SearchPlaylists.ImageResponse(p.Image != null ? p.Image.Url : ""),
+                    p.Tracks != null
+                        ? p
+                            .Tracks.Select(t => new SearchPlaylists.TrackResponse(
+                                t.Name,
+                                t.ArtistName,
+                                false
+                            ))
+                            .ToList()
+                        : new List<SearchPlaylists.TrackResponse>()
+                ))
+                .FirstOrDefaultAsync(ct);
 
-            if (userPlaylistCount == 0)
-                ThrowError("User has no playlists");
-
-            var skip = new Random().Next(userPlaylistCount);
-
-            var randomPlaylist = await dataContext
-                .Playlists.Include(p => p.Tracks)
-                .Include(p => p.Image)
-                .Where(p => p.Users!.Any(u => u.UserId == spotifyUserProfile.Id))
-                .Skip(skip)
-                .Take(1)
-                .SingleOrDefaultAsync(ct);
-
-            if (randomPlaylist == null)
+            if (randomPlaylistResponse == null)
             {
-                ThrowError("Random playlist not found");
+                ThrowError("User has no playlists or random playlist not found");
             }
-
-            var randomPlaylistResponse = new SearchPlaylists.PlaylistResponse(
-                randomPlaylist.PlaylistId,
-                randomPlaylist.Name,
-                randomPlaylist.Description,
-                randomPlaylist.OwnerName,
-                new SearchPlaylists.ImageResponse(randomPlaylist.Image!.Url),
-                randomPlaylist
-                    .Tracks!.Select(t => new SearchPlaylists.TrackResponse(
-                        t.Name,
-                        t.ArtistName,
-                        false
-                    ))
-                    .ToList()
-            );
 
             return new Response(randomPlaylistResponse);
         }
