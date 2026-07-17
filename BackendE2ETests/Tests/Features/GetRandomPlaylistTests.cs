@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Http;
 using NSubstitute;
 using SpotifyAPI.Web;
-using SpotifyPlaylistSearchTool.Api.Database;
 using GetRandomPlaylist = SpotifyPlaylistSearchTool.Api.Features.GetRandomPlaylist;
 
 namespace Tests.Features;
@@ -89,7 +88,7 @@ public class GetRandomPlaylistTests(App app) : TestBase(app)
         returnedPlaylist.Name.ShouldBe("My Only Playlist");
         returnedPlaylist.Description.ShouldBe("Chill tunes");
         returnedPlaylist.OwnerName.ShouldBe("Test Owner");
-        returnedPlaylist.Tracks.Count.ShouldBe(2);
+        returnedPlaylist.Tracks.Count.ShouldBe(1);
         returnedPlaylist.Tracks.Any(t => t.Name == "Track A").ShouldBeTrue();
     }
 
@@ -170,6 +169,50 @@ public class GetRandomPlaylistTests(App app) : TestBase(app)
         result.ShouldNotBeNull();
 
         result.RandomPlaylist.Id.ShouldBe("current-user-playlist");
+    }
+
+    [Fact]
+    public async Task GetRandomPlaylist_OnlyOwnPlaylistsTrue_FiltersOutOtherOwners()
+    {
+        // Arrange
+        ArrangeMockSpotifyUser(DefaultSpotifyUserId);
+
+        var currentUser = new UserBuilder
+        {
+            UserId = DefaultSpotifyUserId,
+            Username = DefaultSpotifyDisplayName,
+        }.Build();
+        Db.Users.Add(currentUser);
+
+        var ownPlaylist = new PlaylistBuilder
+        {
+            PlaylistId = "own-playlist",
+            OwnerName = DefaultSpotifyDisplayName,
+            Users = [currentUser],
+        }.Build();
+        var otherPlaylist = new PlaylistBuilder
+        {
+            PlaylistId = "other-playlist",
+            OwnerName = "Someone Else",
+            Users = [currentUser],
+        }.Build();
+
+        Db.Playlists.AddRange(ownPlaylist, otherPlaylist);
+        await Db.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        var request = new GetRandomPlaylist.Request(OnlyOwnPlaylists: true);
+
+        // Act
+        var (response, result) = await App.Client.GETAsync<
+            GetRandomPlaylist.Endpoint,
+            GetRandomPlaylist.Request,
+            GetRandomPlaylist.Response
+        >(request);
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        result.ShouldNotBeNull();
+        result.RandomPlaylist.Id.ShouldBe("own-playlist");
     }
 
     private void ArrangeMockSpotifyUser(string spotifyUserId)

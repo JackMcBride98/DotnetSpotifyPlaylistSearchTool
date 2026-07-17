@@ -74,8 +74,7 @@ If you want to test them locally
 - Client Gen?
 - Better logging for SyncSpotifyPlaylistService
 - Create background job for syncing playlists
-- Need to think about how playlists users works now given that we fetch playlists that are either the user is the owner 
-or they are collaborative, so now how does the showOnlyOwnPlaylists functionality make sense? Do we even need it?
+- Using owner name instead of ownerId for the only own playlists filter (this is not very safe e.g. multiple users with the same name)
 
 - Update branding (purple?)
 - Return home when errors

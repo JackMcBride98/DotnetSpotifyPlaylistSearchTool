@@ -6,7 +6,6 @@ namespace SpotifyPlaylistSearchTool.Api.Features;
 
 public static class GetRandomPlaylist
 {
-    // Possible remove the request from this
     public record Request(bool OnlyOwnPlaylists);
 
     public record Response(SearchPlaylists.PlaylistResponse RandomPlaylist);
@@ -27,8 +26,18 @@ public static class GetRandomPlaylist
                 ct
             );
 
-            var randomPlaylistResponse = await dataContext
-                .Playlists.Where(p => p.Users!.Any(u => u.UserId == spotifyUserProfile.Id))
+            var randomPlaylistQuery = dataContext.Playlists.Where(p =>
+                p.Users!.Any(u => u.UserId == spotifyUserProfile.Id)
+            );
+
+            if (request.OnlyOwnPlaylists)
+            {
+                randomPlaylistQuery = randomPlaylistQuery.Where(p =>
+                    p.OwnerName == spotifyUserProfile.DisplayName
+                );
+            }
+
+            var randomPlaylistResponse = await randomPlaylistQuery
                 .OrderBy(p => EF.Functions.Random())
                 .Select(p => new SearchPlaylists.PlaylistResponse(
                     p.PlaylistId,
