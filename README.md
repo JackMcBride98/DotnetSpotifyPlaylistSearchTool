@@ -66,7 +66,6 @@ If you want to test them locally
 
 # TODO
 - Thoroughly test all endpoints
-- Test for pending model changes database vs data model? context.Database.HasPendingModelChanges();
 - Create frontend tests (do we need this)
 - Prettier setup
 - ESLint setup (Job for format and lint frontend)
