@@ -40,28 +40,36 @@ public static class SearchPlaylists
                 ct
             );
 
-            var userPlaylists = await dataContext
-                .Playlists.Include(p => p.Users)
+            var totalUserPlaylists = await dataContext
+                .Users.Where(u => u.UserId == spotifyUserProfile.Id)
+                .Select(u => u.Playlists!.Count)
+                .FirstOrDefaultAsync(ct);
+
+            var query = dataContext
+                .Playlists.AsSplitQuery()
+                .Include(p => p.Users)
                 .Include(p => p.Tracks)
                 .Include(p => p.Image)
-                .Where(p => p.Users!.Any(u => u.UserId == spotifyUserProfile.Id))
-                .ToListAsync(ct);
+                .Where(p => p.Users!.Any(u => u.UserId == spotifyUserProfile.Id));
 
-            var totalUserPlaylists = userPlaylists.Count;
+            if (!string.IsNullOrWhiteSpace(request.SearchTerm))
+            {
+                var lowerSearch = request.SearchTerm.ToLower();
 
-            var matchingPlaylists = userPlaylists.Where(p =>
-                p.Tracks!.Any(t =>
-                    t.Name.Contains(request.SearchTerm, StringComparison.OrdinalIgnoreCase)
-                    || t.ArtistName.Contains(request.SearchTerm, StringComparison.OrdinalIgnoreCase)
-                )
-            );
+                query = query.Where(p =>
+                    p.Tracks!.Any(t =>
+                        t.Name.ToLower().Contains(lowerSearch)
+                        || t.ArtistName.ToLower().Contains(lowerSearch)
+                    )
+                );
+            }
 
             if (request.ShowOnlyOwnPlaylists)
             {
-                matchingPlaylists = matchingPlaylists.Where(p =>
-                    p.OwnerName == spotifyUserProfile.DisplayName
-                );
+                query = query.Where(p => p.OwnerName == spotifyUserProfile.DisplayName);
             }
+
+            var matchingPlaylists = await query.ToListAsync(ct);
 
             return new Response(
                 matchingPlaylists

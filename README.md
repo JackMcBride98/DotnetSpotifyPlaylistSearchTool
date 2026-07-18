@@ -66,8 +66,6 @@ If you want to test them locally
 
 # TODO
 - Thoroughly test all endpoints
-- Builders for test data?
-- Test for pending model changes database vs data model? context.Database.HasPendingModelChanges();
 - Create frontend tests (do we need this)
 - Prettier setup
 - ESLint setup (Job for format and lint frontend)
@@ -75,6 +73,7 @@ If you want to test them locally
 - Better logging for SyncSpotifyPlaylistService
 - Create background job for syncing playlists
 - Using owner name instead of ownerId for the only own playlists filter (this is not very safe e.g. multiple users with the same name)
+- remove the total playlist count from search (only an issue when searching during sync which is not a common use case) could add a warning text saying playlist counts are unreliable during sync.
 
 - Update branding (purple?)
 - Return home when errors
