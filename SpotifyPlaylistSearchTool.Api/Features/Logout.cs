@@ -1,13 +1,14 @@
-using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
-using SpotifyAPI.Web;
 using SpotifyPlaylistSearchTool.Api.Database;
+using SpotifyPlaylistSearchTool.Api.Services;
+using Void = FastEndpoints.Void;
 
 namespace SpotifyPlaylistSearchTool.Api.Features;
 
 public static class Logout
 {
-    public class Endpoint(DataContext dataContext) : EndpointWithoutRequest<FastEndpoints.Void>
+    public class Endpoint(DataContext dataContext, ISpotifyAuthService spotifyAuthService)
+        : EndpointWithoutRequest<Void>
     {
         public override void Configure()
         {
@@ -15,16 +16,9 @@ public static class Logout
             AllowAnonymous();
         }
 
-        public override async Task<FastEndpoints.Void> ExecuteAsync(CancellationToken ct)
+        public override async Task<Void> ExecuteAsync(CancellationToken ct)
         {
-            if (!HttpContext.Request.Cookies.TryGetValue("AccessToken", out var accessToken))
-            {
-                ThrowError("Access token not found");
-            }
-
-            var spotify = new SpotifyClient(accessToken);
-
-            var spotifyUser = await spotify.UserProfile.Current(ct);
+            var spotifyUser = await spotifyAuthService.GetCurrentUserProfileAsync(HttpContext, ct);
 
             var user = await dataContext
                 .Users.Where(u => u.UserId == spotifyUser.Id)
