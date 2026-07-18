@@ -12,10 +12,7 @@ public class LogInTests(App app) : TestBase(app)
         var spotifyOptions = App.Services.GetRequiredService<IOptions<SpotifyOptions>>().Value;
 
         // Act
-        var (response, result) = await App.Client.POSTAsync<
-            LogIn.Endpoint, 
-            LogIn.Response
-        >();
+        var (response, result) = await App.Client.POSTAsync<LogIn.Endpoint, LogIn.Response>();
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
@@ -27,13 +24,19 @@ public class LogInTests(App app) : TestBase(app)
             { "client_id", spotifyOptions.ClientId },
             { "response_type", "code" },
             { "redirect_uri", spotifyOptions.RedirectUri },
-            { "scope", "playlist-read-private playlist-read-collaborative user-read-private user-read-email" }
+            {
+                "scope",
+                "playlist-read-private playlist-read-collaborative user-read-private user-read-email"
+            },
         };
 
         using var content = new FormUrlEncodedContent(queryParams);
-        var expectedQueryString = await content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        var expectedQueryString = await content.ReadAsStringAsync(
+            TestContext.Current.CancellationToken
+        );
 
-        var expectedUri = $"https://accounts.spotify.com/authorize?{expectedQueryString.ToLowerInvariant()}";
+        var expectedUri =
+            $"https://accounts.spotify.com/authorize?{expectedQueryString.ToLowerInvariant()}";
 
         result.LoginUri.ToString().ShouldBe(expectedUri);
     }
