@@ -1,7 +1,7 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Builders;
+using Microsoft.AspNetCore.Http;
 using NSubstitute;
 using SpotifyAPI.Web;
-using SpotifyPlaylistSearchTool.Api.Database;
 using SpotifyPlaylistSearchTool.Api.Features;
 using Image = SpotifyPlaylistSearchTool.Api.Database.Image;
 
@@ -12,12 +12,6 @@ public class SearchPlaylistsTests(App app) : TestBase(app)
     private const string TestUserId = "spotify-user-123";
     private const string TestUserName = "Alex Smith";
 
-    private async Task SeedDatabaseAsync(List<Playlist> playlists)
-    {
-        Db.Playlists.AddRange(playlists);
-        await Db.SaveChangesAsync();
-    }
-
     private void ConfigureMockUser(string id, string displayName)
     {
         App.MockSpotifyAuth.GetCurrentUserProfileAsync(
@@ -27,46 +21,23 @@ public class SearchPlaylistsTests(App app) : TestBase(app)
             .Returns(Task.FromResult(new PrivateUser { Id = id, DisplayName = displayName }));
     }
 
-    [Fact]
-    public async Task Search_Returns_Matching_Playlists_And_Flags_Matching_Tracks()
+    [Theory]
+    [InlineData(0)]
+    [InlineData(5)]
+    public async Task Search_Returns_Correct_TotalUserPlaylists_Count(int playlistCount)
     {
         // Arrange
         ConfigureMockUser(TestUserId, TestUserName);
 
-        var user = new User(TestUserId, TestUserName, "access-token", "refresh-token");
+        var user = new UserBuilder { UserId = TestUserId, Username = TestUserName }
+            .WithPlaylists(playlistCount)
+            .Build();
         Db.Users.Add(user);
         await Db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        var samplePlaylists = new List<Playlist>
-        {
-            new Playlist(
-                "playlist-1",
-                "Rock Classics",
-                "Greatest rock tracks",
-                TestUserName,
-                "snapshot-1"
-            )
-            {
-                Users = [user],
-                Image = new Image("https://example.com/img1.jpg", 200, 200),
-                Tracks =
-                [
-                    new Track(1, "Bohemian Rhapsody", "Queen", "playlist-1"),
-                    new Track(2, "Stairway to Heaven", "Led Zeppelin", "playlist-1"),
-                ],
-            },
-            new Playlist("playlist-2", "Pop Hits", "Top pop music", "Someone Else", "snapshot-2")
-            {
-                Users = [user],
-                Image = new Image("https://example.com/img2.jpg", 0, 0),
-                Tracks = [new Track(1, "Blank Space", "Taylor Swift", "playlist-2")],
-            },
-        };
-
-        await SeedDatabaseAsync(samplePlaylists);
         Db.ChangeTracker.Clear();
 
-        var request = new SearchPlaylists.Request("queen", ShowOnlyOwnPlaylists: false);
+        var request = new SearchPlaylists.Request("Track", ShowOnlyOwnPlaylists: false);
 
         // Act
         var (response, result) = await App.Client.GETAsync<
@@ -77,18 +48,273 @@ public class SearchPlaylistsTests(App app) : TestBase(app)
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
-        result.TotalPlaylists.ShouldBe(2); // The total count before filtering tracks
+        result.TotalPlaylists.ShouldBe(playlistCount);
+    }
+
+    [Fact]
+    public async Task Search_With_Matching_Track_Name_Returns_Expected_Playlist()
+    {
+        // Arrange
+        ConfigureMockUser(TestUserId, TestUserName);
+
+        var user = new UserBuilder { UserId = TestUserId, Username = TestUserName }
+            .WithPlaylists([
+                new PlaylistBuilder
+                {
+                    PlaylistId = "playlist-track-name",
+                    Image = new Image("https://example.com/img1.jpg", 0, 0),
+                }.WithTracks([
+                    new TrackBuilder { Name = "November Rain", ArtistName = "Guns N' Roses" },
+                ]),
+            ])
+            .Build();
+        Db.Users.Add(user);
+        await Db.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        Db.ChangeTracker.Clear();
+
+        var request = new SearchPlaylists.Request("november", ShowOnlyOwnPlaylists: false);
+
+        // Act
+        var (response, result) = await App.Client.GETAsync<
+            SearchPlaylists.Endpoint,
+            SearchPlaylists.Request,
+            SearchPlaylists.Response
+        >(request);
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        result.MatchingPlaylists.Count.ShouldBe(1);
+        result.MatchingPlaylists.First().Tracks.First().Name.ShouldBe("November Rain");
+        result.MatchingPlaylists.First().Tracks.First().Match.ShouldBeTrue();
+    }
+
+    [Fact]
+    public async Task Search_With_Matching_Artist_Name_Returns_Expected_Playlist()
+    {
+        // Arrange
+        ConfigureMockUser(TestUserId, TestUserName);
+
+        var user = new UserBuilder { UserId = TestUserId, Username = TestUserName }
+            .WithPlaylists([
+                new PlaylistBuilder
+                {
+                    PlaylistId = "playlist-artist-name",
+                    Image = new Image("https://example.com/img2.jpg", 0, 0),
+                }.WithTracks([
+                    new TrackBuilder { Name = "Shake It Off", ArtistName = "Taylor Swift" },
+                ]),
+            ])
+            .Build();
+        Db.Users.Add(user);
+        await Db.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        Db.ChangeTracker.Clear();
+
+        var request = new SearchPlaylists.Request("swift", ShowOnlyOwnPlaylists: false);
+
+        // Act
+        var (response, result) = await App.Client.GETAsync<
+            SearchPlaylists.Endpoint,
+            SearchPlaylists.Request,
+            SearchPlaylists.Response
+        >(request);
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        result.MatchingPlaylists.Count.ShouldBe(1);
+        result.MatchingPlaylists.First().Tracks.First().ArtistName.ShouldBe("Taylor Swift");
+        result.MatchingPlaylists.First().Tracks.First().Match.ShouldBeTrue();
+    }
+
+    [Fact]
+    public async Task Search_Only_Returns_Playlists_That_Contain_At_Least_One_Matching_Track()
+    {
+        // Arrange
+        ConfigureMockUser(TestUserId, TestUserName);
+
+        var user = new UserBuilder { UserId = TestUserId, Username = TestUserName }
+            .WithPlaylists([
+                new PlaylistBuilder
+                {
+                    PlaylistId = "matching-playlist",
+                    Image = new Image("https://example.com/img1.jpg", 0, 0),
+                }.WithTracks([
+                    new TrackBuilder { Name = "Fortnight", ArtistName = "Taylor Swift" },
+                ]),
+                new PlaylistBuilder
+                {
+                    PlaylistId = "non-matching-playlist",
+                    Image = new Image("https://example.com/img2.jpg", 0, 0),
+                }.WithTracks([
+                    new TrackBuilder { Name = "Take Five", ArtistName = "Dave Brubeck" },
+                ]),
+            ])
+            .Build();
+        Db.Users.Add(user);
+        await Db.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        Db.ChangeTracker.Clear();
+
+        var request = new SearchPlaylists.Request("Fortnight", ShowOnlyOwnPlaylists: false);
+
+        // Act
+        var (response, result) = await App.Client.GETAsync<
+            SearchPlaylists.Endpoint,
+            SearchPlaylists.Request,
+            SearchPlaylists.Response
+        >(request);
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        result.MatchingPlaylists.Count.ShouldBe(1);
+        result.MatchingPlaylists.ShouldNotContain(p => p.Id == "non-matching-playlist");
+        result.MatchingPlaylists.ShouldContain(p => p.Id == "matching-playlist");
+    }
+
+    [Fact]
+    public async Task Search_With_ShowOnlyOwnPlaylists_True_Returns_Only_Playlists_Owned_By_User()
+    {
+        // Arrange
+        ConfigureMockUser(TestUserId, TestUserName);
+
+        var user = new UserBuilder { UserId = TestUserId, Username = TestUserName }
+            .WithPlaylists([
+                new PlaylistBuilder
+                {
+                    PlaylistId = "own-playlist",
+                    OwnerName = TestUserName, // Matches logged-in user DisplayName
+                    Image = new Image("https://example.com/img1.jpg", 0, 0),
+                }.WithTracks([new TrackBuilder { Name = "Style", ArtistName = "Taylor Swift" }]),
+                new PlaylistBuilder
+                {
+                    PlaylistId = "someone-elses-playlist",
+                    OwnerName = "John Doe", // Different owner
+                    Image = new Image("https://example.com/img2.jpg", 0, 0),
+                }.WithTracks([
+                    new TrackBuilder { Name = "Blank Space", ArtistName = "Taylor Swift" },
+                ]),
+            ])
+            .Build();
+        Db.Users.Add(user);
+        await Db.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        Db.ChangeTracker.Clear();
+
+        var request = new SearchPlaylists.Request("Swift", ShowOnlyOwnPlaylists: true);
+
+        // Act
+        var (response, result) = await App.Client.GETAsync<
+            SearchPlaylists.Endpoint,
+            SearchPlaylists.Request,
+            SearchPlaylists.Response
+        >(request);
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        result.MatchingPlaylists.Count.ShouldBe(1);
+        result.MatchingPlaylists.ShouldContain(p => p.Id == "own-playlist");
+        result.MatchingPlaylists.ShouldNotContain(p => p.Id == "someone-elses-playlist");
+    }
+
+    [Fact]
+    public async Task Search_With_ShowOnlyOwnPlaylists_False_Returns_All_User_Playlists()
+    {
+        // Arrange
+        ConfigureMockUser(TestUserId, TestUserName);
+
+        var user = new UserBuilder { UserId = TestUserId, Username = TestUserName }
+            .WithPlaylists([
+                new PlaylistBuilder
+                {
+                    PlaylistId = "own-playlist",
+                    OwnerName = TestUserName,
+                    Image = new Image("https://example.com/img1.jpg", 0, 0),
+                }.WithTracks([new TrackBuilder { Name = "Style", ArtistName = "Taylor Swift" }]),
+                new PlaylistBuilder
+                {
+                    PlaylistId = "someone-elses-playlist",
+                    OwnerName = "John Doe",
+                    Image = new Image("https://example.com/img2.jpg", 0, 0),
+                }.WithTracks([
+                    new TrackBuilder { Name = "Blank Space", ArtistName = "Taylor Swift" },
+                ]),
+            ])
+            .Build();
+        Db.Users.Add(user);
+        await Db.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        Db.ChangeTracker.Clear();
+
+        var request = new SearchPlaylists.Request("Swift", ShowOnlyOwnPlaylists: false);
+
+        // Act
+        var (response, result) = await App.Client.GETAsync<
+            SearchPlaylists.Endpoint,
+            SearchPlaylists.Request,
+            SearchPlaylists.Response
+        >(request);
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        result.MatchingPlaylists.Count.ShouldBe(2);
+        result.MatchingPlaylists.ShouldContain(p => p.Id == "own-playlist");
+        result.MatchingPlaylists.ShouldContain(p => p.Id == "someone-elses-playlist");
+    }
+
+    [Fact]
+    public async Task Search_Flags_Match_True_Only_For_Tracks_Containing_SearchTerm_Within_Matched_Playlist()
+    {
+        // Arrange
+        ConfigureMockUser(TestUserId, TestUserName);
+
+        var user = new UserBuilder { UserId = TestUserId, Username = TestUserName }
+            .WithPlaylists([
+                new PlaylistBuilder
+                {
+                    PlaylistId = "mixed-playlist",
+                    Image = new Image("https://example.com/img1.jpg", 0, 0),
+                }.WithTracks([
+                    new TrackBuilder { Name = "Bohemian Rhapsody", ArtistName = "Queen" },
+                    new TrackBuilder { Name = "Stairway to Heaven", ArtistName = "Led Zeppelin" },
+                    new TrackBuilder { Name = "Killer Queen", ArtistName = "Various Artists" },
+                ]),
+            ])
+            .Build();
+        Db.Users.Add(user);
+        await Db.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        Db.ChangeTracker.Clear();
+
+        // Searching for "Queen" should match via Artist Name (track 1) or Track Name (track 3)
+        var request = new SearchPlaylists.Request("Queen", ShowOnlyOwnPlaylists: false);
+
+        // Act
+        var (response, result) = await App.Client.GETAsync<
+            SearchPlaylists.Endpoint,
+            SearchPlaylists.Request,
+            SearchPlaylists.Response
+        >(request);
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
         result.MatchingPlaylists.Count.ShouldBe(1);
 
         var matchedPlaylist = result.MatchingPlaylists.First();
-        matchedPlaylist.Id.ShouldBe("playlist-1");
-        matchedPlaylist.Image.Url.ShouldBe("https://example.com/img1.jpg");
 
-        // Check that individual tracks flag their match state correctly
-        var queenTrack = matchedPlaylist.Tracks.First(t => t.ArtistName == "Queen");
-        queenTrack.Match.ShouldBeTrue();
+        var artistMatchTrack = matchedPlaylist
+            .Tracks.Where(t => t.ArtistName == "Queen")
+            .ShouldHaveSingleItem();
+        artistMatchTrack.Match.ShouldBeTrue();
 
-        var zeppelinTrack = matchedPlaylist.Tracks.First(t => t.ArtistName == "Led Zeppelin");
-        zeppelinTrack.Match.ShouldBeFalse();
+        var nonMatchTrack = matchedPlaylist
+            .Tracks.Where(t => t.Name == "Stairway to Heaven")
+            .ShouldHaveSingleItem();
+        nonMatchTrack.Match.ShouldBeFalse();
+
+        var nameMatchTrack = matchedPlaylist
+            .Tracks.Where(t => t.Name == "Killer Queen")
+            .ShouldHaveSingleItem();
+        nameMatchTrack.Match.ShouldBeTrue();
     }
 }
