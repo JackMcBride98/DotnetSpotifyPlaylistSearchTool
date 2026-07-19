@@ -34,7 +34,7 @@ builder
         options.DocumentName = "v1";
         options.Title = "GetDocument.Insider API";
         options.Version = "v1.0.0";
-        options.ShortSchemaNames = false;
+        options.ShortSchemaNames = true;
     });
 
 var optionsBuilder = builder
@@ -59,6 +59,14 @@ app.UseRouting();
 app.UseFastEndpoints(c =>
 {
     c.Endpoints.RoutePrefix = "api";
+    c.Endpoints.NameGenerator = ctx =>
+    {
+        var declaringType = ctx.EndpointType.DeclaringType;
+
+        var name = declaringType != null ? declaringType.Name : ctx.EndpointType.Name;
+
+        return name.EndsWith("Endpoint") ? name[..^8] : name;
+    };
 });
 
 // `UseEndpoints` terminates the request pipeline if a match was found. It's usually added implicitly by .NET but we

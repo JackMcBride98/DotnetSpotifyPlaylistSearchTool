@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using NSubstitute;
 using SpotifyAPI.Web;
-using LogoutFeature = SpotifyPlaylistSearchTool.Api.Features.Logout;
+using LogoutFeature = SpotifyPlaylistSearchTool.Api.Features.Auth.Logout;
 using Void = FastEndpoints.Void;
 
 namespace Tests.Features;

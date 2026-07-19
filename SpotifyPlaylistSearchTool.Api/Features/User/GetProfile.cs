@@ -3,7 +3,7 @@ using SpotifyAPI.Web;
 using SpotifyPlaylistSearchTool.Api.Database;
 using SpotifyPlaylistSearchTool.Api.Services;
 
-namespace SpotifyPlaylistSearchTool.Api.Features;
+namespace SpotifyPlaylistSearchTool.Api.Features.User;
 
 public class GetProfile
 {

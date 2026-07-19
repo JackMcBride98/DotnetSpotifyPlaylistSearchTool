@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Http;
 using NodaTime.Extensions;
 using NSubstitute;
 using SpotifyAPI.Web;
-using GetProfile = SpotifyPlaylistSearchTool.Api.Features.GetProfile;
+using GetProfile = SpotifyPlaylistSearchTool.Api.Features.User.GetProfile;
 
 namespace Tests.Features;
 

@@ -3,7 +3,7 @@ using SpotifyPlaylistSearchTool.Api.Database;
 using SpotifyPlaylistSearchTool.Api.Services;
 using Void = FastEndpoints.Void;
 
-namespace SpotifyPlaylistSearchTool.Api.Features;
+namespace SpotifyPlaylistSearchTool.Api.Features.Auth;
 
 public static class Logout
 {

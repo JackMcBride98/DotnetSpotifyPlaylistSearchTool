@@ -2,34 +2,27 @@ import { motion } from "framer-motion";
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { SpinnerCircularFixed } from "spinners-react";
-
-type LoginResponse = {
-  loginUri: string;
-};
+import { logInMutation } from "../api/@tanstack/react-query.gen.ts";
 
 export const LoginButton = () => {
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   const { isError, error, mutate } = useMutation({
-    mutationFn: async () => {
-      const response = await fetch("/api/login", {
-        method: "POST",
-      });
-      if (!response.ok) {
-        const errorMessage = await response.text();
-        setIsLoggingIn(false);
-        throw new Error(`HTTP Error ${response.status}: ${errorMessage}`);
+      ...logInMutation(),
+      onSuccess: (data) => {
+        window.location.href = data.loginUri;
+      },
+      onError: (err) => {
+          console.error("Login failed:", err);
+      },
+      onSettled: () => {
+          setIsLoggingIn(false);
       }
-      const body: LoginResponse = await response.json();
-      if (!body.loginUri) {
-      }
-      window.location.href = body.loginUri;
-    },
   });
 
   const handleLogin = () => {
     setIsLoggingIn(true);
-    mutate();
+    mutate({});
   };
 
   return (
