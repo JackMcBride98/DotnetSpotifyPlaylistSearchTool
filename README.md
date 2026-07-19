@@ -65,13 +65,16 @@ If you want to test them locally
 
 
 # TODO
-- Thoroughly test all endpoints
-- Create frontend tests (do we need this)
-- Prettier setup
-- ESLint setup (Job for format and lint frontend)
+Plan: Client Gen -> Frontent Lint, format and test setup -> Background job for syncing playlists -> Update branding and fix bugs -> AWS Deployment -> IaaC deployment -> PWA (stretch goal)
+
 - Client Gen?
-- Better logging for SyncSpotifyPlaylistService
+- ESLint setup (Job for format and lint frontend)
+- Prettier setup
+- Create frontend tests (do we need this)
+
 - Create background job for syncing playlists
+- Better logging for SyncSpotifyPlaylistService
+
 - Using owner name instead of ownerId for the only own playlists filter (this is not very safe e.g. multiple users with the same name)
 - remove the total playlist count from search (only an issue when searching during sync which is not a common use case) could add a warning text saying playlist counts are unreliable during sync.
 
@@ -79,6 +82,7 @@ If you want to test them locally
 - Return home when errors
 - Redirect to home when can't find user or spotify client?
 - Clicking Link on Random playlist retriggers the request and loads in a new random playlist
+
 - PWA
 - AWS Deployment
 - IaaC deployment

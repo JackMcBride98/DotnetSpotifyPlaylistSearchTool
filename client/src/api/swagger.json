@@ -1,0 +1,496 @@
+{
+  "openapi": "3.1.1",
+  "info": {
+    "title": "GetDocument.Insider API",
+    "version": "v1.0.0"
+  },
+  "paths": {
+    "/api/callback": {
+      "get": {
+        "tags": [
+          "Callback"
+        ],
+        "operationId": "SpotifyPlaylistSearchToolApiFeaturesCallback+Endpoint",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FastEndpointsErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/login": {
+      "post": {
+        "tags": [
+          "Login"
+        ],
+        "operationId": "SpotifyPlaylistSearchToolApiFeaturesLogIn+Endpoint",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpotifyPlaylistSearchToolApiFeaturesLogIn_Response"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/logout": {
+      "post": {
+        "tags": [
+          "Logout"
+        ],
+        "operationId": "SpotifyPlaylistSearchToolApiFeaturesLogout+Endpoint",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FastEndpointsVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/profile": {
+      "get": {
+        "tags": [
+          "Profile"
+        ],
+        "operationId": "SpotifyPlaylistSearchToolApiFeaturesGetProfile+Endpoint",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpotifyPlaylistSearchToolApiFeaturesGetProfile_GetProfileResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/random-playlist": {
+      "get": {
+        "tags": [
+          "Random-Playlist"
+        ],
+        "operationId": "SpotifyPlaylistSearchToolApiFeaturesGetRandomPlaylist+Endpoint",
+        "parameters": [
+          {
+            "name": "onlyOwnPlaylists",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpotifyPlaylistSearchToolApiFeaturesGetRandomPlaylist_Response"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/search-playlists": {
+      "get": {
+        "tags": [
+          "Search-Playlists"
+        ],
+        "operationId": "SpotifyPlaylistSearchToolApiFeaturesSearchPlaylists+Endpoint",
+        "parameters": [
+          {
+            "name": "searchTerm",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "showOnlyOwnPlaylists",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpotifyPlaylistSearchToolApiFeaturesSearchPlaylists_Response"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sync-playlists": {
+      "post": {
+        "tags": [
+          "Sync-Playlists"
+        ],
+        "operationId": "SpotifyPlaylistSearchToolApiFeaturesSyncPlaylists+Endpoint",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpotifyPlaylistSearchToolApiFeaturesSyncPlaylists_Response"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sync-progress": {
+      "get": {
+        "tags": [
+          "Sync-Progress"
+        ],
+        "operationId": "SpotifyPlaylistSearchToolApiFeaturesSyncProgress+Endpoint",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpotifyPlaylistSearchToolApiFeaturesSyncProgress_Response"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "FastEndpointsErrorResponse": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "integer",
+            "description": "the http status code sent to the client. default is 400.",
+            "format": "int32",
+            "default": 400
+          },
+          "message": {
+            "type": "string",
+            "description": "the message for the error response",
+            "default": "One or more errors occurred!"
+          },
+          "errors": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "description": "the dto used to send an error response to the client"
+      },
+      "FastEndpointsVoid": {
+        "type": "object",
+        "description": ""
+      },
+      "SpotifyAPIWebFollowers": {
+        "type": "object",
+        "properties": {
+          "href": {
+            "type": "string"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "SpotifyAPIWebImage": {
+        "type": "object",
+        "properties": {
+          "height": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "width": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "url": {
+            "type": "string"
+          }
+        }
+      },
+      "SpotifyAPIWebPrivateUser": {
+        "type": "object",
+        "properties": {
+          "country": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "externalUrls": {
+            "$ref": "#/components/schemas/SystemCollectionsGenericDictionaryOfSystemStringAndSystemString"
+          },
+          "followers": {
+            "$ref": "#/components/schemas/SpotifyAPIWebFollowers"
+          },
+          "href": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "images": {
+            "$ref": "#/components/schemas/SystemCollectionsGenericListOfSpotifyAPIWebImage"
+          },
+          "product": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "uri": {
+            "type": "string"
+          }
+        }
+      },
+      "SpotifyPlaylistSearchToolApiFeaturesGetProfile_GetProfileResponse": {
+        "required": [
+          "user",
+          "totalPlaylists",
+          "lastSyncedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "user": {
+            "$ref": "#/components/schemas/SpotifyAPIWebPrivateUser"
+          },
+          "totalPlaylists": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "lastSyncedAt": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "SpotifyPlaylistSearchToolApiFeaturesGetRandomPlaylist_Response": {
+        "required": [
+          "randomPlaylist"
+        ],
+        "type": "object",
+        "properties": {
+          "randomPlaylist": {
+            "$ref": "#/components/schemas/SpotifyPlaylistSearchToolApiFeaturesSearchPlaylists_PlaylistResponse"
+          }
+        }
+      },
+      "SpotifyPlaylistSearchToolApiFeaturesLogIn_Response": {
+        "required": [
+          "loginUri"
+        ],
+        "type": "object",
+        "properties": {
+          "loginUri": {
+            "type": "string",
+            "format": "uri"
+          }
+        }
+      },
+      "SpotifyPlaylistSearchToolApiFeaturesSearchPlaylists_ImageResponse": {
+        "required": [
+          "url"
+        ],
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          }
+        }
+      },
+      "SpotifyPlaylistSearchToolApiFeaturesSearchPlaylists_PlaylistResponse": {
+        "required": [
+          "id",
+          "name",
+          "description",
+          "ownerName",
+          "image",
+          "tracks"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "ownerName": {
+            "type": "string"
+          },
+          "image": {
+            "$ref": "#/components/schemas/SpotifyPlaylistSearchToolApiFeaturesSearchPlaylists_ImageResponse"
+          },
+          "tracks": {
+            "$ref": "#/components/schemas/SystemCollectionsGenericICollectionOfSpotifyPlaylistSearchToolApiFeaturesSearchPlaylists_TrackResponse"
+          }
+        }
+      },
+      "SpotifyPlaylistSearchToolApiFeaturesSearchPlaylists_Response": {
+        "required": [
+          "matchingPlaylists",
+          "totalPlaylists"
+        ],
+        "type": "object",
+        "properties": {
+          "matchingPlaylists": {
+            "$ref": "#/components/schemas/SystemCollectionsGenericICollectionOfSpotifyPlaylistSearchToolApiFeaturesSearchPlaylists_PlaylistResponse"
+          },
+          "totalPlaylists": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "SpotifyPlaylistSearchToolApiFeaturesSearchPlaylists_TrackResponse": {
+        "required": [
+          "name",
+          "artistName",
+          "match"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "artistName": {
+            "type": "string"
+          },
+          "match": {
+            "type": "boolean"
+          }
+        }
+      },
+      "SpotifyPlaylistSearchToolApiFeaturesSyncPlaylists_Response": {
+        "required": [
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "SpotifyPlaylistSearchToolApiFeaturesSyncProgress_Response": {
+        "required": [
+          "totalPlaylists",
+          "syncedPlaylists"
+        ],
+        "type": "object",
+        "properties": {
+          "totalPlaylists": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "syncedPlaylists": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "SystemCollectionsGenericDictionaryOfSystemStringAndSystemString": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "string"
+        }
+      },
+      "SystemCollectionsGenericICollectionOfSpotifyPlaylistSearchToolApiFeaturesSearchPlaylists_PlaylistResponse": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/SpotifyPlaylistSearchToolApiFeaturesSearchPlaylists_PlaylistResponse"
+        }
+      },
+      "SystemCollectionsGenericICollectionOfSpotifyPlaylistSearchToolApiFeaturesSearchPlaylists_TrackResponse": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/SpotifyPlaylistSearchToolApiFeaturesSearchPlaylists_TrackResponse"
+        }
+      },
+      "SystemCollectionsGenericListOfSpotifyAPIWebImage": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/SpotifyAPIWebImage"
+        }
+      }
+    },
+    "securitySchemes": {
+      "JWTBearerAuth": {
+        "type": "http",
+        "description": "Enter a JWT token to authorize the requests...",
+        "scheme": "Bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
+}
