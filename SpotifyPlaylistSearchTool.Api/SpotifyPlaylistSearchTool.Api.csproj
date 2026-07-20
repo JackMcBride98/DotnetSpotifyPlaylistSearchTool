@@ -5,15 +5,43 @@
         <ImplicitUsings>enable</ImplicitUsings>
     </PropertyGroup>
 
+    <PropertyGroup>
+        <OpenApiGenerateDocumentsOnBuild>true</OpenApiGenerateDocumentsOnBuild>
+
+        <OpenApiGenerateDocumentsOptions>--file-name swagger</OpenApiGenerateDocumentsOptions>
+
+        <OpenApiDocumentsDirectory>../client/api/</OpenApiDocumentsDirectory>
+    </PropertyGroup>
+
+    <Target
+        Name="AutomateFrontendTypeGen"
+        AfterTargets="Build"
+        Condition="'$(Configuration)' == 'Debug'"
+    >
+        <Message Importance="high" Text="🚀 .NET Build Hook: Automating @hey-api/openapi-ts..." />
+
+        <Exec WorkingDirectory="../client" Command="npm run clientGen" ContinueOnError="true" />
+    </Target>
+
     <ItemGroup>
         <PackageReference Include="FastEndpoints" Version="8.2.0" />
+        <PackageReference Include="FastEndpoints.OpenApi" Version="8.2.0" />
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.10" />
         <PackageReference Include="Microsoft.AspNetCore.SpaServices.Extensions" Version="10.0.9" />
         <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.9" />
+        <PackageReference
+            Include="Microsoft.Extensions.ApiDescription.Server"
+            Version="10.0.0-preview.*"
+        >
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
         <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.2" />
         <PackageReference
             Include="Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime"
             Version="10.0.2"
         />
+        <PackageReference Include="Scalar.AspNetCore" Version="2.16.15" />
         <PackageReference Include="SpotifyAPI.Web" Version="7.4.2" />
     </ItemGroup>
 </Project>

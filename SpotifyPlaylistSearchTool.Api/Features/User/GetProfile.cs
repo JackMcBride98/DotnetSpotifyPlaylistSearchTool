@@ -3,11 +3,13 @@ using SpotifyAPI.Web;
 using SpotifyPlaylistSearchTool.Api.Database;
 using SpotifyPlaylistSearchTool.Api.Services;
 
-namespace SpotifyPlaylistSearchTool.Api.Features;
+namespace SpotifyPlaylistSearchTool.Api.Features.User;
 
 public class GetProfile
 {
-    public record Response(PrivateUser User, int TotalPlaylists, string? LastSyncedAt);
+    public record UserProfileResponse(string Id, string DisplayName, string? ProfileImageUrl);
+
+    public record Response(UserProfileResponse User, int TotalPlaylists, string? LastSyncedAt);
 
     public class Endpoint(DataContext dataContext, ISpotifyAuthService spotifyAuthService)
         : EndpointWithoutRequest<Response>
@@ -43,7 +45,15 @@ public class GetProfile
                 ? profileData.UpdatedAt.ToString()
                 : null;
 
-            return new Response(spotifyUserProfile, profileData.PlaylistCount, lastUpdatedAtOrNull);
+            return new Response(
+                new UserProfileResponse(
+                    spotifyUserProfile.Id,
+                    spotifyUserProfile.DisplayName,
+                    spotifyUserProfile.Images.FirstOrDefault()?.Url
+                ),
+                profileData.PlaylistCount,
+                lastUpdatedAtOrNull
+            );
         }
     }
 }

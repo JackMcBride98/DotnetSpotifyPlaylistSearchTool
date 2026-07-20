@@ -1,28 +1,14 @@
-﻿using FastEndpoints;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using SpotifyPlaylistSearchTool.Api.Database;
 using SpotifyPlaylistSearchTool.Api.Services;
 
-namespace SpotifyPlaylistSearchTool.Api.Features;
+namespace SpotifyPlaylistSearchTool.Api.Features.Playlists;
 
 public static class SearchPlaylists
 {
     public record Request(string SearchTerm, bool ShowOnlyOwnPlaylists);
 
     public record Response(ICollection<PlaylistResponse> MatchingPlaylists, int TotalPlaylists);
-
-    public record PlaylistResponse(
-        string Id,
-        string Name,
-        string Description,
-        string OwnerName,
-        ImageResponse Image,
-        ICollection<TrackResponse> Tracks
-    );
-
-    public record TrackResponse(string Name, string ArtistName, bool Match);
-
-    public record ImageResponse(string Url);
 
     public class Endpoint(DataContext dataContext, ISpotifyAuthService spotifyAuthService)
         : Endpoint<Request, Response>

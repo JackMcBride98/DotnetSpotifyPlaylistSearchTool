@@ -2,13 +2,13 @@
 using SpotifyPlaylistSearchTool.Api.Database;
 using SpotifyPlaylistSearchTool.Api.Services;
 
-namespace SpotifyPlaylistSearchTool.Api.Features;
+namespace SpotifyPlaylistSearchTool.Api.Features.Playlists;
 
 public static class GetRandomPlaylist
 {
     public record Request(bool OnlyOwnPlaylists);
 
-    public record Response(SearchPlaylists.PlaylistResponse RandomPlaylist);
+    public record Response(PlaylistResponse RandomPlaylist);
 
     public class Endpoint(DataContext dataContext, ISpotifyAuthService spotifyAuthService)
         : Endpoint<Request, Response>
@@ -39,21 +39,17 @@ public static class GetRandomPlaylist
 
             var randomPlaylistResponse = await randomPlaylistQuery
                 .OrderBy(p => EF.Functions.Random())
-                .Select(p => new SearchPlaylists.PlaylistResponse(
+                .Select(p => new PlaylistResponse(
                     p.PlaylistId,
                     p.Name,
                     p.Description,
                     p.OwnerName,
-                    new SearchPlaylists.ImageResponse(p.Image != null ? p.Image.Url : ""),
+                    new ImageResponse(p.Image != null ? p.Image.Url : ""),
                     p.Tracks != null
                         ? p
-                            .Tracks.Select(t => new SearchPlaylists.TrackResponse(
-                                t.Name,
-                                t.ArtistName,
-                                false
-                            ))
+                            .Tracks.Select(t => new TrackResponse(t.Name, t.ArtistName, false))
                             .ToList()
-                        : new List<SearchPlaylists.TrackResponse>()
+                        : new List<TrackResponse>()
                 ))
                 .FirstOrDefaultAsync(ct);
 

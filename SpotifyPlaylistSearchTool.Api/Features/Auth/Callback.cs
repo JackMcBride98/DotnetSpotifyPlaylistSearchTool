@@ -5,7 +5,7 @@ using SpotifyPlaylistSearchTool.Api.Database;
 using SpotifyPlaylistSearchTool.Api.Services;
 using Void = FastEndpoints.Void;
 
-namespace SpotifyPlaylistSearchTool.Api.Features;
+namespace SpotifyPlaylistSearchTool.Api.Features.Auth;
 
 public static class Callback
 {
@@ -83,7 +83,7 @@ public static class Callback
 
             if (userOrNull == null)
             {
-                var newUser = new User(
+                var newUser = new Database.User(
                     currentUser.Id,
                     currentUser.DisplayName,
                     response.AccessToken,

@@ -1,8 +1,8 @@
-import { PlaylistResponse, TrackResponse } from "./SearchPlaylists.tsx";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useLayoutEffect, useRef } from "react";
+import { PlaylistResponse, TrackResponse } from "../api";
 type Props = {
-  playlists: PlaylistResponse[];
+  playlists: Array<PlaylistResponse>;
   totalPlaylists: number;
 };
 
@@ -113,7 +113,7 @@ export const Playlist = ({ playlist, onClose }: PlaylistProps) => {
 };
 
 type TracksProps = {
-  tracks: TrackResponse[];
+  tracks: Array<TrackResponse>;
 };
 
 const Tracks = ({ tracks }: TracksProps) => {

@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using NSubstitute;
 using SpotifyAPI.Web;
-using GetRandomPlaylist = SpotifyPlaylistSearchTool.Api.Features.GetRandomPlaylist;
+using GetRandomPlaylist = SpotifyPlaylistSearchTool.Api.Features.Playlists.GetRandomPlaylist;
 
 namespace Tests.Features;
 

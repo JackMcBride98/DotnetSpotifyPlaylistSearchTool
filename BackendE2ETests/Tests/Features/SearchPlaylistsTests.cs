@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using NSubstitute;
 using SpotifyAPI.Web;
-using SpotifyPlaylistSearchTool.Api.Features;
+using SpotifyPlaylistSearchTool.Api.Features.Playlists;
 using Image = SpotifyPlaylistSearchTool.Api.Database.Image;
 
 namespace Tests.Features;

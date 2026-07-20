@@ -35,6 +35,12 @@
           "System.Security.Cryptography.Pkcs": "10.0.8"
         }
       },
+      "Cake.Npm": {
+        "type": "Direct",
+        "requested": "[5.1.0, )",
+        "resolved": "5.1.0",
+        "contentHash": "W3IRXWAQxc8NsCFAXG/DuPn/SZeKvbIhjenzzgbwob6Xi9DHNiJHDYEERo6hty3lSE+PFHIOhiVFPThmSQNiJA=="
+      },
       "Microsoft.IdentityModel.JsonWebTokens": {
         "type": "Direct",
         "requested": "[8.19.1, )",

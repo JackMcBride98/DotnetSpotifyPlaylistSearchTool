@@ -1,7 +1,6 @@
-﻿using FastEndpoints;
-using SpotifyPlaylistSearchTool.Api.Services;
+﻿using SpotifyPlaylistSearchTool.Api.Services;
 
-namespace SpotifyPlaylistSearchTool.Api.Features;
+namespace SpotifyPlaylistSearchTool.Api.Features.Sync;
 
 public static class SyncPlaylists
 {

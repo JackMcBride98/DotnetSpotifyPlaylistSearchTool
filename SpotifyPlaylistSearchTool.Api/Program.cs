@@ -1,5 +1,7 @@
-using FastEndpoints;
+using System.Reflection;
+using FastEndpoints.OpenApi;
 using Microsoft.EntityFrameworkCore;
+using Scalar.AspNetCore;
 using SpotifyPlaylistSearchTool.Api.Configuration;
 using SpotifyPlaylistSearchTool.Api.Database;
 using SpotifyPlaylistSearchTool.Api.Services;
@@ -9,7 +11,14 @@ var builder = WebApplication.CreateBuilder();
 var dbSection = builder.Configuration.GetRequiredSection("Database");
 var connectionString = dbSection["ConnectionString"];
 
-if (string.IsNullOrWhiteSpace(connectionString))
+var isDocumentGeneration =
+    Assembly
+        .GetEntryAssembly()
+        ?.GetName()
+        .Name?.Contains("GetDocument", StringComparison.OrdinalIgnoreCase)
+    ?? false;
+
+if (!isDocumentGeneration && string.IsNullOrWhiteSpace(connectionString))
 {
     throw new Exception("Database connection string is missing");
 }
@@ -18,13 +27,25 @@ builder.Services.AddDbContextPool<DataContext>(options =>
 {
     options.UseNpgsql(connectionString, x => x.UseNodaTime());
 });
-builder.Services.AddFastEndpoints();
-
 builder
+    .Services.AddFastEndpoints()
+    .OpenApiDocument(options =>
+    {
+        options.DocumentName = "v1";
+        options.Title = "GetDocument.Insider API";
+        options.Version = "v1.0.0";
+        options.ShortSchemaNames = true;
+    });
+
+var optionsBuilder = builder
     .Services.AddOptions<SpotifyOptions>()
     .Bind(builder.Configuration.GetSection(SpotifyOptions.Position))
-    .ValidateDataAnnotations()
-    .ValidateOnStart();
+    .ValidateDataAnnotations();
+
+if (!isDocumentGeneration)
+{
+    optionsBuilder.ValidateOnStart();
+}
 
 builder.Services.AddScoped<ISyncSpotifyPlaylistService, SyncSpotifyPlaylistService>();
 builder.Services.AddScoped<ISpotifyAuthService, SpotifyAuthService>();
@@ -38,6 +59,14 @@ app.UseRouting();
 app.UseFastEndpoints(c =>
 {
     c.Endpoints.RoutePrefix = "api";
+    c.Endpoints.NameGenerator = ctx =>
+    {
+        var declaringType = ctx.EndpointType.DeclaringType;
+
+        var name = declaringType != null ? declaringType.Name : ctx.EndpointType.Name;
+
+        return name.EndsWith("Endpoint") ? name[..^8] : name;
+    };
 });
 
 // `UseEndpoints` terminates the request pipeline if a match was found. It's usually added implicitly by .NET but we
@@ -50,6 +79,12 @@ app.UseEndpoints(_ => { });
 if (builder.Environment.IsDevelopment())
 {
     app.UseSpa(spa => spa.UseProxyToSpaDevelopmentServer("http://localhost:3000"));
+    app.MapOpenApi();
+    app.MapScalarApiReference(o =>
+    {
+        o.AddDocuments("v1");
+        o.OperationTitleSource = OperationTitleSource.Path;
+    });
 }
 
 app.Run();

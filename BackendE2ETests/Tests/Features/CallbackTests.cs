@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using SpotifyAPI.Web;
-using Callback = SpotifyPlaylistSearchTool.Api.Features.Callback;
+using Callback = SpotifyPlaylistSearchTool.Api.Features.Auth.Callback;
 
 namespace Tests.Features;
 

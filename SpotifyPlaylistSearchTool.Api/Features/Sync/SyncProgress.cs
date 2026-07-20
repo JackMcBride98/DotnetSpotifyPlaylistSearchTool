@@ -1,9 +1,8 @@
-using FastEndpoints;
 using Microsoft.EntityFrameworkCore;
 using SpotifyPlaylistSearchTool.Api.Database;
 using SpotifyPlaylistSearchTool.Api.Services;
 
-namespace SpotifyPlaylistSearchTool.Api.Features;
+namespace SpotifyPlaylistSearchTool.Api.Features.Sync;
 
 public static class SyncProgress
 {

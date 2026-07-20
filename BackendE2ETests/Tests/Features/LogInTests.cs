@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
 using SpotifyPlaylistSearchTool.Api.Configuration;
-using SpotifyPlaylistSearchTool.Api.Features;
+using SpotifyPlaylistSearchTool.Api.Features.Auth;
 
 namespace Tests.Features;
 

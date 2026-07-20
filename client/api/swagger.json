@@ -1,0 +1,440 @@
+{
+  "openapi": "3.1.1",
+  "info": {
+    "title": "GetDocument.Insider API",
+    "version": "v1.0.0"
+  },
+  "paths": {
+    "/api/callback": {
+      "get": {
+        "tags": [
+          "Callback"
+        ],
+        "operationId": "Callback",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/login": {
+      "post": {
+        "tags": [
+          "Login"
+        ],
+        "operationId": "LogIn",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LogIn_Response"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/logout": {
+      "post": {
+        "tags": [
+          "Logout"
+        ],
+        "operationId": "Logout",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Void"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/profile": {
+      "get": {
+        "tags": [
+          "Profile"
+        ],
+        "operationId": "GetProfile",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetProfile_Response"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/random-playlist": {
+      "get": {
+        "tags": [
+          "Random-Playlist"
+        ],
+        "operationId": "GetRandomPlaylist",
+        "parameters": [
+          {
+            "name": "onlyOwnPlaylists",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetRandomPlaylist_Response"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/search-playlists": {
+      "get": {
+        "tags": [
+          "Search-Playlists"
+        ],
+        "operationId": "SearchPlaylists",
+        "parameters": [
+          {
+            "name": "searchTerm",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "showOnlyOwnPlaylists",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchPlaylists_Response"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sync-playlists": {
+      "post": {
+        "tags": [
+          "Sync-Playlists"
+        ],
+        "operationId": "SyncPlaylists",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SyncPlaylists_Response"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sync-progress": {
+      "get": {
+        "tags": [
+          "Sync-Progress"
+        ],
+        "operationId": "SyncProgress",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SyncProgress_Response"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "integer",
+            "description": "the http status code sent to the client. default is 400.",
+            "format": "int32",
+            "default": 400
+          },
+          "message": {
+            "type": "string",
+            "description": "the message for the error response",
+            "default": "One or more errors occurred!"
+          },
+          "errors": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "description": "the dto used to send an error response to the client"
+      },
+      "GetProfile_Response": {
+        "required": [
+          "user",
+          "totalPlaylists",
+          "lastSyncedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "user": {
+            "$ref": "#/components/schemas/GetProfile_UserProfileResponse"
+          },
+          "totalPlaylists": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "lastSyncedAt": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "GetProfile_UserProfileResponse": {
+        "required": [
+          "id",
+          "displayName",
+          "profileImageUrl"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "profileImageUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "GetRandomPlaylist_Response": {
+        "required": [
+          "randomPlaylist"
+        ],
+        "type": "object",
+        "properties": {
+          "randomPlaylist": {
+            "$ref": "#/components/schemas/PlaylistResponse"
+          }
+        }
+      },
+      "ICollectionOfPlaylistResponse": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/PlaylistResponse"
+        }
+      },
+      "ICollectionOfTrackResponse": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/TrackResponse"
+        }
+      },
+      "ImageResponse": {
+        "required": [
+          "url"
+        ],
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          }
+        }
+      },
+      "LogIn_Response": {
+        "required": [
+          "loginUri"
+        ],
+        "type": "object",
+        "properties": {
+          "loginUri": {
+            "type": "string",
+            "format": "uri"
+          }
+        }
+      },
+      "PlaylistResponse": {
+        "required": [
+          "id",
+          "name",
+          "description",
+          "ownerName",
+          "image",
+          "tracks"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "ownerName": {
+            "type": "string"
+          },
+          "image": {
+            "$ref": "#/components/schemas/ImageResponse"
+          },
+          "tracks": {
+            "$ref": "#/components/schemas/ICollectionOfTrackResponse"
+          }
+        }
+      },
+      "SearchPlaylists_Response": {
+        "required": [
+          "matchingPlaylists",
+          "totalPlaylists"
+        ],
+        "type": "object",
+        "properties": {
+          "matchingPlaylists": {
+            "$ref": "#/components/schemas/ICollectionOfPlaylistResponse"
+          },
+          "totalPlaylists": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "SyncPlaylists_Response": {
+        "required": [
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "SyncProgress_Response": {
+        "required": [
+          "totalPlaylists",
+          "syncedPlaylists"
+        ],
+        "type": "object",
+        "properties": {
+          "totalPlaylists": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "syncedPlaylists": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "TrackResponse": {
+        "required": [
+          "name",
+          "artistName",
+          "match"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "artistName": {
+            "type": "string"
+          },
+          "match": {
+            "type": "boolean"
+          }
+        }
+      },
+      "Void": {
+        "type": "object",
+        "description": ""
+      }
+    },
+    "securitySchemes": {
+      "JWTBearerAuth": {
+        "type": "http",
+        "description": "Enter a JWT token to authorize the requests...",
+        "scheme": "Bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
+}
