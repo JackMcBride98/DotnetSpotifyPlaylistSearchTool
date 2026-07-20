@@ -9,6 +9,7 @@ using Cake.Common.Tools.DotNet.Tool;
 using Cake.Core;
 using Cake.Core.IO;
 using Cake.Frosting;
+using Cake.Npm;
 
 namespace Build;
 
@@ -116,6 +117,42 @@ public sealed class LintBackendTask : FrostingTask<BuildContext>
             throw new CakeException($"yamllint failed with exit code {exitCode}");
         }
         Console.WriteLine("yamllint passed");
+    }
+}
+
+[TaskName("LintFrontend")]
+public sealed class LintFrontendTask : FrostingTask<BuildContext>
+{
+    public override void Run(BuildContext context)
+    {
+        context.Information("Checking frontend formatting with Prettier...");
+
+        context.NpmRunScript(
+            "format:check",
+            settings => settings.FromPath(context.ClientDirectoryPath)
+        );
+        context.Information("Frontend formatting check passed.");
+        context.Information("Linting frontend files with ESLint...");
+
+        context.NpmRunScript("lint", settings => settings.FromPath(context.ClientDirectoryPath));
+
+        context.Information("ESLint check passed successfully.");
+    }
+}
+
+[TaskName("TypecheckFrontend")]
+public sealed class TypecheckFrontendTask : FrostingTask<BuildContext>
+{
+    public override void Run(BuildContext context)
+    {
+        context.Information("Typechecking frontend files via TypeScript compiler (tsc)...");
+
+        context.NpmRunScript(
+            "typecheck",
+            settings => settings.FromPath(context.ClientDirectoryPath)
+        );
+
+        context.Information("TypeScript typecheck passed successfully.");
     }
 }
 
@@ -341,7 +378,9 @@ public sealed class RunBackendE2ETests : FrostingTask<BuildContext>
 
 // Make this task run what is run in the CI pipeline so developers can run it locally
 [TaskName("CI")]
+[IsDependentOn(typeof(LintFrontendTask))]
 [IsDependentOn(typeof(LintBackendTask))]
+[IsDependentOn(typeof(TypecheckFrontendTask))]
 [IsDependentOn(typeof(SetupTestDatabase))]
 [IsDependentOn(typeof(RunBackendE2ETests))]
 public sealed class CITask : FrostingTask<BuildContext>

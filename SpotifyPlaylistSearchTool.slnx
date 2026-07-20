@@ -5,5 +5,5 @@
     <Project Path="build/Build.csproj" />
     <Project Path="BackendE2ETests/Tests/Tests.csproj" />
 
-    <Folder Name="/Client/" />
+    <Folder Name="/client/" />
 </Solution>
