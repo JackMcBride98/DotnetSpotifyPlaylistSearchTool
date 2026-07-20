@@ -3,19 +3,8 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { SpinnerCircularFixed } from "spinners-react";
 import { Playlist } from "./SearchResults";
-
-export type PlaylistResponse = {
-  id: string;
-  name: string;
-  description: string;
-  ownerName: string;
-  image: { url: string };
-  tracks: { name: string; artistName: string; match: boolean }[];
-};
-
-type RandomPlaylistResponse = {
-  randomPlaylist: PlaylistResponse;
-};
+import { getRandomPlaylistOptions } from "../api/@tanstack/react-query.gen.ts";
+import { client } from "../api/client.gen.ts";
 
 interface RandomPlaylistProps {
   showOnlyOwnPlaylists: boolean;
@@ -26,21 +15,11 @@ export const RandomPlaylist = ({
 }: RandomPlaylistProps) => {
   const queryClient = useQueryClient();
   const [visible, setVisible] = useState(false);
-  const { isLoading, isError, error, data, refetch, isRefetching } = useQuery<
-    RandomPlaylistResponse,
-    Error
-  >({
-    queryKey: ["getRandomPlaylist", showOnlyOwnPlaylists],
-    queryFn: async () => {
-      const res = await fetch(
-        `/api/random-playlist?onlyOwnPlaylists=${showOnlyOwnPlaylists}`,
-      );
-      if (!res.ok) {
-        const errorMessage = await res.text();
-        throw new Error(`Error: ${errorMessage}`);
-      }
-      return res.json();
-    },
+  const { isLoading, isError, error, data, refetch, isRefetching } = useQuery({
+    ...getRandomPlaylistOptions({
+      client,
+      query: { onlyOwnPlaylists: showOnlyOwnPlaylists },
+    }),
     enabled: visible,
   });
 
@@ -51,7 +30,7 @@ export const RandomPlaylist = ({
         whileTap={{ scale: 0.9 }}
         className="text-center p-4 rounded-full bg-green-600 flex space-x-2 items-center"
         onClick={() => {
-          refetch();
+          void refetch();
           setVisible(true);
         }}
         disabled={isLoading || isRefetching}

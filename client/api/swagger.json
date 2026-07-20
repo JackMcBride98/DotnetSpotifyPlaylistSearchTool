@@ -7,7 +7,9 @@
   "paths": {
     "/api/callback": {
       "get": {
-        "tags": ["Callback"],
+        "tags": [
+          "Callback"
+        ],
         "operationId": "Callback",
         "parameters": [
           {
@@ -38,7 +40,9 @@
     },
     "/api/login": {
       "post": {
-        "tags": ["Login"],
+        "tags": [
+          "Login"
+        ],
         "operationId": "LogIn",
         "responses": {
           "200": {
@@ -56,7 +60,9 @@
     },
     "/api/logout": {
       "post": {
-        "tags": ["Logout"],
+        "tags": [
+          "Logout"
+        ],
         "operationId": "Logout",
         "responses": {
           "200": {
@@ -74,7 +80,9 @@
     },
     "/api/profile": {
       "get": {
-        "tags": ["Profile"],
+        "tags": [
+          "Profile"
+        ],
         "operationId": "GetProfile",
         "responses": {
           "200": {
@@ -92,7 +100,9 @@
     },
     "/api/random-playlist": {
       "get": {
-        "tags": ["Random-Playlist"],
+        "tags": [
+          "Random-Playlist"
+        ],
         "operationId": "GetRandomPlaylist",
         "parameters": [
           {
@@ -120,7 +130,9 @@
     },
     "/api/search-playlists": {
       "get": {
-        "tags": ["Search-Playlists"],
+        "tags": [
+          "Search-Playlists"
+        ],
         "operationId": "SearchPlaylists",
         "parameters": [
           {
@@ -156,7 +168,9 @@
     },
     "/api/sync-playlists": {
       "post": {
-        "tags": ["Sync-Playlists"],
+        "tags": [
+          "Sync-Playlists"
+        ],
         "operationId": "SyncPlaylists",
         "responses": {
           "200": {
@@ -174,7 +188,9 @@
     },
     "/api/sync-progress": {
       "get": {
-        "tags": ["Sync-Progress"],
+        "tags": [
+          "Sync-Progress"
+        ],
         "operationId": "SyncProgress",
         "responses": {
           "200": {
@@ -220,7 +236,11 @@
         "description": "the dto used to send an error response to the client"
       },
       "GetProfile_Response": {
-        "required": ["user", "totalPlaylists", "lastSyncedAt"],
+        "required": [
+          "user",
+          "totalPlaylists",
+          "lastSyncedAt"
+        ],
         "type": "object",
         "properties": {
           "user": {
@@ -231,12 +251,19 @@
             "format": "int32"
           },
           "lastSyncedAt": {
-            "type": ["null", "string"]
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
       "GetProfile_UserProfileResponse": {
-        "required": ["id", "displayName", "profileImageUrl"],
+        "required": [
+          "id",
+          "displayName",
+          "profileImageUrl"
+        ],
         "type": "object",
         "properties": {
           "id": {
@@ -246,12 +273,17 @@
             "type": "string"
           },
           "profileImageUrl": {
-            "type": ["null", "string"]
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
       "GetRandomPlaylist_Response": {
-        "required": ["randomPlaylist"],
+        "required": [
+          "randomPlaylist"
+        ],
         "type": "object",
         "properties": {
           "randomPlaylist": {
@@ -272,7 +304,9 @@
         }
       },
       "ImageResponse": {
-        "required": ["url"],
+        "required": [
+          "url"
+        ],
         "type": "object",
         "properties": {
           "url": {
@@ -281,7 +315,9 @@
         }
       },
       "LogIn_Response": {
-        "required": ["loginUri"],
+        "required": [
+          "loginUri"
+        ],
         "type": "object",
         "properties": {
           "loginUri": {
@@ -322,7 +358,10 @@
         }
       },
       "SearchPlaylists_Response": {
-        "required": ["matchingPlaylists", "totalPlaylists"],
+        "required": [
+          "matchingPlaylists",
+          "totalPlaylists"
+        ],
         "type": "object",
         "properties": {
           "matchingPlaylists": {
@@ -335,7 +374,9 @@
         }
       },
       "SyncPlaylists_Response": {
-        "required": ["message"],
+        "required": [
+          "message"
+        ],
         "type": "object",
         "properties": {
           "message": {
@@ -344,11 +385,17 @@
         }
       },
       "SyncProgress_Response": {
-        "required": ["totalPlaylists", "syncedPlaylists"],
+        "required": [
+          "totalPlaylists",
+          "syncedPlaylists"
+        ],
         "type": "object",
         "properties": {
           "totalPlaylists": {
-            "type": ["null", "integer"],
+            "type": [
+              "null",
+              "integer"
+            ],
             "format": "int32"
           },
           "syncedPlaylists": {
@@ -358,7 +405,11 @@
         }
       },
       "TrackResponse": {
-        "required": ["name", "artistName", "match"],
+        "required": [
+          "name",
+          "artistName",
+          "match"
+        ],
         "type": "object",
         "properties": {
           "name": {

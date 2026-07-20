@@ -3,30 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { SpinnerCircularFixed } from "spinners-react";
 import { SearchResults } from "./SearchResults.tsx";
 import { SearchBar } from "./SearchBar.tsx";
-
-type Response = {
-  matchingPlaylists: PlaylistResponse[];
-  totalPlaylists: number;
-};
-
-export type PlaylistResponse = {
-  id: string;
-  name: string;
-  description: string;
-  ownerName: string;
-  image: ImageResponse;
-  tracks: TrackResponse[];
-};
-
-export type TrackResponse = {
-  name: string;
-  artistName: string;
-  match: boolean;
-};
-
-type ImageResponse = {
-  url: string;
-};
+import { searchPlaylistsOptions } from "../api/@tanstack/react-query.gen.ts";
+import { client } from "../api/client.gen.ts";
 
 type Props = {
   totalPlaylists: number;
@@ -40,21 +18,11 @@ export const SearchPlaylists = ({
 }: Props) => {
   const [searchTerm, setSearchTerm] = useState("");
 
-  const { isLoading, isError, error, data } = useQuery<Response, Error>({
-    queryKey: ["search", searchTerm, showOnlyOwnPlaylists],
-    queryFn: async () => {
-      if (!searchTerm) {
-        return null;
-      }
-      const res = await fetch(
-        `/api/search-playlists?searchTerm=${searchTerm}&showOnlyOwnPlaylists=${showOnlyOwnPlaylists}`,
-      );
-      if (!res.ok) {
-        const errorMessage = await res.text();
-        throw new Error(`Error: ${errorMessage}`);
-      }
-      return res.json();
-    },
+  const { isLoading, isError, error, data } = useQuery({
+    ...searchPlaylistsOptions({
+      client,
+      query: { searchTerm, showOnlyOwnPlaylists },
+    }),
   });
 
   return (

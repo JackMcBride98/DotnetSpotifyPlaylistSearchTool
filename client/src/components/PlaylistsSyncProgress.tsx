@@ -1,5 +1,5 @@
 import { SpinnerCircularFixed } from "spinners-react";
-import { SyncProgressResponse } from "../features/Profile.tsx";
+import { SyncProgressResponse } from "../api";
 
 type Props = {
   syncProgressData: SyncProgressResponse | undefined;

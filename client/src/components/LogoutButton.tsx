@@ -14,10 +14,13 @@ export const LogoutButton = () => {
     onSuccess: () => {
       navigate("/");
     },
+    onSettled: () => {
+      setIsLoggingOut(false);
+    },
   });
 
   const handleLogout = () => {
-    setIsLoggingOut(false);
+    setIsLoggingOut(true);
     mutate({});
   };
 

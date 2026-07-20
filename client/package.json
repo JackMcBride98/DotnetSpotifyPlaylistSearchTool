@@ -9,6 +9,7 @@
     "lint": "eslint .",
     "format:check": "prettier --check .",
     "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
     "clientGen": "openapi-ts"
   },
   "dependencies": {
