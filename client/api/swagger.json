@@ -209,12 +209,6 @@
   },
   "components": {
     "schemas": {
-      "DictionaryOfStringAndString": {
-        "type": "object",
-        "additionalProperties": {
-          "type": "string"
-        }
-      },
       "ErrorResponse": {
         "type": "object",
         "properties": {
@@ -241,18 +235,6 @@
         },
         "description": "the dto used to send an error response to the client"
       },
-      "Followers": {
-        "type": "object",
-        "properties": {
-          "href": {
-            "type": "string"
-          },
-          "total": {
-            "type": "integer",
-            "format": "int32"
-          }
-        }
-      },
       "GetProfile_Response": {
         "required": [
           "user",
@@ -262,13 +244,35 @@
         "type": "object",
         "properties": {
           "user": {
-            "$ref": "#/components/schemas/PrivateUser"
+            "$ref": "#/components/schemas/GetProfile_UserProfileResponse"
           },
           "totalPlaylists": {
             "type": "integer",
             "format": "int32"
           },
           "lastSyncedAt": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "GetProfile_UserProfileResponse": {
+        "required": [
+          "id",
+          "displayName",
+          "profileImageUrl"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "profileImageUrl": {
             "type": [
               "null",
               "string"
@@ -299,22 +303,6 @@
           "$ref": "#/components/schemas/TrackResponse"
         }
       },
-      "Image": {
-        "type": "object",
-        "properties": {
-          "height": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "width": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "url": {
-            "type": "string"
-          }
-        }
-      },
       "ImageResponse": {
         "required": [
           "url"
@@ -324,12 +312,6 @@
           "url": {
             "type": "string"
           }
-        }
-      },
-      "ListOfImage": {
-        "type": "array",
-        "items": {
-          "$ref": "#/components/schemas/Image"
         }
       },
       "LogIn_Response": {
@@ -372,44 +354,6 @@
           },
           "tracks": {
             "$ref": "#/components/schemas/ICollectionOfTrackResponse"
-          }
-        }
-      },
-      "PrivateUser": {
-        "type": "object",
-        "properties": {
-          "country": {
-            "type": "string"
-          },
-          "displayName": {
-            "type": "string"
-          },
-          "email": {
-            "type": "string"
-          },
-          "externalUrls": {
-            "$ref": "#/components/schemas/DictionaryOfStringAndString"
-          },
-          "followers": {
-            "$ref": "#/components/schemas/Followers"
-          },
-          "href": {
-            "type": "string"
-          },
-          "id": {
-            "type": "string"
-          },
-          "images": {
-            "$ref": "#/components/schemas/ListOfImage"
-          },
-          "product": {
-            "type": "string"
-          },
-          "type": {
-            "type": "string"
-          },
-          "uri": {
-            "type": "string"
           }
         }
       },

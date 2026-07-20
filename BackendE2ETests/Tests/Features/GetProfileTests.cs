@@ -11,6 +11,7 @@ public class GetProfileTests(App app) : TestBase(app)
 {
     private const string DefaultSpotifyUserId = "spotify_user_123";
     private const string DefaultSpotifyDisplayName = "Test User";
+    private const string DefaultSpotifyImageUrl = "https://example.com/profile.jpg";
 
     [Fact]
     public async Task GetProfile_UserDoesNotExist_ThrowsError()
@@ -55,6 +56,7 @@ public class GetProfileTests(App app) : TestBase(app)
         result.ShouldNotBeNull();
         result.User.Id.ShouldBe(DefaultSpotifyUserId);
         result.User.DisplayName.ShouldBe(DefaultSpotifyDisplayName);
+        result.User.ProfileImageUrl.ShouldBe(DefaultSpotifyImageUrl);
         result.TotalPlaylists.ShouldBe(0);
         result.LastSyncedAt.ShouldBeNull();
     }
@@ -131,7 +133,12 @@ public class GetProfileTests(App app) : TestBase(app)
 
     private void ArrangeMockSpotifyUser(string spotifyUserId, string displayName)
     {
-        var mockUserProfile = new PrivateUser { Id = spotifyUserId, DisplayName = displayName };
+        var mockUserProfile = new PrivateUser
+        {
+            Id = spotifyUserId,
+            DisplayName = displayName,
+            Images = new() { new() { Url = DefaultSpotifyImageUrl } },
+        };
 
         App.MockSpotifyAuth.GetCurrentUserProfileAsync(
                 Arg.Any<HttpContext>(),

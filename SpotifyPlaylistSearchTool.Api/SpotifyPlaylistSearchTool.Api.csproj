@@ -13,6 +13,16 @@
         <OpenApiDocumentsDirectory>../client/api/</OpenApiDocumentsDirectory>
     </PropertyGroup>
 
+    <Target
+        Name="AutomateFrontendTypeGen"
+        AfterTargets="Build"
+        Condition="'$(Configuration)' == 'Debug'"
+    >
+        <Message Importance="high" Text="🚀 .NET Build Hook: Automating @hey-api/openapi-ts..." />
+
+        <Exec WorkingDirectory="../client" Command="npm run clientGen" ContinueOnError="true" />
+    </Target>
+
     <ItemGroup>
         <PackageReference Include="FastEndpoints" Version="8.2.0" />
         <PackageReference Include="FastEndpoints.OpenApi" Version="8.2.0" />

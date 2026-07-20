@@ -4,10 +4,6 @@ export type ClientOptions = {
     baseUrl: `${string}://${string}` | (string & {});
 };
 
-export type DictionaryOfStringAndString = {
-    [key: string]: string;
-};
-
 /**
  * the dto used to send an error response to the client
  */
@@ -25,15 +21,16 @@ export type ErrorResponse = {
     };
 };
 
-export type Followers = {
-    href?: string;
-    total?: number;
-};
-
 export type GetProfileResponse = {
-    user: PrivateUser;
+    user: GetProfileUserProfileResponse;
     totalPlaylists: number;
     lastSyncedAt: null | string;
+};
+
+export type GetProfileUserProfileResponse = {
+    id: string;
+    displayName: string;
+    profileImageUrl: null | string;
 };
 
 export type GetRandomPlaylistResponse = {
@@ -44,17 +41,9 @@ export type ICollectionOfPlaylistResponse = Array<PlaylistResponse>;
 
 export type ICollectionOfTrackResponse = Array<TrackResponse>;
 
-export type Image = {
-    height?: number;
-    width?: number;
-    url?: string;
-};
-
 export type ImageResponse = {
     url: string;
 };
-
-export type ListOfImage = Array<Image>;
 
 export type LogInResponse = {
     loginUri: string;
@@ -67,20 +56,6 @@ export type PlaylistResponse = {
     ownerName: string;
     image: ImageResponse;
     tracks: ICollectionOfTrackResponse;
-};
-
-export type PrivateUser = {
-    country?: string;
-    displayName?: string;
-    email?: string;
-    externalUrls?: DictionaryOfStringAndString;
-    followers?: Followers;
-    href?: string;
-    id?: string;
-    images?: ListOfImage;
-    product?: string;
-    type?: string;
-    uri?: string;
 };
 
 export type SearchPlaylistsResponse = {

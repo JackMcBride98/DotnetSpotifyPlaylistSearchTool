@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "clientGen": "openapi-ts"
   },
   "dependencies": {
     "@hey-api/client-fetch": "^0.13.1",
