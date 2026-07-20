@@ -23,6 +23,7 @@ export const SearchPlaylists = ({
       client,
       query: { searchTerm, showOnlyOwnPlaylists },
     }),
+    enabled: searchTerm != "",
   });
 
   return (

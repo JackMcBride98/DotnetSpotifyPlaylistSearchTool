@@ -67,9 +67,6 @@ If you want to test them locally
 # TODO
 Plan: Client Gen -> Frontent Lint, format and test setup -> Background job for syncing playlists -> Update branding and fix bugs -> AWS Deployment -> IaaC deployment -> PWA (stretch goal)
 
-- Client Gen?
-- ESLint setup (Job for format and lint frontend)
-- Prettier setup
 - Create frontend tests (do we need this)
 
 - Create background job for syncing playlists
