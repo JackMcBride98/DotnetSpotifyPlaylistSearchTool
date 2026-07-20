@@ -8,16 +8,16 @@ export const LoginButton = () => {
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   const { isError, error, mutate } = useMutation({
-      ...logInMutation(),
-      onSuccess: (data) => {
-        window.location.href = data.loginUri;
-      },
-      onError: (err) => {
-          console.error("Login failed:", err);
-      },
-      onSettled: () => {
-          setIsLoggingIn(false);
-      }
+    ...logInMutation(),
+    onSuccess: (data) => {
+      window.location.href = data.loginUri;
+    },
+    onError: (err) => {
+      console.error("Login failed:", err);
+    },
+    onSettled: () => {
+      setIsLoggingIn(false);
+    },
   });
 
   const handleLogin = () => {

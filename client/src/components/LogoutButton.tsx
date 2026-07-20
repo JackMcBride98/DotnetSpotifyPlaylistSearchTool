@@ -3,30 +3,23 @@ import { useState } from "react";
 import { useNavigate } from "react-router";
 import { useMutation } from "@tanstack/react-query";
 import { motion } from "framer-motion";
+import { logoutMutation } from "../api/@tanstack/react-query.gen.ts";
 
 export const LogoutButton = () => {
   const navigate = useNavigate();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const { isError, error, mutate, isPending } = useMutation({
-    mutationFn: async () => {
-      setIsLoggingOut(true);
-      const res = await fetch("/api/logout", {
-        method: "POST",
-        credentials: "include",
-      });
-      if (!res.ok) {
-        const errorMessage = await res.text();
-        setIsLoggingOut(false);
-        throw new Error(`HTTP Error ${res.status}: ${errorMessage}`);
-      }
-      setIsLoggingOut(false);
-      return res.text();
-    },
+    ...logoutMutation(),
     onSuccess: () => {
       navigate("/");
     },
   });
+
+  const handleLogout = () => {
+    setIsLoggingOut(false);
+    mutate({});
+  };
 
   return (
     <>
@@ -34,7 +27,7 @@ export const LogoutButton = () => {
         whileHover={{ scale: isLoggingOut ? 1 : 1.1 }}
         whileTap={{ scale: 0.9 }}
         className="text-center p-4 rounded-full bg-green-600 flex space-x-2 items-center "
-        onClick={() => mutate()}
+        onClick={() => handleLogout()}
         disabled={isLoggingOut}
       >
         <p>Logout</p>
