@@ -78,7 +78,6 @@ Plan: Client Gen -> Frontent Lint, format and test setup -> Background job for s
 - Update branding (purple?)
 - Return home when errors
 - Redirect to home when can't find user or spotify client?
-- Clicking Link on Random playlist retriggers the request and loads in a new random playlist
 
 - PWA
 - AWS Deployment

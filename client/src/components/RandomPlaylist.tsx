@@ -21,6 +21,7 @@ export const RandomPlaylist = ({
       query: { onlyOwnPlaylists: showOnlyOwnPlaylists },
     }),
     enabled: visible,
+    refetchOnWindowFocus: false,
   });
 
   if (!visible) {
