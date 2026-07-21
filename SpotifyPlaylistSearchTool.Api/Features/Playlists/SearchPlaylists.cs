@@ -26,23 +26,24 @@ public static class SearchPlaylists
                 ct
             );
 
-            var totalUserPlaylists = await dataContext
-                .Users.Where(u => u.UserId == spotifyUserProfile.Id)
-                .Select(u => u.Playlists!.Count)
-                .FirstOrDefaultAsync(ct);
+            var baseQuery = dataContext.Playlists.Where(p =>
+                p.Users!.Any(u => u.UserId == spotifyUserProfile.Id)
+            );
 
-            var query = dataContext
-                .Playlists.AsSplitQuery()
-                .Include(p => p.Users)
-                .Include(p => p.Tracks)
-                .Include(p => p.Image)
-                .Where(p => p.Users!.Any(u => u.UserId == spotifyUserProfile.Id));
+            if (request.ShowOnlyOwnPlaylists)
+            {
+                baseQuery = baseQuery.Where(p => p.OwnerName == spotifyUserProfile.DisplayName);
+            }
+
+            var totalUserPlaylists = await baseQuery.CountAsync(ct);
+
+            var filteredQuery = baseQuery;
 
             if (!string.IsNullOrWhiteSpace(request.SearchTerm))
             {
                 var lowerSearch = request.SearchTerm.ToLower();
 
-                query = query.Where(p =>
+                filteredQuery = filteredQuery.Where(p =>
                     p.Tracks!.Any(t =>
                         t.Name.ToLower().Contains(lowerSearch)
                         || t.ArtistName.ToLower().Contains(lowerSearch)
@@ -50,38 +51,27 @@ public static class SearchPlaylists
                 );
             }
 
-            if (request.ShowOnlyOwnPlaylists)
-            {
-                query = query.Where(p => p.OwnerName == spotifyUserProfile.DisplayName);
-            }
-
-            var matchingPlaylists = await query.ToListAsync(ct);
-
-            return new Response(
-                matchingPlaylists
-                    .Select(p => new PlaylistResponse(
-                        p.PlaylistId,
-                        p.Name,
-                        p.Description,
-                        p.OwnerName,
-                        new ImageResponse(p.Image!.Url),
-                        p.Tracks!.Select(t => new TrackResponse(
-                                t.Name,
-                                t.ArtistName,
-                                t.Name.Contains(
+            var matchingPlaylists = await filteredQuery
+                .Select(p => new PlaylistResponse(
+                    p.PlaylistId,
+                    p.Name,
+                    p.Description,
+                    p.OwnerName,
+                    new ImageResponse(p.Image!.Url),
+                    p.Tracks!.Select(t => new TrackResponse(
+                            t.Name,
+                            t.ArtistName,
+                            t.Name.Contains(request.SearchTerm, StringComparison.OrdinalIgnoreCase)
+                                || t.ArtistName.Contains(
                                     request.SearchTerm,
                                     StringComparison.OrdinalIgnoreCase
                                 )
-                                    || t.ArtistName.Contains(
-                                        request.SearchTerm,
-                                        StringComparison.OrdinalIgnoreCase
-                                    )
-                            ))
-                            .ToList()
-                    ))
-                    .ToList(),
-                totalUserPlaylists
-            );
+                        ))
+                        .ToList()
+                ))
+                .ToListAsync(ct);
+
+            return new Response(matchingPlaylists, totalUserPlaylists);
         }
     }
 }

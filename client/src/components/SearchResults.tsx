@@ -1,6 +1,7 @@
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useLayoutEffect, useRef } from "react";
 import { PlaylistResponse, TrackResponse } from "../api";
+import spotifyLogo from "../assets/Spotify_Primary_Logo_RGB_Green.png";
 
 type Props = {
   playlists: Array<PlaylistResponse>;
@@ -94,14 +95,17 @@ export const Playlist = ({ playlist, onClose }: PlaylistProps) => {
         <div className="w-full">
           <h1 className="text-lg">{playlist.name}</h1>
           <p className="text-sm">{playlist.ownerName}</p>
-          <a
-            href={`spotify:playlist:${playlist.id}`}
-            rel="noreferrer"
-            target="_blank"
-            className="text-base text-violet-300 hover:italic"
-          >
-            Link
-          </a>
+          <div className="flex items-center gap-2">
+            <img src={spotifyLogo} alt="Magnifying Glass" className="h-8 w-8" />
+            <a
+              href={`spotify:playlist:${playlist.id}`}
+              rel="noreferrer"
+              target="_blank"
+              className="text-base text-violet-300 hover:italic"
+            >
+              Link
+            </a>
+          </div>
           <p
             dangerouslySetInnerHTML={{ __html: playlist.description }}
             className="mb-2 w-44 text-xs font-light wrap-break-word text-slate-200 md:w-76"

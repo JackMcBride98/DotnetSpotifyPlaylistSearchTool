@@ -6,6 +6,12 @@
     </PropertyGroup>
 
     <PropertyGroup>
+        <OpenApiGenerateDocumentsOnBuild
+            Condition="'$(Configuration)' != 'Debug' Or '$(IsTestProject)' == 'true' Or '$(BuildingForLiveUnitTesting)' == 'true'"
+            >false</OpenApiGenerateDocumentsOnBuild>
+        <OpenApiGenerateDocumentsOnBuild Condition="'$(OpenApiGenerateDocumentsOnBuild)' == ''"
+            >true</OpenApiGenerateDocumentsOnBuild>
+
         <OpenApiGenerateDocumentsOnBuild>true</OpenApiGenerateDocumentsOnBuild>
 
         <OpenApiGenerateDocumentsOptions>--file-name swagger</OpenApiGenerateDocumentsOptions>
@@ -16,7 +22,7 @@
     <Target
         Name="AutomateFrontendTypeGen"
         AfterTargets="Build"
-        Condition="'$(Configuration)' == 'Debug'"
+        Condition="'$(Configuration)' == 'Debug' And '$(DotNetWatchBuild)' != 'true' And '$(IsTestProject)' != 'true' And '$(BuildingForLiveUnitTesting)' != 'true'"
     >
         <Message Importance="high" Text="🚀 .NET Build Hook: Automating @hey-api/openapi-ts..." />
 

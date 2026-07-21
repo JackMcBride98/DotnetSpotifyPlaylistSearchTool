@@ -14,8 +14,6 @@ export const LoginButton = () => {
     },
     onError: (err) => {
       console.error("Login failed:", err);
-    },
-    onSettled: () => {
       setIsLoggingIn(false);
     },
   });

@@ -30,7 +30,6 @@ public static class LogIn
                     SpotifyAPI.Web.Scopes.PlaylistReadPrivate,
                     SpotifyAPI.Web.Scopes.PlaylistReadCollaborative,
                     SpotifyAPI.Web.Scopes.UserReadPrivate,
-                    SpotifyAPI.Web.Scopes.UserReadEmail,
                 ],
             };
 

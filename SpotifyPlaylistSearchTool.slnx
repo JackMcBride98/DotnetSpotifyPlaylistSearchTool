@@ -2,8 +2,8 @@
     <Project Path="Builders/Builders.csproj" />
     <Project Path="SpotifyPlaylistSearchTool.Api/SpotifyPlaylistSearchTool.Api.csproj" />
     <Project Path="SpotifyPlaylistSearchTool.Database/SpotifyPlaylistSearchTool.Database.csproj" />
+    <Project Path="BackendE2ETests/BackendE2ETests/BackendE2ETests.csproj" />
     <Project Path="build/Build.csproj" />
-    <Project Path="BackendE2ETests/Tests/Tests.csproj" />
 
     <Folder Name="/client/" />
 </Solution>

@@ -10,5 +10,6 @@
     "^[./]"
   ],
   "importOrderSeparation": false,
-  "importOrderSortSpecifiers": true
+  "importOrderSortSpecifiers": true,
+  "endOfLine": "lf"
 }

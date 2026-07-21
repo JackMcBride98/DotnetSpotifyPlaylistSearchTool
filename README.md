@@ -73,7 +73,6 @@ Plan: Client Gen -> Frontent Lint, format and test setup -> Background job for s
 - Using owner name instead of ownerId for the only own playlists filter (this is not very safe e.g. multiple users with the same name)
 - remove the total playlist count from search (only an issue when searching during sync which is not a common use case) could add a warning text saying playlist counts are unreliable during sync.
 
-- Update branding (purple?)
 - Return home when errors
 - Redirect to home when can't find user or spotify client?
 
