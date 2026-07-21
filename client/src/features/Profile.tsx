@@ -1,21 +1,21 @@
 import { useQuery } from "@tanstack/react-query";
-import { PlaylistsSyncProgress } from "../components/PlaylistsSyncProgress.tsx";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { LogoutButton } from "../components/LogoutButton";
-import { SpinnerCircularFixed } from "spinners-react";
-import { RandomPlaylist } from "../components/RandomPlaylist";
-import { SearchPlaylists } from "../components/SearchPlaylists.tsx";
 import { motion } from "framer-motion";
-import { useRef, useEffect, useState } from "react";
-import { formatDate } from "../helpers/dateHelpers.ts";
-import { UpIcon } from "../icons/UpIcon.tsx";
+import { SpinnerCircularFixed } from "spinners-react";
+import { useEffect, useRef, useState } from "react";
 import {
   getProfileOptions,
-  syncProgressOptions,
-  syncPlaylistsMutation,
   getProfileQueryKey,
+  syncPlaylistsMutation,
+  syncProgressOptions,
 } from "../api/@tanstack/react-query.gen.ts";
 import { client } from "../api/client.gen.ts";
+import { LogoutButton } from "../components/LogoutButton";
+import { PlaylistsSyncProgress } from "../components/PlaylistsSyncProgress.tsx";
+import { RandomPlaylist } from "../components/RandomPlaylist";
+import { SearchPlaylists } from "../components/SearchPlaylists.tsx";
+import { formatDate } from "../helpers/dateHelpers.ts";
+import { UpIcon } from "../icons/UpIcon.tsx";
 
 export const Profile = () => {
   const queryClient = useQueryClient();
@@ -66,15 +66,15 @@ export const Profile = () => {
 
   if (isLoading) {
     return (
-      <div className="w-full min-w-screen h-full min-h-screen flex flex-col items-center space-y-4 bg-black text-white">
-        <SpinnerCircularFixed />
+      <div className="flex h-full min-h-screen w-full min-w-screen flex-col items-center space-y-4 bg-black text-white">
+        <SpinnerCircularFixed color="#7c3aed" />
       </div>
     );
   }
 
   if (isError || !isSuccess) {
     return (
-      <div className="w-full min-w-screen h-full min-h-screen flex flex-col items-center space-y-4 bg-black text-white">
+      <div className="flex h-full min-h-screen w-full min-w-screen flex-col items-center space-y-4 bg-black text-white">
         <p className="text-red-600">Error: {error?.message}</p>{" "}
       </div>
     );
@@ -85,9 +85,11 @@ export const Profile = () => {
   return (
     <div
       ref={ref}
-      className="w-full min-w-screen h-full min-h-screen flex flex-col items-center space-y-4 bg-black text-white overflow-y-auto pb-8"
+      className="flex h-full min-h-screen w-full min-w-screen flex-col items-center space-y-4 overflow-y-auto bg-black pb-8 text-white"
     >
-      <h1 className="font-bold text-xl md:text-3xl">Playlist Search Tool</h1>
+      <h1 className="text-xl font-bold text-violet-600 md:text-3xl">
+        Playlist Search Tool
+      </h1>
 
       <p>Hello {user.displayName.split(" ")[0]}</p>
       <img
@@ -99,11 +101,11 @@ export const Profile = () => {
       />
 
       {lastSyncedAt == null && !isSyncingPlaylists ? (
-        <div className="flex flex-col items-center gap-2 w-full">
+        <div className="flex w-full flex-col items-center gap-2">
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
-            className="text-center p-4 rounded-full bg-green-600 flex space-x-2 items-center"
+            className="flex items-center space-x-2 rounded-full bg-violet-600 p-4 text-center"
             onClick={() => syncPlaylists({})}
             disabled={isSyncingPlaylists}
           >
@@ -114,7 +116,7 @@ export const Profile = () => {
           )}
         </div>
       ) : (
-        <div className="flex flex-col items-center gap-4 w-full">
+        <div className="flex w-full flex-col items-center gap-4">
           {isSyncingPlaylists ? (
             <PlaylistsSyncProgress
               syncProgressData={syncProgressData}
@@ -150,7 +152,7 @@ export const Profile = () => {
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
         className={
-          "rounded-full text-black text-xl bg-green-600 w-12 h-12 md:w-20 md:h-20  text-center fixed transition-all bottom-2 md:bottom-4 right-2 md:right-28 opacity-80 hover:opacity-100 focus:opacity-100 " +
+          "fixed right-2 bottom-2 h-12 w-12 rounded-full bg-violet-600 text-center text-xl text-black opacity-80 transition-all hover:opacity-100 focus:opacity-100 md:right-28 md:bottom-4 md:h-20 md:w-20 " +
           (!showScrollToTop && "hidden")
         }
       >

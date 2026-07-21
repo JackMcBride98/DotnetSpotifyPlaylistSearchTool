@@ -1,10 +1,10 @@
-import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { SpinnerCircularFixed } from "spinners-react";
-import { SearchResults } from "./SearchResults.tsx";
-import { SearchBar } from "./SearchBar.tsx";
+import { useState } from "react";
 import { searchPlaylistsOptions } from "../api/@tanstack/react-query.gen.ts";
 import { client } from "../api/client.gen.ts";
+import { SearchBar } from "./SearchBar.tsx";
+import { SearchResults } from "./SearchResults.tsx";
 
 type Props = {
   totalPlaylists: number;
@@ -27,18 +27,18 @@ export const SearchPlaylists = ({
   });
 
   return (
-    <div className="flex flex-col items-center w-full">
+    <div className="flex w-full flex-col items-center">
       <SearchBar onSearch={setSearchTerm} isLoading={isLoading} />
-      <label className="flex items-center mt-2">
+      <label className="mt-2 flex items-center">
         Show only your own playlists
         <input
           type="checkbox"
-          className="accent-green-600 w-4 h-4 ml-2"
+          className="ml-2 h-4 w-4 accent-violet-600"
           checked={showOnlyOwnPlaylists}
           onChange={() => setShowOnlyOwnPlaylists(!showOnlyOwnPlaylists)}
         />
       </label>
-      {isLoading && <SpinnerCircularFixed />}
+      {isLoading && <SpinnerCircularFixed color={"#7c3aed"} />}
       {isError && <p className="text-red-600">Error: {error?.message}</p>}
       {data && data.matchingPlaylists && (
         <SearchResults
