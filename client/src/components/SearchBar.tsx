@@ -15,9 +15,9 @@ export const SearchBar = ({ onSearch, isLoading }: SearchBarProps) => {
 
   return (
     <>
-      <div className="md:w-80 w-72 flex items-center bg-green-600 rounded-md pl-1">
+      <div className="flex w-72 items-center rounded-md bg-violet-600 pl-1 md:w-80">
         <input
-          className="p-2 outline-0 bg-black w-full overflow-visible"
+          className="w-full overflow-visible bg-black p-2 outline-0"
           type="text"
           placeholder="Search for songs or artists"
           onKeyDown={(e) => {
@@ -36,7 +36,7 @@ export const SearchBar = ({ onSearch, isLoading }: SearchBarProps) => {
           <img
             src={searchIcon}
             alt="search"
-            className="w-6 h-6 fill-black bg-green-600"
+            className="h-6 w-6 bg-violet-600 fill-black"
           />
         </button>
       </div>

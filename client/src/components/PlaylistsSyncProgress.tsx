@@ -15,8 +15,8 @@ export const PlaylistsSyncProgress = ({
   const { totalPlaylists, syncedPlaylists } = syncProgressData;
 
   return (
-    <div className="flex flex-col items-center gap-2 w-full">
-      <SpinnerCircularFixed />
+    <div className="flex w-full flex-col items-center gap-2">
+      <SpinnerCircularFixed color={"#7c3aed"} />
       {totalPlaylists ? (
         <p>
           Synced {syncedPlaylists} of {totalPlaylists} saved playlists...

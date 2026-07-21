@@ -25,7 +25,7 @@ export const SearchResults = ({ playlists, totalPlaylists }: Props) => {
       </p>
       <div
         ref={parentRef}
-        className="flex-grow"
+        className="grow"
         style={{
           height: virtualizer.getTotalSize() + 50,
           width: "100%",
@@ -78,10 +78,10 @@ type PlaylistProps = {
 
 export const Playlist = ({ playlist, onClose }: PlaylistProps) => {
   return (
-    <div className="p-2 md:w-full md:max-w-md justify-start w-72 border-gray-600 border-2 rounded-md mx-auto relative">
+    <div className="relative mx-auto w-72 justify-start rounded-md border-2 border-gray-600 p-2 md:w-full md:max-w-md">
       {onClose && (
         <button
-          className="absolute top-2 right-2 p-2 text-xl text-white rounded-full z-10"
+          className="absolute top-2 right-2 z-10 rounded-full p-2 text-xl text-white"
           onClick={onClose}
           aria-label="Hide playlist"
         >
@@ -97,13 +97,13 @@ export const Playlist = ({ playlist, onClose }: PlaylistProps) => {
             href={`spotify:playlist:${playlist.id}`}
             rel="noreferrer"
             target="_blank"
-            className="text-base text-green-300 hover:italic"
+            className="text-base text-violet-300 hover:italic"
           >
             Link
           </a>
           <p
             dangerouslySetInnerHTML={{ __html: playlist.description }}
-            className="text-xs break-words w-44 md:w-[19rem] font-light text-slate-200 mb-2"
+            className="mb-2 w-44 text-xs font-light wrap-break-word text-slate-200 md:w-76"
           />
         </div>
       </div>
@@ -174,15 +174,15 @@ const Tracks = ({ tracks }: TracksProps) => {
                   className={
                     "border-b border-gray-300 p-2 " +
                     (track.match
-                      ? "bg-gradient-to-r from-green-600/80 via-black  to-green-600/80 "
+                      ? "bg-linear-to-r from-violet-600/80 via-black to-violet-600/80"
                       : "")
                   }
                 >
-                  <span className="text-gray-200 font-light mr-2">
+                  <span className="mr-2 font-light text-gray-200">
                     {item.index + 1}
                   </span>{" "}
                   {track.name} -{" "}
-                  <span className="text-white font-light">
+                  <span className="font-light text-white">
                     {track.artistName}
                   </span>
                 </p>

@@ -9,7 +9,7 @@ export const Credits = () => {
           href="https://portfolio-jackmcbride.vercel.app/"
           rel="noopener noreferrer"
           target="_blank"
-          className="text-green-600"
+          className="text-violet-600"
         >
           Jack McBride
         </a>
@@ -23,7 +23,7 @@ export const Credits = () => {
         <img
           src={githubLogo}
           alt="Github"
-          className="w-8 h-8 mt-2 invert"
+          className="mt-2 h-8 w-8 invert"
         ></img>
       </a>
     </div>
