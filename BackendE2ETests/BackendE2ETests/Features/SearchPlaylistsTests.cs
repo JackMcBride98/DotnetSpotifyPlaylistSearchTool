@@ -85,7 +85,7 @@ public class SearchPlaylistsTests(App app) : TestBase(app)
         Db.ChangeTracker.Clear();
 
         var request = new SearchPlaylists.Request(SearchTerm: "Track", ShowOnlyOwnPlaylists: true);
-
+        
         // Act
         var (response, result) = await App.Client.GETAsync<
             SearchPlaylists.Endpoint,
