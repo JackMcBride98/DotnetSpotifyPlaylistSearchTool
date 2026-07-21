@@ -24,10 +24,7 @@ public class LogInTests(App app) : TestBase(app)
             { "client_id", spotifyOptions.ClientId },
             { "response_type", "code" },
             { "redirect_uri", spotifyOptions.RedirectUri },
-            {
-                "scope",
-                "playlist-read-private playlist-read-collaborative user-read-private"
-            },
+            { "scope", "playlist-read-private playlist-read-collaborative user-read-private" },
         };
 
         using var content = new FormUrlEncodedContent(queryParams);
