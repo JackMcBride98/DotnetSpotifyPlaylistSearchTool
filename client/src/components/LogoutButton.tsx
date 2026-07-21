@@ -1,8 +1,8 @@
-import { SpinnerCircularFixed } from "spinners-react";
-import { useState } from "react";
-import { useNavigate } from "react-router";
 import { useMutation } from "@tanstack/react-query";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router";
+import { SpinnerCircularFixed } from "spinners-react";
+import { useState } from "react";
 import { logoutMutation } from "../api/@tanstack/react-query.gen.ts";
 
 export const LogoutButton = () => {

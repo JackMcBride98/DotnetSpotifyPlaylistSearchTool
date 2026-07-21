@@ -1,6 +1,6 @@
+import magnifyingGlass from "../assets/magnifying-glass-solid.svg";
 import { Credits } from "../components/Credits.tsx";
 import { LoginButton } from "../components/LoginButton.tsx";
-import magnifyingGlass from "../assets/magnifying-glass-solid.svg";
 
 export const Home = () => {
   return (

@@ -1,7 +1,7 @@
-import { motion } from "framer-motion";
 import { useMutation } from "@tanstack/react-query";
-import { useState } from "react";
+import { motion } from "framer-motion";
 import { SpinnerCircularFixed } from "spinners-react";
+import { useState } from "react";
 import { logInMutation } from "../api/@tanstack/react-query.gen.ts";
 
 export const LoginButton = () => {

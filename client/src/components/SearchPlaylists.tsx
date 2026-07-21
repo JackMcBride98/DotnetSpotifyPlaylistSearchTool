@@ -1,10 +1,10 @@
-import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { SpinnerCircularFixed } from "spinners-react";
-import { SearchResults } from "./SearchResults.tsx";
-import { SearchBar } from "./SearchBar.tsx";
+import { useState } from "react";
 import { searchPlaylistsOptions } from "../api/@tanstack/react-query.gen.ts";
 import { client } from "../api/client.gen.ts";
+import { SearchBar } from "./SearchBar.tsx";
+import { SearchResults } from "./SearchResults.tsx";
 
 type Props = {
   totalPlaylists: number;

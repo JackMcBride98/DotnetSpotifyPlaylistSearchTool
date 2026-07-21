@@ -1,21 +1,21 @@
 import { useQuery } from "@tanstack/react-query";
-import { PlaylistsSyncProgress } from "../components/PlaylistsSyncProgress.tsx";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { LogoutButton } from "../components/LogoutButton";
-import { SpinnerCircularFixed } from "spinners-react";
-import { RandomPlaylist } from "../components/RandomPlaylist";
-import { SearchPlaylists } from "../components/SearchPlaylists.tsx";
 import { motion } from "framer-motion";
-import { useRef, useEffect, useState } from "react";
-import { formatDate } from "../helpers/dateHelpers.ts";
-import { UpIcon } from "../icons/UpIcon.tsx";
+import { SpinnerCircularFixed } from "spinners-react";
+import { useEffect, useRef, useState } from "react";
 import {
   getProfileOptions,
-  syncProgressOptions,
-  syncPlaylistsMutation,
   getProfileQueryKey,
+  syncPlaylistsMutation,
+  syncProgressOptions,
 } from "../api/@tanstack/react-query.gen.ts";
 import { client } from "../api/client.gen.ts";
+import { LogoutButton } from "../components/LogoutButton";
+import { PlaylistsSyncProgress } from "../components/PlaylistsSyncProgress.tsx";
+import { RandomPlaylist } from "../components/RandomPlaylist";
+import { SearchPlaylists } from "../components/SearchPlaylists.tsx";
+import { formatDate } from "../helpers/dateHelpers.ts";
+import { UpIcon } from "../icons/UpIcon.tsx";
 
 export const Profile = () => {
   const queryClient = useQueryClient();

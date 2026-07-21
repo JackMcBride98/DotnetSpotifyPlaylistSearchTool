@@ -1,10 +1,10 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
 import { motion } from "framer-motion";
 import { SpinnerCircularFixed } from "spinners-react";
-import { Playlist } from "./SearchResults";
+import { useState } from "react";
 import { getRandomPlaylistOptions } from "../api/@tanstack/react-query.gen.ts";
 import { client } from "../api/client.gen.ts";
+import { Playlist } from "./SearchResults";
 
 interface RandomPlaylistProps {
   showOnlyOwnPlaylists: boolean;

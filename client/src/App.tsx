@@ -1,6 +1,6 @@
-import { Home } from "./features/Home.tsx";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes } from "react-router";
+import { Home } from "./features/Home.tsx";
 import { Profile } from "./features/Profile.tsx";
 
 function App() {
