@@ -46,7 +46,7 @@ public class BuildContext : FrostingContext
             "Host=localhost;Port=5434;Database=SpotifyPlaylistSearchToolTest;Username=postgres;Password=mysecretpassword";
         ApiProjectPath = "../SpotifyPlaylistSearchTool.Api/SpotifyPlaylistSearchTool.Api.csproj";
         ClientDirectoryPath = "../client";
-        BackendE2ETestsProjectPath = "../BackendE2ETests/Tests/Tests.csproj";
+        BackendE2ETestsProjectPath = "../BackendE2ETests/BackendE2ETests/BackendE2ETests.csproj";
         BuildersProjectPath = "../Builders/Builders.csproj";
     }
 }
@@ -165,7 +165,7 @@ public sealed class TestFrontendTask : FrostingTask<BuildContext>
 
         context.NpmRunScript("test", settings => settings.FromPath(context.ClientDirectoryPath));
 
-        context.Information("Frontend Tests passed");
+        context.Information("Frontend BackendE2ETests passed");
     }
 }
 

@@ -50,6 +50,94 @@ public class SearchPlaylistsTests(App app) : TestBase(app)
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
         result.TotalPlaylists.ShouldBe(playlistCount);
     }
+    
+    [Fact]
+    public async Task Search_With_ShowOnlyOwnPlaylists_True_Returns_Filtered_TotalUserPlaylists_Count()
+    {
+        // Arrange
+        ConfigureMockUser(TestUserId, TestUserName);
+
+        var user = new UserBuilder { UserId = TestUserId, Username = TestUserName }
+            .WithPlaylists([
+                new PlaylistBuilder
+                {
+                    PlaylistId = "own-playlist-1",
+                    OwnerName = TestUserName,
+                    Image = new Image("https://example.com/img1.jpg", 0, 0),
+                }.WithTracks([new TrackBuilder { Name = "Track 1", ArtistName = "Artist 1" }]),
+                new PlaylistBuilder
+                {
+                    PlaylistId = "own-playlist-2",
+                    OwnerName = TestUserName,
+                    Image = new Image("https://example.com/img2.jpg", 0, 0),
+                }.WithTracks([new TrackBuilder { Name = "Track 2", ArtistName = "Artist 2" }]),
+                new PlaylistBuilder
+                {
+                    PlaylistId = "followed-playlist",
+                    OwnerName = "Someone Else",
+                    Image = new Image("https://example.com/img3.jpg", 0, 0),
+                }.WithTracks([new TrackBuilder { Name = "Track 3", ArtistName = "Artist 3" }]),
+            ])
+            .Build();
+        Db.Users.Add(user);
+        await Db.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        Db.ChangeTracker.Clear();
+
+        var request = new SearchPlaylists.Request(SearchTerm: "Track", ShowOnlyOwnPlaylists: true);
+
+        // Act
+        var (response, result) = await App.Client.GETAsync<
+            SearchPlaylists.Endpoint,
+            SearchPlaylists.Request,
+            SearchPlaylists.Response
+        >(request);
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        result.TotalPlaylists.ShouldBe(2);
+    }
+
+    [Fact]
+    public async Task Search_With_ShowOnlyOwnPlaylists_False_Returns_Unfiltered_TotalUserPlaylists_Count()
+    {
+        // Arrange
+        ConfigureMockUser(TestUserId, TestUserName);
+
+        var user = new UserBuilder { UserId = TestUserId, Username = TestUserName }
+            .WithPlaylists([
+                new PlaylistBuilder
+                {
+                    PlaylistId = "own-playlist-1",
+                    OwnerName = TestUserName,
+                    Image = new Image("https://example.com/img1.jpg", 0, 0),
+                }.WithTracks([new TrackBuilder { Name = "Track 1", ArtistName = "Artist 1" }]),
+                new PlaylistBuilder
+                {
+                    PlaylistId = "followed-playlist",
+                    OwnerName = "Someone Else",
+                    Image = new Image("https://example.com/img2.jpg", 0, 0),
+                }.WithTracks([new TrackBuilder { Name = "Track 2", ArtistName = "Artist 2" }]),
+            ])
+            .Build();
+        Db.Users.Add(user);
+        await Db.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        Db.ChangeTracker.Clear();
+
+        var request = new SearchPlaylists.Request(SearchTerm: "Track", ShowOnlyOwnPlaylists: false);
+
+        // Act
+        var (response, result) = await App.Client.GETAsync<
+            SearchPlaylists.Endpoint,
+            SearchPlaylists.Request,
+            SearchPlaylists.Response
+        >(request);
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        result.TotalPlaylists.ShouldBe(2);
+    }
 
     [Fact]
     public async Task Search_With_Matching_Track_Name_Returns_Expected_Playlist()
