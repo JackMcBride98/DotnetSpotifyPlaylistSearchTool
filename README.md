@@ -69,12 +69,10 @@ Plan: Client Gen -> Frontent Lint, format and test setup -> Background job for s
 
 - Create background job for syncing playlists
 - Better logging for SyncSpotifyPlaylistService
+- Use and store userLastActive times for the background job (only run sync job for user active in the last week.)
 
 - Using owner name instead of ownerId for the only own playlists filter (this is not very safe e.g. multiple users with the same name)
 - remove the total playlist count from search (only an issue when searching during sync which is not a common use case) could add a warning text saying playlist counts are unreliable during sync.
-
-- Return home when errors
-- Redirect to home when can't find user or spotify client?
 
 - PWA
 - AWS Deployment
