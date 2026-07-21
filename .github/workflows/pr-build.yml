@@ -52,6 +52,28 @@ jobs:
         run: npm run typecheck
         working-directory: client
 
+  frontend-tests:
+    name: Frontend Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: '26'
+          cache: 'npm'
+          cache-dependency-path: client/package-lock.json
+
+      - name: Install Frontend Dependencies
+        run: npm ci
+        working-directory: client
+
+      - name: Run Frontend Tests (Jest)
+        run: npm run test
+        working-directory: client
+
   lint-backend:
     name: Lint & Format Backend
     runs-on: ubuntu-latest

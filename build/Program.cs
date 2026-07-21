@@ -156,6 +156,19 @@ public sealed class TypecheckFrontendTask : FrostingTask<BuildContext>
     }
 }
 
+[TaskName("TestFrontend")]
+public sealed class TestFrontendTask : FrostingTask<BuildContext>
+{
+    public override void Run(BuildContext context)
+    {
+        context.Information("Running frontend tests");
+
+        context.NpmRunScript("test", settings => settings.FromPath(context.ClientDirectoryPath));
+
+        context.Information("Frontend Tests passed");
+    }
+}
+
 [TaskName("Build")]
 [IsDependentOn(typeof(CleanTask))]
 public sealed class BuildTask : FrostingTask<BuildContext>
@@ -381,6 +394,7 @@ public sealed class RunBackendE2ETests : FrostingTask<BuildContext>
 [IsDependentOn(typeof(LintFrontendTask))]
 [IsDependentOn(typeof(LintBackendTask))]
 [IsDependentOn(typeof(TypecheckFrontendTask))]
+[IsDependentOn(typeof(TestFrontendTask))]
 [IsDependentOn(typeof(SetupTestDatabase))]
 [IsDependentOn(typeof(RunBackendE2ETests))]
 public sealed class CITask : FrostingTask<BuildContext>
