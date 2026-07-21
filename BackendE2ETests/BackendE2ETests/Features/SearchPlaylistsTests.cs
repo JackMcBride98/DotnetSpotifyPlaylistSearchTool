@@ -50,7 +50,7 @@ public class SearchPlaylistsTests(App app) : TestBase(app)
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
         result.TotalPlaylists.ShouldBe(playlistCount);
     }
-    
+
     [Fact]
     public async Task Search_With_ShowOnlyOwnPlaylists_True_Returns_Filtered_TotalUserPlaylists_Count()
     {
@@ -85,7 +85,7 @@ public class SearchPlaylistsTests(App app) : TestBase(app)
         Db.ChangeTracker.Clear();
 
         var request = new SearchPlaylists.Request(SearchTerm: "Track", ShowOnlyOwnPlaylists: true);
-        
+
         // Act
         var (response, result) = await App.Client.GETAsync<
             SearchPlaylists.Endpoint,
