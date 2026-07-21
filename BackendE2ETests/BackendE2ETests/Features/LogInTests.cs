@@ -26,7 +26,7 @@ public class LogInTests(App app) : TestBase(app)
             { "redirect_uri", spotifyOptions.RedirectUri },
             {
                 "scope",
-                "playlist-read-private playlist-read-collaborative user-read-private user-read-email"
+                "playlist-read-private playlist-read-collaborative user-read-private"
             },
         };
 
