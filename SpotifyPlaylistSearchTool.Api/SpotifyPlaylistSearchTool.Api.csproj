@@ -19,15 +19,15 @@
         <OpenApiDocumentsDirectory>../client/api/</OpenApiDocumentsDirectory>
     </PropertyGroup>
 
-    <Target
-        Name="AutomateFrontendTypeGen"
-        AfterTargets="Build"
-        Condition="'$(Configuration)' == 'Debug' And '$(DotNetWatchBuild)' != 'true' And '$(IsTestProject)' != 'true' And '$(BuildingForLiveUnitTesting)' != 'true'"
-    >
-        <Message Importance="high" Text="🚀 .NET Build Hook: Automating @hey-api/openapi-ts..." />
+    <!--    <Target-->
+    <!--        Name="AutomateFrontendTypeGen"-->
+    <!--        AfterTargets="Build"-->
+    <!--        Condition="'$(Configuration)' == 'Debug' And '$(DotNetWatchBuild)' != 'true' And '$(IsTestProject)' != 'true' And '$(BuildingForLiveUnitTesting)' != 'true'"-->
+    <!--    >-->
+    <!--        <Message Importance="high" Text="🚀 .NET Build Hook: Automating @hey-api/openapi-ts..." />-->
 
-        <Exec WorkingDirectory="../client" Command="npm run clientGen" ContinueOnError="true" />
-    </Target>
+    <!--        <Exec WorkingDirectory="../client" Command="npm run clientGen" ContinueOnError="true" />-->
+    <!--    </Target>-->
 
     <ItemGroup>
         <PackageReference Include="FastEndpoints" Version="8.2.0" />
