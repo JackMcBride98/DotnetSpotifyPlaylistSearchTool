@@ -49,6 +49,7 @@ if (!isDocumentGeneration)
 
 builder.Services.AddScoped<ISyncSpotifyPlaylistService, SyncSpotifyPlaylistService>();
 builder.Services.AddScoped<ISpotifyAuthService, SpotifyAuthService>();
+builder.Services.AddSingleton<ISpotifyClientFactory, SpotifyClientFactory>();
 
 // builder.Services.AddSpaStaticFiles(options => { options.RootPath = "client/dist"; }); do this if not development
 
@@ -56,6 +57,7 @@ var app = builder.Build();
 
 app.UseStaticFiles();
 app.UseRouting();
+app.UseDefaultExceptionHandler();
 app.UseFastEndpoints(c =>
 {
     c.Endpoints.RoutePrefix = "api";

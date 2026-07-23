@@ -8,8 +8,7 @@ namespace SpotifyPlaylistSearchTool.Api.Services;
 
 public interface ISpotifyAuthService
 {
-    Task<AuthorizationCodeTokenResponse> RequestTokenAsync(string code, CancellationToken ct);
-    Task<SpotifyClient> GetSpotifyClientAsync(
+    Task<ISpotifyClient> GetSpotifyClientAsync(
         HttpContext httpContext,
         CancellationToken ct,
         string? passedAccessToken = null,
@@ -22,21 +21,21 @@ public interface ISpotifyAuthService
         CancellationToken ct
     );
 
-    Task<PrivateUser> GetCurrentUserProfileAsync(
-        HttpContext httpContext,
-        CancellationToken ct
-    );
+    Task<PrivateUser> GetCurrentUserProfileAsync(HttpContext httpContext, CancellationToken ct);
 }
 
-public class SpotifyAuthService(IOptions<SpotifyOptions> spotifyOptions, DataContext dataContext)
-    : ISpotifyAuthService
+public class SpotifyAuthService(
+    IOptions<SpotifyOptions> spotifyOptions,
+    DataContext dataContext,
+    ISpotifyClientFactory spotifyClientFactory
+) : ISpotifyAuthService
 {
     private class UserState
     {
         public string? UserId { get; set; }
     }
 
-    public async Task<AuthorizationCodeTokenResponse> RequestTokenAsync(
+    public virtual async Task<AuthorizationCodeTokenResponse> RequestTokenAsync(
         string code,
         CancellationToken ct
     )
@@ -47,6 +46,21 @@ public class SpotifyAuthService(IOptions<SpotifyOptions> spotifyOptions, DataCon
                 spotifyOptions.Value.ClientSecret,
                 code,
                 new Uri(spotifyOptions.Value.RedirectUri)
+            ),
+            cancel: ct
+        );
+    }
+
+    public virtual async Task<AuthorizationCodeRefreshResponse> RefreshTokenAsync(
+        string refreshToken,
+        CancellationToken ct
+    )
+    {
+        return await new OAuthClient().RequestToken(
+            new AuthorizationCodeRefreshRequest(
+                spotifyOptions.Value.ClientId,
+                spotifyOptions.Value.ClientSecret,
+                refreshToken
             ),
             cancel: ct
         );
@@ -66,8 +80,7 @@ public class SpotifyAuthService(IOptions<SpotifyOptions> spotifyOptions, DataCon
             tokenResponse.RefreshToken
         );
 
-        var client = new SpotifyClient(tokenResponse.AccessToken);
-
+        var client = spotifyClientFactory.CreateClient(tokenResponse.AccessToken);
         var profile = await client.UserProfile.Current(ct);
 
         var user = await dataContext.Users.SingleOrDefaultAsync(u => u.UserId == profile.Id, ct);
@@ -92,7 +105,7 @@ public class SpotifyAuthService(IOptions<SpotifyOptions> spotifyOptions, DataCon
         await dataContext.SaveChangesAsync(ct);
     }
 
-    public async Task<SpotifyClient> GetSpotifyClientAsync(
+    public async Task<ISpotifyClient> GetSpotifyClientAsync(
         HttpContext httpContext,
         CancellationToken ct,
         string? passedAccessToken = null,
@@ -102,64 +115,19 @@ public class SpotifyAuthService(IOptions<SpotifyOptions> spotifyOptions, DataCon
         var accessToken = passedAccessToken ?? httpContext.Request.Cookies["AccessToken"];
         var refreshToken = passedRefreshToken ?? httpContext.Request.Cookies["RefreshToken"];
 
-        if (string.IsNullOrEmpty(accessToken) || string.IsNullOrEmpty(refreshToken))
+        if (string.IsNullOrEmpty(refreshToken))
         {
             throw new InvalidOperationException(
-                "Access token or refresh token not found in HttpContext."
+                "Refresh token not found in HttpContext or parameters."
             );
         }
 
-        var tokenResponse = new AuthorizationCodeTokenResponse
+        if (string.IsNullOrEmpty(accessToken))
         {
-            AccessToken = accessToken,
-            RefreshToken = refreshToken,
-            CreatedAt = DateTime.UtcNow,
-            ExpiresIn = 3600,
-            TokenType = "Bearer",
-        };
-
-        var authenticator = new AuthorizationCodeAuthenticator(
-            spotifyOptions.Value.ClientId,
-            spotifyOptions.Value.ClientSecret,
-            tokenResponse
-        );
-
-        var userState = new UserState();
-        var wasRefreshed = false;
-
-        authenticator.TokenRefreshed += async (sender, tokenRefreshedResponse) =>
-        {
-            wasRefreshed = true;
-
-            accessToken = tokenRefreshedResponse.AccessToken;
-            refreshToken = tokenRefreshedResponse.RefreshToken;
-
-            SetTokenHttpContextCookies(httpContext, accessToken, refreshToken);
-
-            if (!string.IsNullOrEmpty(userState.UserId))
-            {
-                Console.WriteLine($"User {userState.UserId} Tokens Refreshed and updated in database");
-                await UpdateUserTokensInDatabaseAsync(
-                    userState.UserId,
-                    accessToken,
-                    refreshToken,
-                    ct
-                );
-            }
-        };
-
-        var config = SpotifyClientConfig.CreateDefault().WithAuthenticator(authenticator);
-        var client = new SpotifyClient(config);
-
-        var profile = await client.UserProfile.Current(ct);
-        userState.UserId = profile.Id;
-
-        if (wasRefreshed)
-        {
-            Console.WriteLine($"User {userState.UserId} Tokens Refreshed and updated in database (In first request to get client)");
-            await UpdateUserTokensInDatabaseAsync(userState.UserId, accessToken, refreshToken, ct);
+            return await RefreshTokensAndCreateClientAsync(httpContext, refreshToken, ct);
         }
 
+        var client = spotifyClientFactory.CreateClient(accessToken);
         return client;
     }
 
@@ -172,6 +140,26 @@ public class SpotifyAuthService(IOptions<SpotifyOptions> spotifyOptions, DataCon
         var profile = await spotifyClient.UserProfile.Current(ct);
 
         return profile;
+    }
+
+    private async Task<ISpotifyClient> RefreshTokensAndCreateClientAsync(
+        HttpContext httpContext,
+        string refreshToken,
+        CancellationToken ct
+    )
+    {
+        var tokenResponse = await RefreshTokenAsync(refreshToken, ct);
+        var newAccessToken = tokenResponse.AccessToken;
+        var newRefreshToken = tokenResponse.RefreshToken ?? refreshToken;
+
+        var client = spotifyClientFactory.CreateClient(newAccessToken);
+
+        var profile = await client.UserProfile.Current(ct);
+
+        SetTokenHttpContextCookies(httpContext, newAccessToken, newRefreshToken);
+        await UpdateUserTokensInDatabaseAsync(profile.Id, newAccessToken, newRefreshToken, ct);
+
+        return client;
     }
 
     private async Task UpdateUserTokensInDatabaseAsync(
@@ -191,7 +179,6 @@ public class SpotifyAuthService(IOptions<SpotifyOptions> spotifyOptions, DataCon
         }
         else
         {
-            // Log!
             Console.WriteLine("User not found when trying to update tokens in database.");
         }
     }

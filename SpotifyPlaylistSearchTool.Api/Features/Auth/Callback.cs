@@ -19,8 +19,7 @@ public static class Callback
         }
     }
 
-    public class Endpoint(DataContext dataContext, ISpotifyAuthService spotifyAuthService)
-        : Endpoint<Request, EmptyResponse>
+    public class Endpoint(ISpotifyAuthService spotifyAuthService) : Endpoint<Request, EmptyResponse>
     {
         public override void Configure()
         {

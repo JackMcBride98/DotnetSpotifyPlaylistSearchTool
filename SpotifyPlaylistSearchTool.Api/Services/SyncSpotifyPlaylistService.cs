@@ -8,13 +8,13 @@ namespace SpotifyPlaylistSearchTool.Api.Services;
 
 public interface ISyncSpotifyPlaylistService
 {
-    Task SyncSpotifyPlaylistAsync(SpotifyClient spotifyClient, bool requiresProgressUpdates);
+    Task SyncSpotifyPlaylistAsync(ISpotifyClient spotifyClient, bool requiresProgressUpdates);
 }
 
 public class SyncSpotifyPlaylistService(DataContext dataContext) : ISyncSpotifyPlaylistService
 {
     public async Task SyncSpotifyPlaylistAsync(
-        SpotifyClient spotifyClient,
+        ISpotifyClient spotifyClient,
         bool requiresProgressUpdates
     )
     {
