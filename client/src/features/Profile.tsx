@@ -29,12 +29,6 @@ export const Profile = () => {
     ...getProfileOptions({ client }),
   });
 
-  // useEffect(() => {
-  //   if (isError) {
-  //     window.location.href = "/";
-  //   }
-  // }, [isError]);
-
   const {
     isPending: isSyncingPlaylists,
     mutate: syncPlaylists,
@@ -83,6 +77,9 @@ export const Profile = () => {
     return (
       <div className="flex h-full min-h-screen w-full min-w-screen flex-col items-center space-y-4 bg-black text-white">
         <p className="text-red-600">Error: {getErrorMessage(error)}</p>{" "}
+        <a href="/" className="text-violet-600 hover:underline">
+          Go back to the home page
+        </a>
       </div>
     );
   }
@@ -119,7 +116,7 @@ export const Profile = () => {
             Sync playlists
           </motion.button>
           {isSyncError && (
-            <p className="text-red-600">Error: {syncError?.message}</p>
+            <p className="text-red-600">Error: {getErrorMessage(syncError)}</p>
           )}
         </div>
       ) : (
