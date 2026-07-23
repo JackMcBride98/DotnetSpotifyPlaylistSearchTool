@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using SpotifyAPI.Web;
 using SpotifyPlaylistSearchTool.Api.Database;
 using SpotifyPlaylistSearchTool.Api.Services;
 
@@ -38,7 +37,7 @@ public class GetProfile
 
             if (profileData == null)
             {
-                ThrowError("User not found, try logging in again");
+                ThrowError("User not found, try logging in again", 404);
             }
 
             var lastUpdatedAtOrNull = profileData.UpdatedAt.HasValue

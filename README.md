@@ -27,7 +27,7 @@ This is used instead of EFCore migrations, to allow complete control of the gene
 There are no down migrations as DbUp is opinionated against them. Although they could be added, there is a package to handle that. See DbUp documentation.
 
 `./build` contains the Cake Frosting project which organises local scripts for the project. Run ./cake in the root directory to see a list of commands
-(side note for self) These take a while on my machine, I'm unsure if its the way I've set it up or my computer being not so good.
+(side note for self) These take a while on my machine, I'm unsure if its the way I've set it up or my computer being an 8 year old brick.
 
 `./BackendE2ETests` contains integration/end-to-end tests for the backend API. These are run against a local test database 
 and use mock the results of Spotify API. These are setup as reccomened by FastEndpoints [documentation](https://fast-endpoints.com/docs/integration-unit-testing).
@@ -59,23 +59,27 @@ this is set in committed DotSettings.user, so you may not need to do this.)
 Pipelines are ran using Github Actions. These live in ./github/workflows. They call jobs defined in the Cake Frosting
 build project. 
 
-Pipelines can be ran locally using act-cli `choco install act-cli`
-Then at root level run `act pull_request`
-If you want to test them locally
-
-
 # TODO
-Plan: Client Gen -> Frontent Lint, format and test setup -> Background job for syncing playlists -> Update branding and fix bugs -> AWS Deployment -> IaaC deployment -> PWA (stretch goal)
+Plan: Client Gen ✅ -> Frontent Lint, format and test setup ✅ -> Background job for syncing playlists -> Update branding and fix bugs ✅ -> AWS Deployment -> IaaC deployment -> PWA (stretch goal)
 
 - Create background job for syncing playlists
 - Better logging for SyncSpotifyPlaylistService
+- Use and store userLastActive times for the background job (only run sync job for user active in the last week.)
+
+Auth Rework and Service testing plan
+- Then we need to think about how we want the background job and service to work, refactor syncSpotifyPlaylistService as such
+- Unit test the syncSpotifyPlaylistService
+- Update the syncPlaylists endpoint to trigger a background job instead of directly call the service. Update tests appropriately.
+- Add weekly background job to sync playlists for users active in the last week (all users to begin with)
+- Can we unit test the weekly background job?
 
 - Using owner name instead of ownerId for the only own playlists filter (this is not very safe e.g. multiple users with the same name)
 - remove the total playlist count from search (only an issue when searching during sync which is not a common use case) could add a warning text saying playlist counts are unreliable during sync.
 
-- Return home when errors
-- Redirect to home when can't find user or spotify client?
+- Error Handling could be much better (think I found a limitation of the client-gen library). We need to surface error messages and status codes from the backend to frontend in  a typesafe way.
+- Figure out how to run the automated api generation and frontend generation (currently commented out in csproj), only for development builds i.e dont run in watch mode, tests or in CI. 
 
-- PWA
+
 - AWS Deployment
 - IaaC deployment
+- PWA

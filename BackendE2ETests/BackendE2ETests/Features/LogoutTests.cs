@@ -19,16 +19,18 @@ public class LogoutTests(App app) : TestBase(app)
         ArrangeMockSpotifyUser(DefaultSpotifyUserId);
 
         // Act
-        var response = await App.Client.POSTAsync<LogoutFeature.Endpoint, ErrorResponse>();
+        var (response, problemDetails) = await App.Client.POSTAsync<
+            LogoutFeature.Endpoint,
+            ProblemDetails
+        >();
 
         // Assert
-        response.Response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
-        response.Result.ShouldNotBeNull();
+        response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+        problemDetails.ShouldNotBeNull();
 
-        var content = await response.Response.Content.ReadAsStringAsync(
-            TestContext.Current.CancellationToken
-        );
-        content.ShouldContain("User not found");
+        var error = problemDetails.Errors.FirstOrDefault();
+        error.ShouldNotBeNull();
+        error.Reason.ShouldBe("User not found");
     }
 
     [Fact]
