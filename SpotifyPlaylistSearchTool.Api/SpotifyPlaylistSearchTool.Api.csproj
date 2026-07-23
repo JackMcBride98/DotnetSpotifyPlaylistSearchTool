@@ -6,11 +6,11 @@
     </PropertyGroup>
 
     <PropertyGroup>
-        <OpenApiGenerateDocumentsOnBuild
-            Condition="'$(Configuration)' != 'Debug' Or '$(IsTestProject)' == 'true' Or '$(BuildingForLiveUnitTesting)' == 'true'"
-            >false</OpenApiGenerateDocumentsOnBuild>
-        <OpenApiGenerateDocumentsOnBuild Condition="'$(OpenApiGenerateDocumentsOnBuild)' == ''"
-            >true</OpenApiGenerateDocumentsOnBuild>
+        <!--        <OpenApiGenerateDocumentsOnBuild-->
+        <!--            Condition="'$(Configuration)' != 'Debug' Or '$(IsTestProject)' == 'true' Or '$(BuildingForLiveUnitTesting)' == 'true'"-->
+        <!--            >false</OpenApiGenerateDocumentsOnBuild>-->
+        <!--        <OpenApiGenerateDocumentsOnBuild Condition="'$(OpenApiGenerateDocumentsOnBuild)' == ''"-->
+        <!--            >true</OpenApiGenerateDocumentsOnBuild>-->
 
         <OpenApiGenerateDocumentsOnBuild>true</OpenApiGenerateDocumentsOnBuild>
 

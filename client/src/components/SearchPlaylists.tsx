@@ -3,6 +3,7 @@ import { SpinnerCircularFixed } from "spinners-react";
 import { useState } from "react";
 import { searchPlaylistsOptions } from "../api/@tanstack/react-query.gen.ts";
 import { client } from "../api/client.gen.ts";
+import { getErrorMessage } from "../helpers/getErrorMessage.ts";
 import { SearchBar } from "./SearchBar.tsx";
 import { SearchResults } from "./SearchResults.tsx";
 
@@ -39,7 +40,9 @@ export const SearchPlaylists = ({
         />
       </label>
       {isLoading && <SpinnerCircularFixed color={"#7c3aed"} />}
-      {isError && <p className="text-red-600">Error: {error?.message}</p>}
+      {isError && (
+        <p className="text-red-600">Error: {getErrorMessage(error)}</p>
+      )}
       {data && data.matchingPlaylists && (
         <SearchResults
           playlists={data.matchingPlaylists}

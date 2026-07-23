@@ -4,23 +4,6 @@ export type ClientOptions = {
   baseUrl: `${string}://${string}` | (string & {});
 };
 
-/**
- * the dto used to send an error response to the client
- */
-export type ErrorResponse = {
-  /**
-   * the http status code sent to the client. default is 400.
-   */
-  statusCode?: number;
-  /**
-   * the message for the error response
-   */
-  message?: string;
-  errors?: {
-    [key: string]: Array<string>;
-  };
-};
-
 export type GetProfileResponse = {
   user: GetProfileUserProfileResponse;
   totalPlaylists: number;
@@ -56,6 +39,40 @@ export type PlaylistResponse = {
   ownerName: string;
   image: ImageResponse;
   tracks: ICollectionOfTrackResponse;
+};
+
+/**
+ * RFC9457 compatible problem details/ error response class. this can be used by configuring startup like so:
+ * ```app.UseFastEndpoints(c =&gt; c.Errors.UseProblemDetails())```
+ */
+export type ProblemDetails = {
+  type?: null | string;
+  title?: null | string;
+  status?: number;
+  instance?: string;
+  traceId?: string;
+  /**
+   * the details of the error
+   */
+  detail?: null | string;
+  errors?: Array<{
+    /**
+     * the name of the error or property of the dto that caused the error
+     */
+    name?: string;
+    /**
+     * the reason for the error
+     */
+    reason?: string;
+    /**
+     * the code of the error
+     */
+    code?: null | string;
+    /**
+     * the severity of the error
+     */
+    severity?: null | string;
+  }>;
 };
 
 export type SearchPlaylistsResponse = {
@@ -95,7 +112,7 @@ export type CallbackErrors = {
   /**
    * Bad Request
    */
-  400: ErrorResponse;
+  400: ProblemDetails;
 };
 
 export type CallbackError = CallbackErrors[keyof CallbackErrors];

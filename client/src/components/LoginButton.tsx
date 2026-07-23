@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { SpinnerCircularFixed } from "spinners-react";
 import { useState } from "react";
 import { logInMutation } from "../api/@tanstack/react-query.gen.ts";
+import { getErrorMessage } from "../helpers/getErrorMessage.ts";
 
 export const LoginButton = () => {
   const [isLoggingIn, setIsLoggingIn] = useState(false);
@@ -59,7 +60,9 @@ export const LoginButton = () => {
         </svg>
         <p>Login with Spotify</p>
       </motion.button>
-      {isError && <p className="text-red-600">Error: {error?.message}</p>}
+      {isError && (
+        <p className="text-red-600">Error: {getErrorMessage(error)}</p>
+      )}
       {isLoggingIn && <SpinnerCircularFixed color={"#7c3aed"} />}
     </>
   );

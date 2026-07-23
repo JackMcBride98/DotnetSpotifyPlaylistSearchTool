@@ -23,7 +23,7 @@ public class GetProfileTests(App app) : TestBase(app)
         var (response, _) = await App.Client.GETAsync<GetProfile.Endpoint, ErrorResponse>();
 
         // Assert
-        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
         var content = await response.Content.ReadAsStringAsync(
             TestContext.Current.CancellationToken
         );

@@ -15,6 +15,7 @@ import { PlaylistsSyncProgress } from "../components/PlaylistsSyncProgress.tsx";
 import { RandomPlaylist } from "../components/RandomPlaylist";
 import { SearchPlaylists } from "../components/SearchPlaylists.tsx";
 import { formatDate } from "../helpers/dateHelpers.ts";
+import { getErrorMessage } from "../helpers/getErrorMessage.ts";
 import { UpIcon } from "../icons/UpIcon.tsx";
 
 export const Profile = () => {
@@ -27,6 +28,12 @@ export const Profile = () => {
   const { isLoading, isError, error, isSuccess, data } = useQuery({
     ...getProfileOptions({ client }),
   });
+
+  // useEffect(() => {
+  //   if (isError) {
+  //     window.location.href = "/";
+  //   }
+  // }, [isError]);
 
   const {
     isPending: isSyncingPlaylists,
@@ -75,7 +82,7 @@ export const Profile = () => {
   if (isError || !isSuccess) {
     return (
       <div className="flex h-full min-h-screen w-full min-w-screen flex-col items-center space-y-4 bg-black text-white">
-        <p className="text-red-600">Error: {error?.message}</p>{" "}
+        <p className="text-red-600">Error: {getErrorMessage(error)}</p>{" "}
       </div>
     );
   }
