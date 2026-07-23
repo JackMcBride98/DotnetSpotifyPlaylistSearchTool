@@ -26,7 +26,7 @@ public static class Logout
 
             if (user == null)
             {
-                ThrowError("User not found");
+                ThrowError("User not found", 404);
             }
 
             user.AccessToken = null;

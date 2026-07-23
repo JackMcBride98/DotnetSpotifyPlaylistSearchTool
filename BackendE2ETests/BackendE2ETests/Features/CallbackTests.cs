@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Http;
-
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using SpotifyAPI.Web;
@@ -37,8 +36,7 @@ public class CallbackTests(App app) : TestBase(app)
         // Arrange
         var request = new Callback.Request("invalid_or_expired_code");
 
-        App.MockSpotifyAuth
-            .HandleCallbackAndUpsertUserAsync(
+        App.MockSpotifyAuth.HandleCallbackAndUpsertUserAsync(
                 request.Code,
                 Arg.Any<HttpContext>(),
                 Arg.Any<CancellationToken>()
@@ -48,21 +46,20 @@ public class CallbackTests(App app) : TestBase(app)
             );
 
         // Act
-        var (response, errorResult) = await App.Client.GETAsync<
+        var (response, problemDetails) = await App.Client.GETAsync<
             Callback.Endpoint,
             Callback.Request,
-            ErrorResponse
+            ProblemDetails
         >(request);
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
 
-        errorResult.ShouldNotBeNull();
-        errorResult.Errors.ShouldNotBeEmpty();
+        problemDetails.Errors.ShouldNotBeEmpty();
 
-        var codeError = errorResult.Errors.FirstOrDefault(e => e.Key == "code").Value;
+        var codeError = problemDetails.Errors.FirstOrDefault(e => e.Name == "code");
         codeError.ShouldNotBeNull();
-        codeError.ShouldContain("Spotify authentication failed: Invalid authorization code");
+        codeError.Reason.ShouldContain("Spotify authentication failed: Invalid authorization code");
     }
 
     [Fact]
@@ -83,8 +80,8 @@ public class CallbackTests(App app) : TestBase(app)
         response.StatusCode.ShouldBe(HttpStatusCode.Redirect);
         response.Headers.Location?.ToString().ShouldBe("/profile");
 
-        await App.MockSpotifyAuth
-            .Received(1)
+        await App
+            .MockSpotifyAuth.Received(1)
             .HandleCallbackAndUpsertUserAsync(
                 request.Code,
                 Arg.Any<HttpContext>(),

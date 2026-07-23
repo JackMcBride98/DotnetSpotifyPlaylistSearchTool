@@ -24,20 +24,19 @@ public class GetRandomPlaylistTests(App app) : TestBase(app)
         var request = new GetRandomPlaylist.Request(OnlyOwnPlaylists: false);
 
         // Act
-        var (response, errorResult) = await App.Client.GETAsync<
+        var (response, problemDetails) = await App.Client.GETAsync<
             GetRandomPlaylist.Endpoint,
             GetRandomPlaylist.Request,
-            ErrorResponse
+            ProblemDetails
         >(request);
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
-        errorResult.ShouldNotBeNull();
+        problemDetails.ShouldNotBeNull();
 
-        var content = await response.Content.ReadAsStringAsync(
-            TestContext.Current.CancellationToken
-        );
-        content.ShouldContain("User has no playlists or random playlist not found");
+        var error = problemDetails.Errors.FirstOrDefault();
+        error.ShouldNotBeNull();
+        error.Reason.ShouldBe("User has no playlists or random playlist not found");
     }
 
     [Fact]
