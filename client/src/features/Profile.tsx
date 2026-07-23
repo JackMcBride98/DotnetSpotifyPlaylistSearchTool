@@ -24,30 +24,37 @@ export const Profile = () => {
   const ref = useRef<HTMLDivElement>(null);
   const [showScrollToTop, setShowScrollToTop] = useState(false);
   const [showOnlyOwnPlaylists, setShowOnlyOwnPlaylists] = useState(false);
+  const [isSyncingPlaylists, setIsSyncingPlaylists] = useState(false);
 
   const { isLoading, isError, error, isSuccess, data } = useQuery({
     ...getProfileOptions({ client }),
   });
 
   const {
-    isPending: isSyncingPlaylists,
     mutate: syncPlaylists,
     error: syncError,
     isError: isSyncError,
   } = useMutation({
     ...syncPlaylistsMutation(),
-    onSettled: () =>
-      queryClient.invalidateQueries({
-        queryKey: getProfileQueryKey({ client }),
-      }),
+    onError: () => {
+      setIsSyncingPlaylists(false);
+    },
   });
 
   const { data: syncProgressData } = useQuery({
     ...syncProgressOptions({ client }),
     enabled: isSyncingPlaylists,
-    refetchInterval: 500,
-    staleTime: 500,
+    refetchInterval: 1000,
+    staleTime: 1000,
   });
+
+  useEffect(() => {
+    if (isSyncingPlaylists && syncProgressData) {
+      void queryClient.invalidateQueries({
+        queryKey: getProfileQueryKey({ client }),
+      });
+    }
+  }, [syncProgressData, isSyncingPlaylists, queryClient]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -64,6 +71,11 @@ export const Profile = () => {
       document.removeEventListener("scroll", handleScroll);
     };
   }, []);
+
+  const handleSync = () => {
+    setIsSyncingPlaylists(true);
+    syncPlaylists({});
+  };
 
   if (isLoading) {
     return (
@@ -85,6 +97,10 @@ export const Profile = () => {
   }
 
   const { user, totalPlaylists, lastSyncedAt } = data;
+
+  if (isSyncingPlaylists && lastSyncedAt) {
+    setIsSyncingPlaylists(false);
+  }
 
   return (
     <div
@@ -110,7 +126,7 @@ export const Profile = () => {
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             className="flex items-center space-x-2 rounded-full bg-violet-600 p-4 text-center"
-            onClick={() => syncPlaylists({})}
+            onClick={() => handleSync()}
             disabled={isSyncingPlaylists}
           >
             Sync playlists

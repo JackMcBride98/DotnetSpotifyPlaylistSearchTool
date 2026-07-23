@@ -78,7 +78,9 @@ Auth Rework and Service testing plan
 
 - Error Handling could be much better (think I found a limitation of the client-gen library). We need to surface error messages and status codes from the backend to frontend in  a typesafe way.
 - Figure out how to run the automated api generation and frontend generation (currently commented out in csproj), only for development builds i.e dont run in watch mode, tests or in CI. 
-
+- Sort out line endings crap
+- Add refresh/exit confirmation modal during sync or handle user refreshing during sync. Suppose we could somehow have and isSyncing flag on the user, returned in the profile query? Needs a better solution
+- Do we need to get around rate limiting?
 
 - AWS Deployment
 - IaaC deployment

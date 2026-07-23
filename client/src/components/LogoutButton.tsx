@@ -37,7 +37,12 @@ export const LogoutButton = () => {
         <p>Logout</p>
       </motion.button>
       {isError && (
-        <p className="text-red-600">Error: {getErrorMessage(error)}</p>
+        <div className="flex h-full min-h-screen w-full min-w-screen flex-col items-center space-y-4 bg-black text-white">
+          <p className="text-red-600">Error: {getErrorMessage(error)}</p>{" "}
+          <a href="/" className="text-violet-600 hover:underline">
+            Go back to the home page
+          </a>
+        </div>
       )}
       {isPending && <SpinnerCircularFixed color={"#7c3aed"} />}
     </>

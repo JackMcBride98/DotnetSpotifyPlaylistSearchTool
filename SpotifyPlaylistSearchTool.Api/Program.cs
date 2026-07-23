@@ -4,7 +4,9 @@ using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 using SpotifyPlaylistSearchTool.Api.Configuration;
 using SpotifyPlaylistSearchTool.Api.Database;
+using SpotifyPlaylistSearchTool.Api.Jobs;
 using SpotifyPlaylistSearchTool.Api.Services;
+using TickerQ.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder();
 
@@ -50,6 +52,8 @@ if (!isDocumentGeneration)
 builder.Services.AddScoped<ISyncSpotifyPlaylistService, SyncSpotifyPlaylistService>();
 builder.Services.AddScoped<ISpotifyAuthService, SpotifyAuthService>();
 builder.Services.AddSingleton<ISpotifyClientFactory, SpotifyClientFactory>();
+builder.Services.AddTickerQ();
+builder.Services.MapTicker<InitialSyncJob, InitialSyncPayload>();
 
 // builder.Services.AddSpaStaticFiles(options => { options.RootPath = "client/dist"; }); do this if not development
 
@@ -92,6 +96,8 @@ app.UseFastEndpoints(c =>
 // so in particular API calls etc. will not get handled correctly.
 // See https://docs.microsoft.com/en-us/aspnet/core/fundamentals/routing?view=aspnetcore-6.0
 app.UseEndpoints(_ => { });
+
+app.UseTickerQ();
 
 if (builder.Environment.IsDevelopment())
 {

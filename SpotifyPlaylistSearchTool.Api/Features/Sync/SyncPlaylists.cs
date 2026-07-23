@@ -1,4 +1,7 @@
-﻿using SpotifyPlaylistSearchTool.Api.Services;
+﻿using SpotifyPlaylistSearchTool.Api.Jobs;
+using SpotifyPlaylistSearchTool.Api.Services;
+using TickerQ.Utilities.Entities;
+using TickerQ.Utilities.Interfaces.Managers;
 
 namespace SpotifyPlaylistSearchTool.Api.Features.Sync;
 
@@ -8,7 +11,8 @@ public static class SyncPlaylists
 
     public class Endpoint(
         ISyncSpotifyPlaylistService syncSpotifyPlaylistService,
-        ISpotifyAuthService spotifyAuthService
+        ISpotifyAuthService spotifyAuthService,
+        ITimeTickerManager<TimeTickerEntity> ticker
     ) : EndpointWithoutRequest<Response>
     {
         public override void Configure()
@@ -19,11 +23,15 @@ public static class SyncPlaylists
 
         public override async Task<Response> ExecuteAsync(CancellationToken ct)
         {
-            var spotifyClient = await spotifyAuthService.GetSpotifyClientAsync(HttpContext, ct);
+            var spotifyUserProfile = await spotifyAuthService.GetCurrentUserProfileAsync(
+                HttpContext,
+                ct
+            );
 
-            await syncSpotifyPlaylistService.SyncSpotifyPlaylistAsync(
-                spotifyClient,
-                requiresProgressUpdates: true
+            ticker.AddAsync<InitialSyncJob, InitialSyncPayload>(
+                DateTime.UtcNow,
+                new InitialSyncPayload(spotifyUserProfile.Id),
+                ct
             );
 
             return new Response("Syncing playlists...");

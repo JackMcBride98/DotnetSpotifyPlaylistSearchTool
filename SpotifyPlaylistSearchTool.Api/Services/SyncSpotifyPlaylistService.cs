@@ -8,32 +8,37 @@ namespace SpotifyPlaylistSearchTool.Api.Services;
 
 public interface ISyncSpotifyPlaylistService
 {
-    Task SyncSpotifyPlaylistAsync(ISpotifyClient spotifyClient, bool requiresProgressUpdates);
+    Task SyncSpotifyPlaylistAsync(string UserId, bool requiresProgressUpdates);
 }
 
-public class SyncSpotifyPlaylistService(DataContext dataContext) : ISyncSpotifyPlaylistService
+public class SyncSpotifyPlaylistService(
+    DataContext dataContext,
+    ISpotifyAuthService spotifyAuthService
+) : ISyncSpotifyPlaylistService
 {
-    public async Task SyncSpotifyPlaylistAsync(
-        ISpotifyClient spotifyClient,
-        bool requiresProgressUpdates
-    )
+    public async Task SyncSpotifyPlaylistAsync(string UserId, bool requiresProgressUpdates)
     {
-        var profile = await spotifyClient.UserProfile.Current();
-        var userId = profile.Id;
         var user = await dataContext
             .Users.Include(u => u.Playlists)
-            .SingleOrDefaultAsync(u => u.UserId == userId);
+            .SingleOrDefaultAsync(u => u.UserId == UserId);
 
         if (user == null)
         {
             throw new InvalidOperationException("User not found");
         }
 
+        var spotifyClient = await spotifyAuthService.GetSpotifyClientAsync(
+            new DefaultHttpContext(),
+            CancellationToken.None,
+            user.AccessToken,
+            user.RefreshToken
+        );
+
         var playlists = (
             await spotifyClient.PaginateAll(await spotifyClient.Playlists.CurrentUsers())
         )
             .DistinctBy(p => p.Id)
-            .Where(p => p.Collaborative == true || p.Owner?.Id == userId)
+            .Where(p => p.Collaborative == true || p.Owner?.Id == UserId)
             .ToList();
 
         if (requiresProgressUpdates)
@@ -57,7 +62,7 @@ public class SyncSpotifyPlaylistService(DataContext dataContext) : ISyncSpotifyP
                 .SingleOrDefaultAsync(p => p.PlaylistId == playlist.Id);
             if (existingPlaylist != null && existingPlaylist.SnapshotId == playlist.SnapshotId)
             {
-                if (!existingPlaylist.Users!.Any(u => u.UserId == userId))
+                if (!existingPlaylist.Users!.Any(u => u.UserId == UserId))
                 {
                     existingPlaylist.Users!.Add(user);
                 }
