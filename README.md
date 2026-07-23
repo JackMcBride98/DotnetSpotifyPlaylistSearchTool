@@ -76,9 +76,10 @@ Auth Rework and Service testing plan
 - Using owner name instead of ownerId for the only own playlists filter (this is not very safe e.g. multiple users with the same name)
 - remove the total playlist count from search (only an issue when searching during sync which is not a common use case) could add a warning text saying playlist counts are unreliable during sync.
 
-- Error Handling could be much better, (think I found a limitation of the client-gen library, it doesn't handle errors well, so we need to add a custom error handler to the generated client code)
-- We need to surface error messages and status codes from the backend to frontend in  a typesafe way.
+- Error Handling could be much better (think I found a limitation of the client-gen library). We need to surface error messages and status codes from the backend to frontend in  a typesafe way.
+- Figure out how to run the automated api generation and frontend generation (currently commented out in csproj), only for development builds i.e dont run in watch mode, tests or in CI. 
 
-- PWA
+
 - AWS Deployment
 - IaaC deployment
+- PWA
