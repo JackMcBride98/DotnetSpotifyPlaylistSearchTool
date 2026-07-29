@@ -62,26 +62,17 @@ build project.
 # TODO
 Plan: Client Gen ✅ -> Frontent Lint, format and test setup ✅ -> Background job for syncing playlists -> Update branding and fix bugs ✅ -> AWS Deployment -> IaaC deployment -> PWA (stretch goal)
 
-- Create background job for syncing playlists
+- Write unit tests for SyncSpotifyPlaylistService
 - Better logging for SyncSpotifyPlaylistService
-- Use and store userLastActive times for the background job (only run sync job for user active in the last week.)
-
-Auth Rework and Service testing plan
-- Then we need to think about how we want the background job and service to work, refactor syncSpotifyPlaylistService as such
-- Unit test the syncSpotifyPlaylistService
-- Update the syncPlaylists endpoint to trigger a background job instead of directly call the service. Update tests appropriately.
-- Add weekly background job to sync playlists for users active in the last week (all users to begin with)
-- Can we unit test the weekly background job?
-
-- Using owner name instead of ownerId for the only own playlists filter (this is not very safe e.g. multiple users with the same name)
+- Setup Weekly sync job
+- Test weekly sync job?
 - remove the total playlist count from search (only an issue when searching during sync which is not a common use case) could add a warning text saying playlist counts are unreliable during sync.
 
-- Error Handling could be much better (think I found a limitation of the client-gen library). We need to surface error messages and status codes from the backend to frontend in  a typesafe way.
-- Figure out how to run the automated api generation and frontend generation (currently commented out in csproj), only for development builds i.e dont run in watch mode, tests or in CI. 
-- Sort out line endings crap
-- Add refresh/exit confirmation modal during sync or handle user refreshing during sync. Suppose we could somehow have and isSyncing flag on the user, returned in the profile query? Needs a better solution
-- Do we need to get around rate limiting?
+- (later/stretch) Error Handling could be much better (think I found a limitation of the client-gen library). We need to surface error messages and status codes from the backend to frontend in  a typesafe way.
+- Figure out how to run the automated api generation and frontend generation (currently commented out in csproj), only for development builds i.e dont run in watch mode, tests or in CI. CI check that its been committed?
+- (later/stretch) Do we need to get around rate limiting? We could catch RateLimitExceptions and skip the jobs until next week?
 
 - AWS Deployment
 - IaaC deployment
+- Logging in AWS!
 - PWA
