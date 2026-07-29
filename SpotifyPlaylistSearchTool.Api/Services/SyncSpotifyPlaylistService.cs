@@ -9,7 +9,7 @@ namespace SpotifyPlaylistSearchTool.Api.Services;
 
 public interface ISyncSpotifyPlaylistService
 {
-    Task SyncSpotifyPlaylistAsync(string UserId, bool requiresProgressUpdates);
+    Task SyncSpotifyPlaylistAsync(string userId, bool requiresProgressUpdates);
     Task SyncActiveUsersAsync();
 }
 
@@ -21,16 +21,23 @@ public class SyncSpotifyPlaylistService(
     public async Task SyncActiveUsersAsync()
     {
         var aWeekAgo = SystemClock.Instance.GetCurrentInstant() - Duration.FromDays(7);
-        var activeUsers = await dataContext
+        var activeUserIds = await dataContext
             .Users.Where(u => u.LastActiveAt.HasValue && u.LastActiveAt.Value >= aWeekAgo)
+            .Select(u => u.UserId)
             .ToListAsync();
+
+        foreach (var userId in activeUserIds)
+        {
+            await SyncSpotifyPlaylistAsync(userId, false);
+        }
     }
 
-    public async Task SyncSpotifyPlaylistAsync(string UserId, bool requiresProgressUpdates)
+    public async Task SyncSpotifyPlaylistAsync(string userId, bool requiresProgressUpdates)
     {
+        Console.WriteLine($"Running sync job for UserId: {userId}");
         var user = await dataContext
             .Users.Include(u => u.Playlists)
-            .SingleOrDefaultAsync(u => u.UserId == UserId);
+            .SingleOrDefaultAsync(u => u.UserId == userId);
 
         if (user == null)
         {
@@ -59,7 +66,7 @@ public class SyncSpotifyPlaylistService(
                 )
             )
                 .DistinctBy(p => p.Id)
-                .Where(p => p.Collaborative == true || p.Owner?.Id == UserId)
+                .Where(p => p.Collaborative == true || p.Owner?.Id == userId)
                 .ToList();
 
             if (requiresProgressUpdates)
@@ -70,73 +77,9 @@ public class SyncSpotifyPlaylistService(
 
             foreach (var (index, playlist) in playlists.Index())
             {
-                if (playlist.Id == null)
-                {
-                    continue;
-                }
-
-                var existingPlaylist = await dataContext
-                    .Playlists.Include(p => p.Users)
-                    .Include(p => p.Tracks)
-                    .SingleOrDefaultAsync(p => p.PlaylistId == playlist.Id);
-                if (existingPlaylist != null && existingPlaylist.SnapshotId == playlist.SnapshotId)
-                {
-                    if (!existingPlaylist.Users!.Any(u => u.UserId == UserId))
-                    {
-                        existingPlaylist.Users!.Add(user);
-                    }
-
-                    continue;
-                }
-
-                var tracks = await spotifyClient.PaginateAll(
-                    await spotifyClient.Playlists.GetPlaylistItems(
-                        playlist.Id,
-                        new PlaylistGetItemsRequest { Limit = 50 }
-                    )
-                );
-
-                var trackEntities = tracks
-                    .Select((t, i) => ToTrack(t, playlist.Id, i))
-                    .Where(t => t != null)
-                    .Select(t => t!)
-                    .ToList();
-
-                var firstImageOrNull = playlist.Images?.FirstOrDefault();
-
-                var playlistImage =
-                    firstImageOrNull == null
-                        ? null
-                        : new Image(
-                            firstImageOrNull.Url,
-                            firstImageOrNull.Width,
-                            firstImageOrNull.Height
-                        );
-
-                var existingPlaylistUsers = new List<User> { user };
-                if (existingPlaylist is not null)
-                {
-                    existingPlaylistUsers = existingPlaylist.Users!.ToList();
-                    dataContext.Playlists.Remove(existingPlaylist);
-                }
-
-                var newPlaylist = new Playlist(
-                    playlist.Id,
-                    playlist.Name ?? "",
-                    playlist.Description ?? "",
-                    playlist.Owner?.DisplayName ?? "",
-                    playlist.SnapshotId ?? ""
-                )
-                {
-                    Tracks = trackEntities,
-                    Users = existingPlaylistUsers,
-                    Image = playlistImage,
-                };
-
-                dataContext.Playlists.Add(newPlaylist);
+                await SyncPlaylist(spotifyClient, playlist, user);
 
                 var shouldSaveUsingBatchingStrategy = index % 5 == 0;
-
                 if (requiresProgressUpdates && shouldSaveUsingBatchingStrategy)
                 {
                     await dataContext.SaveChangesAsync();
@@ -161,6 +104,75 @@ public class SyncSpotifyPlaylistService(
             Console.WriteLine(e.Message);
             throw;
         }
+    }
+
+    private async Task SyncPlaylist(ISpotifyClient spotifyClient, FullPlaylist playlist, User user)
+    {
+        if (playlist.Id == null)
+        {
+            return;
+        }
+
+        var existingPlaylist = await dataContext
+            .Playlists.Include(p => p.Users)
+            .Include(p => p.Tracks)
+            .SingleOrDefaultAsync(p => p.PlaylistId == playlist.Id);
+
+        if (existingPlaylist != null && existingPlaylist.SnapshotId == playlist.SnapshotId)
+        {
+            if (existingPlaylist.Users!.All(u => u.UserId != user.UserId))
+            {
+                existingPlaylist.Users!.Add(user);
+            }
+
+            return;
+        }
+
+        var tracks = await spotifyClient.PaginateAll(
+            await spotifyClient.Playlists.GetPlaylistItems(
+                playlist.Id,
+                new PlaylistGetItemsRequest { Limit = 50 }
+            )
+        );
+
+        var trackEntities = tracks
+            .Select((t, i) => ToTrack(t, playlist.Id, i))
+            .Where(t => t != null)
+            .Select(t => t!)
+            .ToList();
+
+        var firstImageOrNull = playlist.Images?.FirstOrDefault();
+
+        var playlistImage =
+            firstImageOrNull == null
+                ? null
+                : new Image(firstImageOrNull.Url, firstImageOrNull.Width, firstImageOrNull.Height);
+
+        var existingPlaylistUsers = new List<User> { user };
+        if (existingPlaylist is not null)
+        {
+            existingPlaylistUsers = existingPlaylist.Users!.ToList();
+            if (existingPlaylistUsers.All(u => u.UserId != user.UserId))
+            {
+                existingPlaylistUsers.Add(user);
+            }
+            dataContext.Playlists.Remove(existingPlaylist);
+        }
+
+        var newPlaylist = new Playlist(
+            playlist.Id,
+            playlist.Name ?? "",
+            playlist.Description ?? "",
+            playlist.Owner?.DisplayName ?? "",
+            playlist.SnapshotId ?? ""
+        )
+        {
+            Tracks = trackEntities,
+            Users = existingPlaylistUsers,
+            Image = playlistImage,
+        };
+
+        dataContext.Playlists.Add(newPlaylist);
     }
 
     private static Track? ToTrack(
