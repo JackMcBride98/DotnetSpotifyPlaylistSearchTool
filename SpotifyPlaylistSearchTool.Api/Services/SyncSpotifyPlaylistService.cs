@@ -9,7 +9,7 @@ namespace SpotifyPlaylistSearchTool.Api.Services;
 
 public interface ISyncSpotifyPlaylistService
 {
-    Task SyncSpotifyPlaylistAsync(string userId, bool requiresProgressUpdates);
+    Task SyncPlaylistsForUserAsync(string userId, bool requiresProgressUpdates);
     Task SyncActiveUsersAsync();
 }
 
@@ -28,11 +28,11 @@ public class SyncSpotifyPlaylistService(
 
         foreach (var userId in activeUserIds)
         {
-            await SyncSpotifyPlaylistAsync(userId, false);
+            await SyncPlaylistsForUserAsync(userId, false);
         }
     }
 
-    public async Task SyncSpotifyPlaylistAsync(string userId, bool requiresProgressUpdates)
+    public async Task SyncPlaylistsForUserAsync(string userId, bool requiresProgressUpdates)
     {
         Console.WriteLine($"Running sync job for UserId: {userId}");
         var user = await dataContext

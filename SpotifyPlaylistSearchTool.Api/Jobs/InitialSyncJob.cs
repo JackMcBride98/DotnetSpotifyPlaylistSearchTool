@@ -16,7 +16,7 @@ public class InitialSyncJob(ISyncSpotifyPlaylistService syncSpotifyPlaylistServi
     {
         Console.WriteLine($"Job {context.Id} executed, for user {context.Request.UserId}");
 
-        await syncSpotifyPlaylistService.SyncSpotifyPlaylistAsync(
+        await syncSpotifyPlaylistService.SyncPlaylistsForUserAsync(
             context.Request.UserId,
             requiresProgressUpdates: true
         );
