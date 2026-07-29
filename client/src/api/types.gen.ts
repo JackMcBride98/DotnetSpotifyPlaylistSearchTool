@@ -6,14 +6,21 @@ export type ClientOptions = {
 
 export type GetProfileResponse = {
   user: GetProfileUserProfileResponse;
-  totalPlaylists: number;
-  lastSyncedAt: null | string;
+  syncStatus: GetProfileSyncStatusResponse;
+};
+
+export type GetProfileSyncStatusResponse = {
+  status: SyncStatus;
+  totalPlaylists: null | number;
+  errorMessage: null | string;
+  completedAt: null | string;
 };
 
 export type GetProfileUserProfileResponse = {
   id: string;
   displayName: string;
   profileImageUrl: null | string;
+  totalPlaylists: number;
 };
 
 export type GetRandomPlaylistResponse = {
@@ -84,10 +91,7 @@ export type SyncPlaylistsResponse = {
   message: string;
 };
 
-export type SyncProgressResponse = {
-  totalPlaylists: null | number;
-  syncedPlaylists: number;
-};
+export type SyncStatus = "NotStarted" | "InProgress" | "Completed" | "Failed";
 
 export type TrackResponse = {
   name: string;
@@ -230,20 +234,3 @@ export type SyncPlaylistsResponses = {
 
 export type SyncPlaylistsResponse2 =
   SyncPlaylistsResponses[keyof SyncPlaylistsResponses];
-
-export type SyncProgressData = {
-  body?: never;
-  path?: never;
-  query?: never;
-  url: "/api/sync-progress";
-};
-
-export type SyncProgressResponses = {
-  /**
-   * Success
-   */
-  200: SyncProgressResponse;
-};
-
-export type SyncProgressResponse2 =
-  SyncProgressResponses[keyof SyncProgressResponses];

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using NodaTime;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using SpotifyAPI.Web;
@@ -25,6 +26,8 @@ public class SpotifyAuthServiceTests(App app) : TestBase(app)
         const string spotifyDisplayName = "New User";
         const string accessToken = "access_token_123";
         const string refreshToken = "refresh_token_123";
+
+        var startTime = SystemClock.Instance.GetCurrentInstant();
 
         var authService = SetupAuthServiceForHandleCallback(
             authCode,
@@ -54,10 +57,13 @@ public class SpotifyAuthServiceTests(App app) : TestBase(app)
         createdUser.Username.ShouldBe(spotifyDisplayName);
         createdUser.AccessToken.ShouldBe(accessToken);
         createdUser.RefreshToken.ShouldBe(refreshToken);
+
+        createdUser.LastActiveAt.ShouldNotBeNull();
+        createdUser.LastActiveAt.Value.ShouldBeGreaterThanOrEqualTo(startTime);
     }
 
     [Fact]
-    public async Task HandleCallbackAndUpsertUserAsync_UserAlreadyExists_UpdatesExistingUserTokens()
+    public async Task HandleCallbackAndUpsertUserAsync_UserAlreadyExists_UpdatesExistingUserTokensAndLastActiveAt()
     {
         // Arrange
         const string authCode = "valid_auth_code";
@@ -65,6 +71,8 @@ public class SpotifyAuthServiceTests(App app) : TestBase(app)
         const string newAccessToken = "new_access_token_789";
         const string newRefreshToken = "new_refresh_token_789";
         const string newDisplayName = "Updated User Name";
+
+        var startTime = SystemClock.Instance.GetCurrentInstant();
 
         var existingUser = new User(existingUserId, "Old Name", "old_access", "old_refresh");
         Db.Users.Add(existingUser);
@@ -98,6 +106,8 @@ public class SpotifyAuthServiceTests(App app) : TestBase(app)
         updatedUser.Username.ShouldBe(newDisplayName);
         updatedUser.AccessToken.ShouldBe(newAccessToken);
         updatedUser.RefreshToken.ShouldBe(newRefreshToken);
+        updatedUser.LastActiveAt.ShouldNotBeNull();
+        updatedUser.LastActiveAt.Value.ShouldBeGreaterThanOrEqualTo(startTime);
     }
 
     [Fact]
@@ -221,6 +231,8 @@ public class SpotifyAuthServiceTests(App app) : TestBase(app)
         Db.Users.Add(user);
         await Db.SaveChangesAsync(TestContext.Current.CancellationToken);
 
+        var startTime = SystemClock.Instance.GetCurrentInstant();
+
         var (authService, clientFactoryMock) = MockAuthServiceForGetClient(
             userId,
             "Original Name",
@@ -254,6 +266,8 @@ public class SpotifyAuthServiceTests(App app) : TestBase(app)
             TestContext.Current.CancellationToken
         );
         updatedUser.AccessToken.ShouldBe(newAccessToken);
+        updatedUser.LastActiveAt.ShouldNotBeNull();
+        updatedUser.LastActiveAt.Value.ShouldBeGreaterThanOrEqualTo(startTime);
     }
 
     private (

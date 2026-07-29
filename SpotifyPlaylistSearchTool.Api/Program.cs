@@ -1,6 +1,8 @@
 using System.Reflection;
+using System.Text.Json.Serialization;
 using FastEndpoints.OpenApi;
 using Microsoft.EntityFrameworkCore;
+using Npgsql.NameTranslation;
 using Scalar.AspNetCore;
 using SpotifyPlaylistSearchTool.Api.Configuration;
 using SpotifyPlaylistSearchTool.Api.Database;
@@ -25,9 +27,21 @@ if (!isDocumentGeneration && string.IsNullOrWhiteSpace(connectionString))
     throw new Exception("Database connection string is missing");
 }
 
+builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =>
+{
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
+
 builder.Services.AddDbContextPool<DataContext>(options =>
 {
-    options.UseNpgsql(connectionString, x => x.UseNodaTime());
+    options.UseNpgsql(
+        connectionString,
+        x =>
+        {
+            x.UseNodaTime();
+            x.MapEnum<SyncStatus>("sync_status", nameTranslator: new NpgsqlNullNameTranslator());
+        }
+    );
 });
 builder
     .Services.AddFastEndpoints()
@@ -65,6 +79,9 @@ app.UseDefaultExceptionHandler();
 app.UseFastEndpoints(c =>
 {
     c.Endpoints.RoutePrefix = "api";
+
+    c.Serializer.Options.Converters.Add(new JsonStringEnumConverter());
+
     c.Endpoints.NameGenerator = ctx =>
     {
         var declaringType = ctx.EndpointType.DeclaringType;

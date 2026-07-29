@@ -10,7 +10,6 @@ public static class SyncPlaylists
     public record Response(string Message);
 
     public class Endpoint(
-        ISyncSpotifyPlaylistService syncSpotifyPlaylistService,
         ISpotifyAuthService spotifyAuthService,
         ITimeTickerManager<TimeTickerEntity> ticker
     ) : EndpointWithoutRequest<Response>

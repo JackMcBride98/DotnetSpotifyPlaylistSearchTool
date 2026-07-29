@@ -14,7 +14,6 @@ import {
   logout,
   searchPlaylists,
   syncPlaylists,
-  syncProgress,
 } from "../sdk.gen";
 import type {
   CallbackData,
@@ -32,8 +31,6 @@ import type {
   SearchPlaylistsResponse2,
   SyncPlaylistsData,
   SyncPlaylistsResponse2,
-  SyncProgressData,
-  SyncProgressResponse2,
 } from "../types.gen";
 
 export type QueryKey<TOptions extends Options> = [
@@ -231,25 +228,3 @@ export const syncPlaylistsMutation = (
   };
   return mutationOptions;
 };
-
-export const syncProgressQueryKey = (options?: Options<SyncProgressData>) =>
-  createQueryKey("syncProgress", options);
-
-export const syncProgressOptions = (options?: Options<SyncProgressData>) =>
-  queryOptions<
-    SyncProgressResponse2,
-    DefaultError,
-    SyncProgressResponse2,
-    ReturnType<typeof syncProgressQueryKey>
-  >({
-    queryFn: async ({ queryKey, signal }) => {
-      const { data } = await syncProgress({
-        ...options,
-        ...queryKey[0],
-        signal,
-        throwOnError: true,
-      });
-      return data;
-    },
-    queryKey: syncProgressQueryKey(options),
-  });
