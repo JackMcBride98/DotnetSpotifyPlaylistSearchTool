@@ -35,7 +35,11 @@ public class SyncSpotifyPlaylistService(
         );
 
         var playlists = (
-            await spotifyClient.PaginateAll(await spotifyClient.Playlists.CurrentUsers())
+            await spotifyClient.PaginateAll(
+                await spotifyClient.Playlists.CurrentUsers(
+                    new PlaylistCurrentUsersRequest { Limit = 50 }
+                )
+            )
         )
             .DistinctBy(p => p.Id)
             .Where(p => p.Collaborative == true || p.Owner?.Id == UserId)
@@ -70,7 +74,10 @@ public class SyncSpotifyPlaylistService(
             }
 
             var tracks = await spotifyClient.PaginateAll(
-                await spotifyClient.Playlists.GetPlaylistItems(playlist.Id)
+                await spotifyClient.Playlists.GetPlaylistItems(
+                    playlist.Id,
+                    new PlaylistGetItemsRequest { Limit = 50 }
+                )
             );
 
             var trackEntities = tracks

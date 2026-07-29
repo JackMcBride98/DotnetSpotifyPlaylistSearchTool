@@ -30,7 +30,7 @@ public class GetProfile
                 .Users.Where(u => u.UserId == spotifyUserProfile.Id)
                 .Select(u => new
                 {
-                    UpdatedAt = u.UpdatedAt,
+                    u.UpdatedAt,
                     PlaylistCount = u.Playlists != null ? u.Playlists.Count : 0,
                 })
                 .SingleOrDefaultAsync(ct);
