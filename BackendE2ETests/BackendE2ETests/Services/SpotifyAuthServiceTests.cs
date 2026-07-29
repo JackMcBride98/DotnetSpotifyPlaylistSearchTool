@@ -189,43 +189,13 @@ public class SpotifyAuthServiceTests(App app) : TestBase(app)
     }
 
     [Fact]
-    public async Task GetSpotifyClientAsync_PassedAccessTokenOverridesCookie_UsesPassedToken()
-    {
-        // Arrange
-        const string cookieAccessToken = "cookie_access";
-        const string cookieRefreshToken = "cookie_refresh";
-        const string explicitAccessToken = "explicit_access";
-        const string explicitRefreshToken = "explicit_refresh";
-
-        var (authService, clientFactoryMock) = MockAuthServiceForGetClient(
-            "spotify_user_2",
-            "User 2"
-        );
-
-        var httpContext = new DefaultHttpContext();
-        httpContext.Request.Headers["Cookie"] =
-            $"AccessToken={cookieAccessToken}; RefreshToken={cookieRefreshToken}";
-
-        // Act
-        var client = await authService.GetSpotifyClientAsync(
-            httpContext,
-            TestContext.Current.CancellationToken,
-            passedAccessToken: explicitAccessToken,
-            passedRefreshToken: explicitRefreshToken
-        );
-
-        // Assert
-        client.ShouldNotBeNull();
-        clientFactoryMock.Received(1).CreateClient(explicitAccessToken);
-    }
-
-    [Fact]
     public async Task GetSpotifyClientAsync_AccessTokenMissingButRefreshTokenPresent_RefreshesAndReturnsClient()
     {
         // Arrange
         const string userId = "refreshed_user_id";
         const string refreshToken = "valid_refresh_token";
         const string newAccessToken = "new_refreshed_access";
+        const string newRefreshToken = "new_refresh_token";
 
         var user = new User(userId, "Original Name", "old_access", refreshToken);
         Db.Users.Add(user);
@@ -237,7 +207,7 @@ public class SpotifyAuthServiceTests(App app) : TestBase(app)
             userId,
             "Original Name",
             refreshedAccessToken: newAccessToken,
-            refreshedRefreshToken: refreshToken
+            refreshedRefreshToken: newRefreshToken
         );
 
         var httpContext = new DefaultHttpContext();
@@ -266,8 +236,106 @@ public class SpotifyAuthServiceTests(App app) : TestBase(app)
             TestContext.Current.CancellationToken
         );
         updatedUser.AccessToken.ShouldBe(newAccessToken);
+        updatedUser.RefreshToken.ShouldBe(newRefreshToken);
         updatedUser.LastActiveAt.ShouldNotBeNull();
         updatedUser.LastActiveAt.Value.ShouldBeGreaterThanOrEqualTo(startTime);
+    }
+
+    [Fact]
+    public async Task GetSpotifyClientAsync_DirectTokens_AccessTokenProvided_ReturnsClientImmediately()
+    {
+        // Arrange
+        const string accessToken = "direct_access_token";
+        const string refreshToken = "direct_refresh_token";
+
+        var (authService, clientFactoryMock) = MockAuthServiceForGetClient("user_123", "Test User");
+
+        // Act
+        var client = await authService.GetSpotifyClientAsync(
+            refreshToken,
+            accessToken,
+            TestContext.Current.CancellationToken
+        );
+
+        // Assert
+        client.ShouldNotBeNull();
+        clientFactoryMock.Received(1).CreateClient(accessToken);
+
+        // Should NOT attempt token refresh
+        await authService
+            .DidNotReceive()
+            .RefreshTokenAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task GetSpotifyClientAsync_DirectTokens_MissingRefreshTokenAndAccessToken_ThrowsInvalidOperationException()
+    {
+        // Arrange
+        var (authService, _) = MockAuthServiceForGetClient("user_123", "Test User");
+
+        // Act & Assert
+        var exception = await Should.ThrowAsync<InvalidOperationException>(async () =>
+        {
+            await authService.GetSpotifyClientAsync(
+                refreshToken: null,
+                accessToken: null,
+                TestContext.Current.CancellationToken
+            );
+        });
+
+        exception.Message.ShouldBe("Refresh token must exist to create a Spotify client.");
+    }
+
+    [Fact]
+    public async Task GetSpotifyClientAsync_DirectTokens_AccessTokenMissingButRefreshTokenPresent_RefreshesAndUpdatesDbWithoutUpdatingLastActiveAt()
+    {
+        // Arrange
+        const string userId = "background_job_user";
+        const string initialRefreshToken = "background_refresh_token";
+        const string newAccessToken = "refreshed_bg_access_token";
+        const string newRefreshToken = "refreshed_bg_refresh_token";
+
+        // Seed user with an old LastActiveAt timestamp
+        var initialLastActive = SystemClock.Instance.GetCurrentInstant() - Duration.FromDays(10);
+        var user = new User(userId, "Background User", "old_access", initialRefreshToken)
+        {
+            LastActiveAt = initialLastActive,
+        };
+        Db.Users.Add(user);
+        await Db.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        var (authService, clientFactoryMock) = MockAuthServiceForGetClient(
+            userId,
+            "Background User",
+            refreshedAccessToken: newAccessToken,
+            refreshedRefreshToken: newRefreshToken
+        );
+
+        // Act (passing null accessToken to force background refresh flow)
+        var client = await authService.GetSpotifyClientAsync(
+            refreshToken: initialRefreshToken,
+            accessToken: null,
+            TestContext.Current.CancellationToken
+        );
+
+        // Assert
+        client.ShouldNotBeNull();
+        clientFactoryMock.Received(1).CreateClient(newAccessToken);
+
+        // Verify DB tokens updated
+        Db.ChangeTracker.Clear();
+        var updatedUser = await Db.Users.SingleAsync(
+            u => u.UserId == userId,
+            TestContext.Current.CancellationToken
+        );
+        updatedUser.AccessToken.ShouldBe(newAccessToken);
+        updatedUser.RefreshToken.ShouldBe(newRefreshToken);
+
+        // Verify LastActiveAt was NOT bumped (comparing exact seconds)
+        updatedUser.LastActiveAt.ShouldNotBeNull();
+        updatedUser
+            .LastActiveAt.Value.ToUnixTimeSeconds()
+            .ShouldBe(initialLastActive.ToUnixTimeSeconds());
     }
 
     private (

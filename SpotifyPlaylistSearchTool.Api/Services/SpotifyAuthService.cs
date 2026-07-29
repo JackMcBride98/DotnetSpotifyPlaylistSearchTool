@@ -9,12 +9,7 @@ namespace SpotifyPlaylistSearchTool.Api.Services;
 
 public interface ISpotifyAuthService
 {
-    Task<ISpotifyClient> GetSpotifyClientAsync(
-        HttpContext httpContext,
-        CancellationToken ct,
-        string? passedAccessToken = null,
-        string? passedRefreshToken = null
-    );
+    Task<ISpotifyClient> GetSpotifyClientAsync(HttpContext httpContext, CancellationToken ct);
 
     Task<ISpotifyClient> GetSpotifyClientAsync(
         string? refreshToken,
@@ -111,13 +106,11 @@ public class SpotifyAuthService(
 
     public async Task<ISpotifyClient> GetSpotifyClientAsync(
         HttpContext httpContext,
-        CancellationToken ct,
-        string? passedAccessToken = null,
-        string? passedRefreshToken = null
+        CancellationToken ct
     )
     {
-        var accessToken = passedAccessToken ?? httpContext.Request.Cookies["AccessToken"];
-        var refreshToken = passedRefreshToken ?? httpContext.Request.Cookies["RefreshToken"];
+        var accessToken = httpContext.Request.Cookies["AccessToken"];
+        var refreshToken = httpContext.Request.Cookies["RefreshToken"];
 
         if (string.IsNullOrEmpty(refreshToken))
         {
@@ -183,7 +176,13 @@ public class SpotifyAuthService(
         {
             SetTokenHttpContextCookies(httpContext, newAccessToken, newRefreshToken);
         }
-        await UpdateUserTokensInDatabaseAsync(profile.Id, newAccessToken, newRefreshToken, ct);
+        await UpdateUserTokensInDatabaseAsync(
+            profile.Id,
+            newAccessToken,
+            newRefreshToken,
+            httpContext != null,
+            ct
+        );
 
         return client;
     }
@@ -192,6 +191,7 @@ public class SpotifyAuthService(
         string userId,
         string accessToken,
         string? refreshToken,
+        bool updateLastActiveAt,
         CancellationToken ct
     )
     {
@@ -201,7 +201,10 @@ public class SpotifyAuthService(
         {
             user.AccessToken = accessToken;
             user.RefreshToken = refreshToken;
-            user.LastActiveAt = DateTime.UtcNow.ToInstant();
+            if (updateLastActiveAt)
+            {
+                user.LastActiveAt = DateTime.UtcNow.ToInstant();
+            }
             await dataContext.SaveChangesAsync(ct);
         }
         else

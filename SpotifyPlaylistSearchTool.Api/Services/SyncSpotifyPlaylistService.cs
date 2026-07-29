@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using NodaTime;
 using NodaTime.Extensions;
 using SpotifyAPI.Web;
 using SpotifyPlaylistSearchTool.Api.Database;
@@ -9,6 +10,7 @@ namespace SpotifyPlaylistSearchTool.Api.Services;
 public interface ISyncSpotifyPlaylistService
 {
     Task SyncSpotifyPlaylistAsync(string UserId, bool requiresProgressUpdates);
+    Task SyncActiveUsersAsync();
 }
 
 public class SyncSpotifyPlaylistService(
@@ -16,6 +18,14 @@ public class SyncSpotifyPlaylistService(
     ISpotifyAuthService spotifyAuthService
 ) : ISyncSpotifyPlaylistService
 {
+    public async Task SyncActiveUsersAsync()
+    {
+        var aWeekAgo = SystemClock.Instance.GetCurrentInstant() - Duration.FromDays(7);
+        var activeUsers = await dataContext
+            .Users.Where(u => u.LastActiveAt.HasValue && u.LastActiveAt.Value >= aWeekAgo)
+            .ToListAsync();
+    }
+
     public async Task SyncSpotifyPlaylistAsync(string UserId, bool requiresProgressUpdates)
     {
         var user = await dataContext
@@ -57,8 +67,6 @@ public class SyncSpotifyPlaylistService(
                 user.SyncState.TotalPlaylists = playlists.Count;
                 await dataContext.SaveChangesAsync();
             }
-
-            var newPlaylists = new List<Playlist>();
 
             foreach (var (index, playlist) in playlists.Index())
             {
@@ -125,7 +133,6 @@ public class SyncSpotifyPlaylistService(
                     Image = playlistImage,
                 };
 
-                newPlaylists.Add(newPlaylist);
                 dataContext.Playlists.Add(newPlaylist);
 
                 var shouldSaveUsingBatchingStrategy = index % 5 == 0;
@@ -149,10 +156,10 @@ public class SyncSpotifyPlaylistService(
             {
                 user.SyncState.Status = SyncStatus.Failed;
                 user.SyncState.ErrorMessage = $"There was an error syncing playlists - {e.Message}";
-                await dataContext.SaveChangesAsync();
             }
+            await dataContext.SaveChangesAsync();
             Console.WriteLine(e.Message);
-            throw e;
+            throw;
         }
     }
 
