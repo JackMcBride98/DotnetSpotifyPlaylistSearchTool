@@ -9,8 +9,12 @@ namespace SpotifyPlaylistSearchTool.Api.Services;
 
 public interface ISyncSpotifyPlaylistService
 {
-    Task SyncPlaylistsForUserAsync(string userId, bool requiresProgressUpdates);
-    Task SyncActiveUsersAsync();
+    Task SyncPlaylistsForUserAsync(
+        string userId,
+        bool requiresProgressUpdates,
+        CancellationToken ct
+    );
+    Task SyncActiveUsersAsync(CancellationToken ct);
 }
 
 public class SyncSpotifyPlaylistService(
@@ -18,26 +22,30 @@ public class SyncSpotifyPlaylistService(
     ISpotifyAuthService spotifyAuthService
 ) : ISyncSpotifyPlaylistService
 {
-    public async Task SyncActiveUsersAsync()
+    public async Task SyncActiveUsersAsync(CancellationToken ct)
     {
         var aWeekAgo = SystemClock.Instance.GetCurrentInstant() - Duration.FromDays(7);
         var activeUserIds = await dataContext
             .Users.Where(u => u.LastActiveAt.HasValue && u.LastActiveAt.Value >= aWeekAgo)
             .Select(u => u.UserId)
-            .ToListAsync();
+            .ToListAsync(ct);
 
         foreach (var userId in activeUserIds)
         {
-            await SyncPlaylistsForUserAsync(userId, false);
+            await SyncPlaylistsForUserAsync(userId, false, ct);
         }
     }
 
-    public async Task SyncPlaylistsForUserAsync(string userId, bool requiresProgressUpdates)
+    public virtual async Task SyncPlaylistsForUserAsync(
+        string userId,
+        bool requiresProgressUpdates,
+        CancellationToken ct
+    )
     {
         Console.WriteLine($"Running sync job for UserId: {userId}");
         var user = await dataContext
             .Users.Include(u => u.Playlists)
-            .SingleOrDefaultAsync(u => u.UserId == userId);
+            .SingleOrDefaultAsync(u => u.UserId == userId, cancellationToken: ct);
 
         if (user == null)
         {
@@ -47,7 +55,7 @@ public class SyncSpotifyPlaylistService(
         if (requiresProgressUpdates)
         {
             user.SyncState.Status = SyncStatus.InProgress;
-            await dataContext.SaveChangesAsync();
+            await dataContext.SaveChangesAsync(ct);
         }
 
         try
@@ -55,16 +63,12 @@ public class SyncSpotifyPlaylistService(
             var spotifyClient = await spotifyAuthService.GetSpotifyClientAsync(
                 user.RefreshToken,
                 requiresProgressUpdates ? user.AccessToken : null,
-                CancellationToken.None
+                ct
             );
 
-            var playlists = (
-                await spotifyClient.PaginateAll(
-                    await spotifyClient.Playlists.CurrentUsers(
-                        new PlaylistCurrentUsersRequest { Limit = 50 }
-                    )
-                )
-            )
+            var allPlaylists = await GetAllCurrentUsersPlaylistsAsync(spotifyClient, ct);
+
+            var playlists = allPlaylists
                 .DistinctBy(p => p.Id)
                 .Where(p => p.Collaborative == true || p.Owner?.Id == userId)
                 .ToList();
@@ -72,17 +76,17 @@ public class SyncSpotifyPlaylistService(
             if (requiresProgressUpdates)
             {
                 user.SyncState.TotalPlaylists = playlists.Count;
-                await dataContext.SaveChangesAsync();
+                await dataContext.SaveChangesAsync(ct);
             }
 
             foreach (var (index, playlist) in playlists.Index())
             {
-                await SyncPlaylist(spotifyClient, playlist, user);
+                await SyncPlaylistAsync(spotifyClient, playlist, user, ct);
 
                 var shouldSaveUsingBatchingStrategy = index % 5 == 0;
                 if (requiresProgressUpdates && shouldSaveUsingBatchingStrategy)
                 {
-                    await dataContext.SaveChangesAsync();
+                    await dataContext.SaveChangesAsync(ct);
                 }
             }
 
@@ -91,7 +95,7 @@ public class SyncSpotifyPlaylistService(
                 user.SyncState.Status = SyncStatus.Completed;
             }
             user.SyncState.CompletedAt = DateTime.UtcNow.ToInstant();
-            await dataContext.SaveChangesAsync();
+            await dataContext.SaveChangesAsync(ct);
         }
         catch (Exception e)
         {
@@ -100,13 +104,48 @@ public class SyncSpotifyPlaylistService(
                 user.SyncState.Status = SyncStatus.Failed;
                 user.SyncState.ErrorMessage = $"There was an error syncing playlists - {e.Message}";
             }
-            await dataContext.SaveChangesAsync();
+            await dataContext.SaveChangesAsync(ct);
             Console.WriteLine(e.Message);
             throw;
         }
     }
 
-    private async Task SyncPlaylist(ISpotifyClient spotifyClient, FullPlaylist playlist, User user)
+    public virtual async Task<IList<FullPlaylist>> GetAllCurrentUsersPlaylistsAsync(
+        ISpotifyClient spotifyClient,
+        CancellationToken ct
+    )
+    {
+        return await spotifyClient.PaginateAll(
+            await spotifyClient.Playlists.CurrentUsers(
+                new PlaylistCurrentUsersRequest { Limit = 50 },
+                ct
+            ),
+            cancellationToken: ct
+        );
+    }
+
+    public virtual async Task<IList<PlaylistTrack<IPlayableItem>>> GetAllPlaylistTracksAsync(
+        ISpotifyClient spotifyClient,
+        string playlistId,
+        CancellationToken ct
+    )
+    {
+        return await spotifyClient.PaginateAll(
+            await spotifyClient.Playlists.GetPlaylistItems(
+                playlistId,
+                new PlaylistGetItemsRequest { Limit = 50 },
+                ct
+            ),
+            cancellationToken: ct
+        );
+    }
+
+    private async Task SyncPlaylistAsync(
+        ISpotifyClient spotifyClient,
+        FullPlaylist playlist,
+        User user,
+        CancellationToken ct
+    )
     {
         if (playlist.Id == null)
         {
@@ -116,7 +155,7 @@ public class SyncSpotifyPlaylistService(
         var existingPlaylist = await dataContext
             .Playlists.Include(p => p.Users)
             .Include(p => p.Tracks)
-            .SingleOrDefaultAsync(p => p.PlaylistId == playlist.Id);
+            .SingleOrDefaultAsync(p => p.PlaylistId == playlist.Id, ct);
 
         if (existingPlaylist != null && existingPlaylist.SnapshotId == playlist.SnapshotId)
         {
@@ -128,12 +167,7 @@ public class SyncSpotifyPlaylistService(
             return;
         }
 
-        var tracks = await spotifyClient.PaginateAll(
-            await spotifyClient.Playlists.GetPlaylistItems(
-                playlist.Id,
-                new PlaylistGetItemsRequest { Limit = 50 }
-            )
-        );
+        var tracks = await GetAllPlaylistTracksAsync(spotifyClient, playlist.Id, ct);
 
         var trackEntities = tracks
             .Select((t, i) => ToTrack(t, playlist.Id, i))

@@ -18,7 +18,8 @@ public class InitialSyncJob(ISyncSpotifyPlaylistService syncSpotifyPlaylistServi
 
         await syncSpotifyPlaylistService.SyncPlaylistsForUserAsync(
             context.Request.UserId,
-            requiresProgressUpdates: true
+            requiresProgressUpdates: true,
+            cancellationToken
         );
     }
 }
