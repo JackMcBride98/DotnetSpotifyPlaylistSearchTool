@@ -485,22 +485,270 @@ public class SyncSpotifyPlaylistServiceTests(App app) : TestBase(app)
     }
 
     [Fact]
-    public async Task SyncPlaylistsForUser_PlaylistWithNullId_SkipsPlaylistWithoutCrashing() { }
+    public async Task SyncPlaylistsForUser_PlaylistWithNullId_SkipsPlaylistWithoutCrashing()
+    {
+        // Arrange
+        var ct = TestContext.Current.CancellationToken;
+        const string userId = "null_id_test_user";
+
+        var user = new UserBuilder { UserId = userId }.Build();
+
+        Db.Users.Add(user);
+        await Db.SaveChangesAsync(ct);
+
+        var mockPlaylists = new List<FullPlaylist>
+        {
+            new()
+            {
+                Id = null,
+                Owner = new PublicUser { Id = userId },
+                Collaborative = false,
+            },
+            new()
+            {
+                Id = "valid_playlist_id",
+                Name = "Valid Playlist",
+                Owner = new PublicUser { Id = userId },
+                Collaborative = false,
+            },
+        };
+
+        var syncService = CreateSyncServiceWithMockedPlaylists(mockPlaylists);
+
+        // Act
+        await syncService.SyncPlaylistsForUserAsync(userId, requiresProgressUpdates: false, ct);
+
+        // Assert
+        Db.ChangeTracker.Clear();
+
+        var savedPlaylists = await Db.Playlists.ToListAsync(ct);
+
+        savedPlaylists.ShouldHaveSingleItem();
+        savedPlaylists.Single().PlaylistId.ShouldBe("valid_playlist_id");
+    }
 
     [Fact]
-    public async Task SyncPlaylistsForUser_ExistingPlaylistSnapshotIdEqual_DoesNotCallForTracks_PlaylistAndTrackUnchanged() { }
+    public async Task SyncPlaylistsForUser_ExistingPlaylistSnapshotIdEqual_DoesNotCallForTracks_PlaylistAndTrackUnchanged()
+    {
+        // Arrange
+        var ct = TestContext.Current.CancellationToken;
+        const string userId = "snapshot_test_user_id";
+        const string playlistId = "existing_playlist_id";
+        const string snapshotId = "matching_snapshot_v1";
+
+        var existingTrackBuilder = new TrackBuilder
+        {
+            Name = "Original Unchanged Track",
+            ArtistName = "Original Artist",
+        };
+
+        var existingPlaylistBuilder = new PlaylistBuilder
+        {
+            PlaylistId = playlistId,
+            Name = "Original Playlist Name",
+            SnapshotId = snapshotId,
+        }.WithTracks(new List<TrackBuilder> { existingTrackBuilder });
+
+        var user = new UserBuilder { UserId = userId }
+            .WithPlaylists(new List<PlaylistBuilder> { existingPlaylistBuilder })
+            .Build();
+
+        Db.Users.Add(user);
+        await Db.SaveChangesAsync(ct);
+
+        var mockPlaylist = new FullPlaylist
+        {
+            Id = playlistId,
+            Name = "New API Playlist Name (Should Not Update)",
+            SnapshotId = snapshotId,
+            Owner = new PublicUser { Id = userId },
+        };
+
+        var syncService = CreateSyncServiceWithMockedPlaylists(
+            new List<FullPlaylist> { mockPlaylist }
+        );
+
+        // Act
+        await syncService.SyncPlaylistsForUserAsync(userId, requiresProgressUpdates: false, ct);
+
+        // Assert
+        // Verify that Spotify API was NEVER queried for tracks because the snapshot matched
+        await syncService
+            .Received(0)
+            .GetAllPlaylistTracksAsync(
+                Arg.Any<ISpotifyClient>(),
+                Arg.Is<string>(id => id == playlistId),
+                Arg.Any<CancellationToken>()
+            );
+
+        Db.ChangeTracker.Clear();
+
+        var playlistInDb = await Db
+            .Playlists.Include(p => p.Tracks)
+            .Include(p => p.Users)
+            .SingleAsync(p => p.PlaylistId == playlistId, ct);
+
+        playlistInDb.Name.ShouldBe("Original Playlist Name");
+        playlistInDb.SnapshotId.ShouldBe(snapshotId);
+        playlistInDb.Users!.ShouldContain(u => u.UserId == userId);
+
+        // Verify Tracks were untouched
+        playlistInDb.Tracks.ShouldHaveSingleItem();
+        var trackInDb = playlistInDb.Tracks.Single();
+        trackInDb.Name.ShouldBe("Original Unchanged Track");
+        trackInDb.ArtistName.ShouldBe("Original Artist");
+    }
 
     [Fact]
-    public async Task SyncPlaylistsForUser_ExistingPlaylistSnapshotIdEqual_ButUsersDoesNotContainCurrentUser_AddsUserToPlaylistUsers() { }
+    public async Task SyncPlaylistsForUser_ExistingPlaylistSnapshotIdEqual_ButUsersDoesNotContainCurrentUser_AddsUserToPlaylistUsers()
+    {
+        // Arrange
+        var ct = TestContext.Current.CancellationToken;
+        const string currentUserId = "current_sync_user_id";
+        const string otherUserId = "other_user_id";
+        const string playlistId = "shared_playlist_id";
+        const string snapshotId = "matching_snapshot_id_123";
+
+        var existingPlaylistBuilder = new PlaylistBuilder
+        {
+            PlaylistId = playlistId,
+            Name = "Shared Playlist",
+            SnapshotId = snapshotId,
+        }.WithTracks(1);
+
+        var otherUser = new UserBuilder { UserId = otherUserId }
+            .WithPlaylists(new List<PlaylistBuilder> { existingPlaylistBuilder })
+            .Build();
+
+        var currentUser = new UserBuilder { UserId = currentUserId }.Build();
+
+        Db.Users.AddRange(otherUser, currentUser);
+        await Db.SaveChangesAsync(ct);
+
+        var mockPlaylist = new FullPlaylist
+        {
+            Id = playlistId,
+            Name = "Shared Playlist",
+            SnapshotId = snapshotId,
+            Owner = new PublicUser { Id = otherUserId },
+            Collaborative = true,
+        };
+
+        var syncService = CreateSyncServiceWithMockedPlaylists(
+            new List<FullPlaylist> { mockPlaylist }
+        );
+
+        // Act
+        await syncService.SyncPlaylistsForUserAsync(
+            currentUserId,
+            requiresProgressUpdates: false,
+            ct
+        );
+
+        // Assert
+        // Verify tracks were NOT requested because snapshot matched
+        await syncService
+            .DidNotReceive()
+            .GetAllPlaylistTracksAsync(
+                Arg.Any<ISpotifyClient>(),
+                Arg.Any<string>(),
+                Arg.Any<CancellationToken>()
+            );
+
+        Db.ChangeTracker.Clear();
+
+        // Verify the playlist now links BOTH users
+        var playlistInDb = await Db
+            .Playlists.Include(p => p.Users)
+            .SingleAsync(p => p.PlaylistId == playlistId, ct);
+
+        playlistInDb.Users!.Count.ShouldBe(2);
+        playlistInDb.Users.ShouldContain(u => u.UserId == currentUserId);
+        playlistInDb.Users.ShouldContain(u => u.UserId == otherUserId);
+    }
 
     [Fact]
-    public async Task SyncPlaylistsForUser_ExistingPlaylistSnapshotIdsNotEqual_UserNotInPlaylistUsers_RetainsExistingUsersAndAddsUser() { }
+    public async Task SyncPlaylistsForUser_ExistingPlaylistSnapshotIdsNotEqual_UpdatesPlaylistDetailsAndOverwritesTracks()
+    {
+        // Arrange
+        var ct = TestContext.Current.CancellationToken;
+        const string userId = "snapshot_changed_user_id";
+        const string playlistId = "playlist_to_update_id";
 
-    [Fact]
-    public async Task SyncPlaylistsForUser_ExistingPlaylistSnapshotIdsNotEqual_UserInPlaylistUsers_RetainsExistingUsers() { }
+        var oldTrackBuilder = new TrackBuilder
+        {
+            Name = "Old Track Name",
+            ArtistName = "Old Artist Name",
+            Index = 0
+        };
 
-    [Fact]
-    public async Task SyncPlaylistsForUser_ExistingPlaylistSnapshotIdsNotEqual_UpdatesPlaylistDetailsAndOverwritesTracks() { }
+        
+        var existingPlaylistBuilder = new PlaylistBuilder
+        {
+            PlaylistId = playlistId,
+            Name = "Old Playlist Name",
+            Description = "Old Description",
+            SnapshotId = "old_snapshot_id_v1",
+        }.WithTracks(new List<TrackBuilder> { oldTrackBuilder });
+
+        var user = new UserBuilder { UserId = userId }
+            .WithPlaylists(new List<PlaylistBuilder> { existingPlaylistBuilder })
+            .Build();
+
+        Db.Users.Add(user);
+        await Db.SaveChangesAsync(ct);
+
+        var newFullTrack = new FullTrack
+        {
+            Type = ItemType.Track,
+            Name = "Brand New Track Name",
+            Artists = new List<SimpleArtist> { new() { Name = "Brand New Artist" } }
+        };
+
+        var mockPlaylist = new FullPlaylist
+        {
+            Id = playlistId,
+            Name = "Updated Playlist Name",
+            Description = "Updated Description",
+            SnapshotId = "new_snapshot_id_v2",
+            Owner = new PublicUser { Id = userId },
+            Items = new Paging<PlaylistTrack<IPlayableItem>>
+            {
+                Items = new List<PlaylistTrack<IPlayableItem>>
+                {
+                    new() { Item = newFullTrack }
+                }
+            }
+        };
+
+        var syncService = CreateSyncServiceWithMockedPlaylists(new List<FullPlaylist> { mockPlaylist });
+
+        // Act
+        await syncService.SyncPlaylistsForUserAsync(
+            userId,
+            requiresProgressUpdates: false,
+            ct
+        );
+
+        // Assert
+        Db.ChangeTracker.Clear();
+
+        var playlistInDb = await Db.Playlists
+            .Include(p => p.Tracks)
+            .SingleAsync(p => p.PlaylistId == playlistId, ct);
+
+        // Verify metadata was updated
+        playlistInDb.Name.ShouldBe("Updated Playlist Name");
+        playlistInDb.Description.ShouldBe("Updated Description");
+        playlistInDb.SnapshotId.ShouldBe("new_snapshot_id_v2");
+
+        // Verify tracks were overwritten (old track gone, new track persisted)
+        playlistInDb.Tracks.ShouldHaveSingleItem();
+        var trackInDb = playlistInDb.Tracks.Single();
+        trackInDb.Name.ShouldBe("Brand New Track Name");
+        trackInDb.ArtistName.ShouldBe("Brand New Artist");
+        trackInDb.Index.ShouldBe(0);
+    }
 
     private SyncSpotifyPlaylistService CreateSyncServiceSubstituteForSyncActiveUsers()
     {
