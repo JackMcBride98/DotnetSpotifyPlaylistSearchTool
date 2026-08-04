@@ -12,7 +12,7 @@
       tests, live unit testing, and dotnet watch builds.
     -->
         <OpenApiGenerateDocumentsOnBuild
-            Condition="'$(Configuration)' == 'Debug' And '$(CI)' != 'true' And '$(ContinuousIntegrationBuild)' != 'true' And '$(DotNetWatchBuild)' != 'true' And '$(IsTestProject)' != 'true' And '$(BuildingForLiveUnitTesting)' != 'true'"
+            Condition="'$(Configuration)' == 'Debug' And '$(ContinuousIntegrationBuild)' != 'true' And '$(DotNetWatchBuild)' != 'true' And '$(IsTestProject)' != 'true' And '$(BuildingForLiveUnitTesting)' != 'true'"
             >true</OpenApiGenerateDocumentsOnBuild>
         <OpenApiGenerateDocumentsOnBuild Condition="'$(OpenApiGenerateDocumentsOnBuild)' == ''"
             >false</OpenApiGenerateDocumentsOnBuild>
