@@ -20,7 +20,7 @@
         <OpenApiGenerateDocumentsOptions>--file-name swagger</OpenApiGenerateDocumentsOptions>
         <OpenApiDocumentsDirectory>../client/api/</OpenApiDocumentsDirectory>
     </PropertyGroup>
-  
+
     <Target
         Name="AutomateFrontendTypeGen"
         AfterTargets="Build"
