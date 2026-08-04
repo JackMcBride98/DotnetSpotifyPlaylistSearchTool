@@ -11,5 +11,5 @@
   ],
   "importOrderSeparation": false,
   "importOrderSortSpecifiers": true,
-  "endOfLine": "lf"
+  "endOfLine": "auto"
 }

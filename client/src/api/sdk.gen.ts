@@ -23,8 +23,6 @@ import type {
   SearchPlaylistsResponses,
   SyncPlaylistsData,
   SyncPlaylistsResponses,
-  SyncProgressData,
-  SyncProgressResponses,
 } from "./types.gen";
 
 export type Options<
@@ -104,10 +102,3 @@ export const syncPlaylists = <ThrowOnError extends boolean = false>(
     unknown,
     ThrowOnError
   >({ url: "/api/sync-playlists", ...options });
-
-export const syncProgress = <ThrowOnError extends boolean = false>(
-  options?: Options<SyncProgressData, ThrowOnError>,
-): RequestResult<SyncProgressResponses, unknown, ThrowOnError> =>
-  (options?.client ?? client).get<SyncProgressResponses, unknown, ThrowOnError>(
-    { url: "/api/sync-progress", ...options },
-  );

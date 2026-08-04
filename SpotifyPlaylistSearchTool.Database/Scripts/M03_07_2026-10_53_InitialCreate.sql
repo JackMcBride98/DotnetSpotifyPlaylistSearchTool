@@ -1,5 +1,5 @@
 -- 1. Create Image Table
-CREATE TABLE "Image" (
+CREATE TABLE "Images" (
     "ImageId" INTEGER GENERATED ALWAYS AS IDENTITY,
     "Height" INTEGER NOT NULL,
     "Width" INTEGER NOT NULL,
@@ -27,7 +27,7 @@ CREATE TABLE "Playlists" (
     "OwnerName" VARCHAR(5000) NOT NULL,
     "SnapshotId" VARCHAR(100) NOT NULL,
     CONSTRAINT "PK_Playlists" PRIMARY KEY ("PlaylistId"),
-    CONSTRAINT "FK_Playlists_Image_ImageId" FOREIGN KEY ("ImageId") REFERENCES "Image" ("ImageId") ON DELETE SET NULL
+    CONSTRAINT "FK_Playlists_Image_ImageId" FOREIGN KEY ("ImageId") REFERENCES "Images" ("ImageId") ON DELETE SET NULL
 );
 
 -- 4. Create Tracks Table

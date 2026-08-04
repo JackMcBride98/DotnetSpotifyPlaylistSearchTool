@@ -26,9 +26,9 @@ public static class SearchPlaylists
                 ct
             );
 
-            var baseQuery = dataContext.Playlists.Where(p =>
-                p.Users!.Any(u => u.UserId == spotifyUserProfile.Id)
-            );
+            var baseQuery = dataContext
+                .Playlists.AsNoTracking()
+                .Where(p => p.Users!.Any(u => u.UserId == spotifyUserProfile.Id));
 
             if (request.ShowOnlyOwnPlaylists)
             {

@@ -17,8 +17,26 @@ public class User(string userId, string username, string accessToken, string ref
     [MaxLength(500)]
     public string? RefreshToken { get; set; } = refreshToken;
 
-    public Instant? UpdatedAt { get; set; }
+    public Instant? LastActiveAt { get; set; }
 
-    public int? FirstSyncTotalPlaylists { get; set; }
+    // Owned Entity
+    public UserSyncState SyncState { get; set; } = new UserSyncState();
+
     public ICollection<Playlist>? Playlists { get; set; }
+}
+
+public enum SyncStatus
+{
+    NotStarted,
+    InProgress,
+    Completed,
+    Failed,
+}
+
+public class UserSyncState
+{
+    public SyncStatus Status { get; set; } = SyncStatus.NotStarted;
+    public int? TotalPlaylists { get; set; }
+    public string? ErrorMessage { get; set; }
+    public Instant? CompletedAt { get; set; }
 }

@@ -1,10 +1,14 @@
 using System.Reflection;
+using System.Text.Json.Serialization;
 using FastEndpoints.OpenApi;
 using Microsoft.EntityFrameworkCore;
+using Npgsql.NameTranslation;
 using Scalar.AspNetCore;
 using SpotifyPlaylistSearchTool.Api.Configuration;
 using SpotifyPlaylistSearchTool.Api.Database;
+using SpotifyPlaylistSearchTool.Api.Jobs;
 using SpotifyPlaylistSearchTool.Api.Services;
+using TickerQ.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder();
 
@@ -23,9 +27,21 @@ if (!isDocumentGeneration && string.IsNullOrWhiteSpace(connectionString))
     throw new Exception("Database connection string is missing");
 }
 
+builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =>
+{
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
+
 builder.Services.AddDbContextPool<DataContext>(options =>
 {
-    options.UseNpgsql(connectionString, x => x.UseNodaTime());
+    options.UseNpgsql(
+        connectionString,
+        x =>
+        {
+            x.UseNodaTime();
+            x.MapEnum<SyncStatus>("sync_status", nameTranslator: new NpgsqlNullNameTranslator());
+        }
+    );
 });
 builder
     .Services.AddFastEndpoints()
@@ -50,6 +66,8 @@ if (!isDocumentGeneration)
 builder.Services.AddScoped<ISyncSpotifyPlaylistService, SyncSpotifyPlaylistService>();
 builder.Services.AddScoped<ISpotifyAuthService, SpotifyAuthService>();
 builder.Services.AddSingleton<ISpotifyClientFactory, SpotifyClientFactory>();
+builder.Services.AddTickerQ();
+builder.Services.MapTicker<InitialSyncJob, InitialSyncPayload>();
 
 // builder.Services.AddSpaStaticFiles(options => { options.RootPath = "client/dist"; }); do this if not development
 
@@ -61,6 +79,9 @@ app.UseDefaultExceptionHandler();
 app.UseFastEndpoints(c =>
 {
     c.Endpoints.RoutePrefix = "api";
+
+    c.Serializer.Options.Converters.Add(new JsonStringEnumConverter());
+
     c.Endpoints.NameGenerator = ctx =>
     {
         var declaringType = ctx.EndpointType.DeclaringType;
@@ -92,6 +113,8 @@ app.UseFastEndpoints(c =>
 // so in particular API calls etc. will not get handled correctly.
 // See https://docs.microsoft.com/en-us/aspnet/core/fundamentals/routing?view=aspnetcore-6.0
 app.UseEndpoints(_ => { });
+
+app.UseTickerQ();
 
 if (builder.Environment.IsDevelopment())
 {

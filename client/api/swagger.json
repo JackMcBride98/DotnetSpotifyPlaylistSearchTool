@@ -185,26 +185,6 @@
           }
         }
       }
-    },
-    "/api/sync-progress": {
-      "get": {
-        "tags": [
-          "Sync-Progress"
-        ],
-        "operationId": "SyncProgress",
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SyncProgress_Response"
-                }
-              }
-            }
-          }
-        }
-      }
     }
   },
   "components": {
@@ -212,23 +192,49 @@
       "GetProfile_Response": {
         "required": [
           "user",
-          "totalPlaylists",
-          "lastSyncedAt"
+          "syncStatus"
         ],
         "type": "object",
         "properties": {
           "user": {
             "$ref": "#/components/schemas/GetProfile_UserProfileResponse"
           },
+          "syncStatus": {
+            "$ref": "#/components/schemas/GetProfile_SyncStatusResponse"
+          }
+        }
+      },
+      "GetProfile_SyncStatusResponse": {
+        "required": [
+          "status",
+          "totalPlaylists",
+          "errorMessage",
+          "completedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/SyncStatus"
+          },
           "totalPlaylists": {
-            "type": "integer",
+            "type": [
+              "null",
+              "integer"
+            ],
             "format": "int32"
           },
-          "lastSyncedAt": {
+          "errorMessage": {
             "type": [
               "null",
               "string"
             ]
+          },
+          "completedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
           }
         }
       },
@@ -236,7 +242,8 @@
         "required": [
           "id",
           "displayName",
-          "profileImageUrl"
+          "profileImageUrl",
+          "totalPlaylists"
         ],
         "type": "object",
         "properties": {
@@ -251,6 +258,10 @@
               "null",
               "string"
             ]
+          },
+          "totalPlaylists": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
@@ -431,25 +442,14 @@
           }
         }
       },
-      "SyncProgress_Response": {
-        "required": [
-          "totalPlaylists",
-          "syncedPlaylists"
+      "SyncStatus": {
+        "enum": [
+          "NotStarted",
+          "InProgress",
+          "Completed",
+          "Failed"
         ],
-        "type": "object",
-        "properties": {
-          "totalPlaylists": {
-            "type": [
-              "null",
-              "integer"
-            ],
-            "format": "int32"
-          },
-          "syncedPlaylists": {
-            "type": "integer",
-            "format": "int32"
-          }
-        }
+        "type": "string"
       },
       "TrackResponse": {
         "required": [

@@ -49,5 +49,6 @@
         />
         <PackageReference Include="Scalar.AspNetCore" Version="2.16.15" />
         <PackageReference Include="SpotifyAPI.Web" Version="7.4.2" />
+        <PackageReference Include="TickerQ" Version="10.4.0" />
     </ItemGroup>
 </Project>

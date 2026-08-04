@@ -9,7 +9,6 @@ export {
   type Options,
   searchPlaylists,
   syncPlaylists,
-  syncProgress,
 } from "./sdk.gen";
 export type {
   CallbackData,
@@ -22,6 +21,7 @@ export type {
   GetProfileResponse,
   GetProfileResponse2,
   GetProfileResponses,
+  GetProfileSyncStatusResponse,
   GetProfileUserProfileResponse,
   GetRandomPlaylistData,
   GetRandomPlaylistResponse,
@@ -47,10 +47,7 @@ export type {
   SyncPlaylistsResponse,
   SyncPlaylistsResponse2,
   SyncPlaylistsResponses,
-  SyncProgressData,
-  SyncProgressResponse,
-  SyncProgressResponse2,
-  SyncProgressResponses,
+  SyncStatus,
   TrackResponse,
   Void,
 } from "./types.gen";

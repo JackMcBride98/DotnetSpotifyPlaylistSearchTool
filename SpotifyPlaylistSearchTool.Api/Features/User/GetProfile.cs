@@ -6,9 +6,21 @@ namespace SpotifyPlaylistSearchTool.Api.Features.User;
 
 public class GetProfile
 {
-    public record UserProfileResponse(string Id, string DisplayName, string? ProfileImageUrl);
+    public record UserProfileResponse(
+        string Id,
+        string DisplayName,
+        string? ProfileImageUrl,
+        int TotalPlaylists
+    );
 
-    public record Response(UserProfileResponse User, int TotalPlaylists, string? LastSyncedAt);
+    public record SyncStatusResponse(
+        SyncStatus Status,
+        int? TotalPlaylists,
+        string? ErrorMessage,
+        DateTimeOffset? CompletedAt
+    );
+
+    public record Response(UserProfileResponse User, SyncStatusResponse SyncStatus);
 
     public class Endpoint(DataContext dataContext, ISpotifyAuthService spotifyAuthService)
         : EndpointWithoutRequest<Response>
@@ -27,11 +39,15 @@ public class GetProfile
             );
 
             var profileData = await dataContext
-                .Users.Where(u => u.UserId == spotifyUserProfile.Id)
+                .Users.AsNoTracking()
+                .Where(u => u.UserId == spotifyUserProfile.Id)
                 .Select(u => new
                 {
-                    UpdatedAt = u.UpdatedAt,
                     PlaylistCount = u.Playlists != null ? u.Playlists.Count : 0,
+                    SyncStatus = u.SyncState.Status,
+                    SyncErrorMessage = u.SyncState.ErrorMessage,
+                    SyncCompletedAt = u.SyncState.CompletedAt,
+                    SyncTotalPlaylists = u.SyncState.TotalPlaylists,
                 })
                 .SingleOrDefaultAsync(ct);
 
@@ -40,18 +56,19 @@ public class GetProfile
                 ThrowError("User not found, try logging in again", 404);
             }
 
-            var lastUpdatedAtOrNull = profileData.UpdatedAt.HasValue
-                ? profileData.UpdatedAt.ToString()
-                : null;
-
             return new Response(
                 new UserProfileResponse(
                     spotifyUserProfile.Id,
                     spotifyUserProfile.DisplayName,
-                    spotifyUserProfile.Images.FirstOrDefault()?.Url
+                    spotifyUserProfile.Images.FirstOrDefault()?.Url,
+                    profileData.PlaylistCount
                 ),
-                profileData.PlaylistCount,
-                lastUpdatedAtOrNull
+                new SyncStatusResponse(
+                    profileData.SyncStatus,
+                    profileData.SyncTotalPlaylists,
+                    profileData.SyncErrorMessage,
+                    profileData.SyncCompletedAt?.ToDateTimeOffset()
+                )
             );
         }
     }
