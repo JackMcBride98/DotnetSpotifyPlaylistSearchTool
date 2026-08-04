@@ -30,6 +30,10 @@ public class SyncSpotifyPlaylistService(
             .Select(u => u.UserId)
             .ToListAsync(ct);
 
+        Console.WriteLine(
+            $"Syncing playlists for {activeUserIds.Count} Users active in the last week."
+        );
+
         foreach (var userId in activeUserIds)
         {
             await SyncPlaylistsForUserAsync(userId, false, ct);
@@ -42,7 +46,7 @@ public class SyncSpotifyPlaylistService(
         CancellationToken ct
     )
     {
-        Console.WriteLine($"Running sync job for UserId: {userId}");
+        Console.WriteLine($"Syncing Playlists for UserId: {userId}");
         var user = await dataContext
             .Users.Include(u => u.Playlists)
             .SingleOrDefaultAsync(u => u.UserId == userId, cancellationToken: ct);
@@ -73,6 +77,8 @@ public class SyncSpotifyPlaylistService(
                 .Where(p => p.Collaborative == true || p.Owner?.Id == userId)
                 .ToList();
 
+            Console.WriteLine($"Returned {playlists.Count} unique playlists for User {userId}");
+
             if (requiresProgressUpdates)
             {
                 user.SyncState.TotalPlaylists = playlists.Count;
@@ -95,17 +101,24 @@ public class SyncSpotifyPlaylistService(
                 user.SyncState.Status = SyncStatus.Completed;
             }
             user.SyncState.CompletedAt = DateTime.UtcNow.ToInstant();
+            Console.WriteLine(
+                $"Finished syncing playlists for User {user.UserId} (before dataContext saveChanges)"
+            );
             await dataContext.SaveChangesAsync(ct);
+            Console.WriteLine(
+                $"Finished syncing playlists for User {user.UserId} (after dataContext saveChanges)"
+            );
         }
         catch (Exception e)
         {
+            var errorMessage = $"There was an error syncing playlists - {e.Message}";
             if (requiresProgressUpdates)
             {
                 user.SyncState.Status = SyncStatus.Failed;
-                user.SyncState.ErrorMessage = $"There was an error syncing playlists - {e.Message}";
+                user.SyncState.ErrorMessage = errorMessage;
             }
             await dataContext.SaveChangesAsync(ct);
-            Console.WriteLine(e.Message);
+            Console.WriteLine(errorMessage);
             throw;
         }
     }
@@ -163,11 +176,16 @@ public class SyncSpotifyPlaylistService(
             {
                 existingPlaylist.Users!.Add(user);
             }
-
+            Console.WriteLine($"Playlist {playlist.Name} is up to date for User {user.UserId}");
             return;
         }
+        Console.WriteLine($"Syncing Playlist {playlist.Name} for User {user.UserId}");
 
         var tracks = await GetAllPlaylistTracksAsync(spotifyClient, playlist.Id, ct);
+
+        Console.WriteLine(
+            $"Fetched {tracks.Count} tracks for Playlist {playlist.Name} for User {user.UserId}"
+        );
 
         var trackEntities = tracks
             .Select((t, i) => ToTrack(t, playlist.Id, i))
@@ -182,31 +200,40 @@ public class SyncSpotifyPlaylistService(
                 ? null
                 : new Image(firstImageOrNull.Url, firstImageOrNull.Width, firstImageOrNull.Height);
 
-        var existingPlaylistUsers = new List<User> { user };
-        if (existingPlaylist is not null)
+        if (existingPlaylist != null)
         {
-            existingPlaylistUsers = existingPlaylist.Users!.ToList();
-            if (existingPlaylistUsers.All(u => u.UserId != user.UserId))
+            existingPlaylist.Name = playlist.Name ?? "";
+            existingPlaylist.Description = playlist.Description ?? "";
+            existingPlaylist.OwnerName = playlist.Owner?.DisplayName ?? "";
+            existingPlaylist.SnapshotId = playlist.SnapshotId ?? "";
+
+            existingPlaylist.Image = playlistImage;
+
+            if (existingPlaylist.Users!.All(u => u.UserId != user.UserId))
             {
-                existingPlaylistUsers.Add(user);
+                existingPlaylist.Users!.Add(user);
             }
-            dataContext.Playlists.Remove(existingPlaylist);
+
+            dataContext.Tracks.RemoveRange(existingPlaylist.Tracks!);
+            existingPlaylist.Tracks = trackEntities;
         }
-
-        var newPlaylist = new Playlist(
-            playlist.Id,
-            playlist.Name ?? "",
-            playlist.Description ?? "",
-            playlist.Owner?.DisplayName ?? "",
-            playlist.SnapshotId ?? ""
-        )
+        else
         {
-            Tracks = trackEntities,
-            Users = existingPlaylistUsers,
-            Image = playlistImage,
-        };
+            var newPlaylist = new Playlist(
+                playlist.Id,
+                playlist.Name ?? "",
+                playlist.Description ?? "",
+                playlist.Owner?.DisplayName ?? "",
+                playlist.SnapshotId ?? ""
+            )
+            {
+                Tracks = trackEntities,
+                Users = [user],
+                Image = playlistImage,
+            };
 
-        dataContext.Playlists.Add(newPlaylist);
+            dataContext.Playlists.Add(newPlaylist);
+        }
     }
 
     private static Track? ToTrack(

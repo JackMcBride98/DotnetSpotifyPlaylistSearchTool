@@ -600,6 +600,90 @@ public class SyncSpotifyPlaylistServiceTests(App app) : TestBase(app)
     }
 
     [Fact]
+    public async Task SyncPlaylistsForUser_ExistingPlaylistSnapshotIdsNotEqual_PreservesUsersLinkedToPlaylist()
+    {
+        // Arrange
+        var ct = TestContext.Current.CancellationToken;
+        const string activeUserId = "syncing_user_id";
+        const string otherUserId = "other_linked_user_id";
+        const string playlistId = "shared_playlist_to_update_id";
+
+        var oldTrackBuilder = new TrackBuilder
+        {
+            Name = "Old Track Name",
+            ArtistName = "Old Artist Name",
+            Index = 0,
+        };
+
+        var existingPlaylist = new PlaylistBuilder
+        {
+            PlaylistId = playlistId,
+            Name = "Old Shared Playlist Name",
+            SnapshotId = "old_snapshot_id_v1",
+        }
+            .WithTracks(new List<TrackBuilder> { oldTrackBuilder })
+            .Build();
+
+        var activeUser = new UserBuilder { UserId = activeUserId }
+            .WithPlaylists(new List<Playlist> { existingPlaylist })
+            .Build();
+
+        var otherUser = new UserBuilder { UserId = otherUserId }
+            .WithPlaylists(new List<Playlist> { existingPlaylist })
+            .Build();
+
+        Db.Users.AddRange(activeUser, otherUser);
+        await Db.SaveChangesAsync(ct);
+
+        var newFullTrack = new FullTrack
+        {
+            Type = ItemType.Track,
+            Name = "Brand New Track Name",
+            Artists = new List<SimpleArtist> { new() { Name = "Brand New Artist" } },
+        };
+
+        var mockPlaylist = new FullPlaylist
+        {
+            Id = playlistId,
+            Name = "Updated Shared Playlist Name",
+            SnapshotId = "new_snapshot_id_v2",
+            Owner = new PublicUser { Id = otherUserId },
+            Collaborative = true,
+            Items = new Paging<PlaylistTrack<IPlayableItem>>
+            {
+                Items = new List<PlaylistTrack<IPlayableItem>> { new() { Item = newFullTrack } },
+            },
+        };
+
+        var syncService = CreateSyncServiceWithMockedPlaylists(
+            new List<FullPlaylist> { mockPlaylist }
+        );
+
+        // Act - Only the activeUser triggers the sync
+        await syncService.SyncPlaylistsForUserAsync(
+            activeUserId,
+            requiresProgressUpdates: false,
+            ct
+        );
+
+        // Assert
+        Db.ChangeTracker.Clear();
+
+        var playlistInDb = await Db
+            .Playlists.Include(p => p.Users)
+            .Include(p => p.Tracks)
+            .SingleAsync(p => p.PlaylistId == playlistId, ct);
+
+        playlistInDb.Name.ShouldBe("Updated Shared Playlist Name");
+        playlistInDb.SnapshotId.ShouldBe("new_snapshot_id_v2");
+        playlistInDb.Tracks.ShouldHaveSingleItem();
+
+        playlistInDb.Users!.Count.ShouldBe(2);
+        playlistInDb.Users.ShouldContain(u => u.UserId == activeUserId);
+        playlistInDb.Users.ShouldContain(u => u.UserId == otherUserId);
+    }
+
+    [Fact]
     public async Task SyncPlaylistsForUser_ExistingPlaylistSnapshotIdEqual_ButUsersDoesNotContainCurrentUser_AddsUserToPlaylistUsers()
     {
         // Arrange
@@ -679,10 +763,9 @@ public class SyncSpotifyPlaylistServiceTests(App app) : TestBase(app)
         {
             Name = "Old Track Name",
             ArtistName = "Old Artist Name",
-            Index = 0
+            Index = 0,
         };
 
-        
         var existingPlaylistBuilder = new PlaylistBuilder
         {
             PlaylistId = playlistId,
@@ -702,7 +785,7 @@ public class SyncSpotifyPlaylistServiceTests(App app) : TestBase(app)
         {
             Type = ItemType.Track,
             Name = "Brand New Track Name",
-            Artists = new List<SimpleArtist> { new() { Name = "Brand New Artist" } }
+            Artists = new List<SimpleArtist> { new() { Name = "Brand New Artist" } },
         };
 
         var mockPlaylist = new FullPlaylist
@@ -714,27 +797,22 @@ public class SyncSpotifyPlaylistServiceTests(App app) : TestBase(app)
             Owner = new PublicUser { Id = userId },
             Items = new Paging<PlaylistTrack<IPlayableItem>>
             {
-                Items = new List<PlaylistTrack<IPlayableItem>>
-                {
-                    new() { Item = newFullTrack }
-                }
-            }
+                Items = new List<PlaylistTrack<IPlayableItem>> { new() { Item = newFullTrack } },
+            },
         };
 
-        var syncService = CreateSyncServiceWithMockedPlaylists(new List<FullPlaylist> { mockPlaylist });
+        var syncService = CreateSyncServiceWithMockedPlaylists(
+            new List<FullPlaylist> { mockPlaylist }
+        );
 
         // Act
-        await syncService.SyncPlaylistsForUserAsync(
-            userId,
-            requiresProgressUpdates: false,
-            ct
-        );
+        await syncService.SyncPlaylistsForUserAsync(userId, requiresProgressUpdates: false, ct);
 
         // Assert
         Db.ChangeTracker.Clear();
 
-        var playlistInDb = await Db.Playlists
-            .Include(p => p.Tracks)
+        var playlistInDb = await Db
+            .Playlists.Include(p => p.Tracks)
             .SingleAsync(p => p.PlaylistId == playlistId, ct);
 
         // Verify metadata was updated

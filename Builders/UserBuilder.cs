@@ -49,6 +49,12 @@ public class UserBuilder : Builder<User>
         return this;
     }
 
+    public UserBuilder WithPlaylists(List<Playlist> playlists)
+    {
+        Playlists.AddRange(playlists);
+        return this;
+    }
+
     public override User Build()
     {
         var user = new User(UserId, Username, AccessToken, RefreshToken)
