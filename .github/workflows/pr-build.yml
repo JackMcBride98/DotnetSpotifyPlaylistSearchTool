@@ -125,6 +125,11 @@ jobs:
           target: Build
           verbosity: Normal
 
+      - name: Verify API and Frontend types are committed
+        run: |
+          git status --porcelain
+          git diff --exit-code ../client/api/
+
       - name: Upload Compiled Binaries
         uses: actions/upload-artifact@v4
         with:

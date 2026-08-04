@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Cake.Common;
 using Cake.Common.Diagnostics;
 using Cake.Common.Tools.DotNet;
@@ -389,6 +391,67 @@ public sealed class RunBackendE2ETests : FrostingTask<BuildContext>
     }
 }
 
+[TaskName("CheckFrontendApiClientGenCommited")]
+[IsDependentOn(typeof(BuildTask))]
+public sealed class CheckFrontendApiClientGenCommited : FrostingTask<BuildContext>
+{
+    public override void Run(BuildContext context)
+    {
+        context.Information(
+            "Verifying that API specs and frontend types are up to date and committed..."
+        );
+
+        var statusProcess = context.StartProcess(
+            "git",
+            new ProcessSettings
+            {
+                Arguments = "status --porcelain",
+                WorkingDirectory = context.ClientDirectoryPath,
+                RedirectStandardOutput = true,
+            },
+            out var statusOutput
+        );
+
+        if (statusProcess != 0)
+        {
+            throw new CakeException("❌ Failed to execute 'git status --porcelain'.");
+        }
+
+        var changes = statusOutput?.ToList() ?? new List<string>();
+        if (changes.Count > 0)
+        {
+            context.Information("Detected changes/untracked files:");
+            foreach (var change in changes)
+            {
+                context.Information($"  {change}");
+            }
+
+            throw new CakeException(
+                "❌ Uncommitted changes or untracked API/frontend files detected! "
+                    + "Please run a local development build to generate them, then commit the files."
+            );
+        }
+
+        var diffExitCode = context.StartProcess(
+            "git",
+            new ProcessSettings
+            {
+                Arguments = "diff --exit-code ../client/api/",
+                WorkingDirectory = context.ClientDirectoryPath,
+            }
+        );
+
+        if (diffExitCode != 0)
+        {
+            throw new CakeException(
+                "❌ 'git diff --exit-code' failed. The API specs or frontend types have differences."
+            );
+        }
+
+        context.Information("API and frontend generated files verification passed successfully.");
+    }
+}
+
 // Make this task run what is run in the CI pipeline so developers can run it locally
 [TaskName("CI")]
 [IsDependentOn(typeof(LintFrontendTask))]
@@ -397,6 +460,7 @@ public sealed class RunBackendE2ETests : FrostingTask<BuildContext>
 [IsDependentOn(typeof(TestFrontendTask))]
 [IsDependentOn(typeof(SetupTestDatabase))]
 [IsDependentOn(typeof(RunBackendE2ETests))]
+[IsDependentOn((typeof(CheckFrontendApiClientGenCommited)))]
 public sealed class CITask : FrostingTask<BuildContext>
 {
     public override void Run(BuildContext context) { }

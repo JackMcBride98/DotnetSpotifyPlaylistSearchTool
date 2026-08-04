@@ -6,28 +6,29 @@
     </PropertyGroup>
 
     <PropertyGroup>
-        <!--        <OpenApiGenerateDocumentsOnBuild-->
-        <!--            Condition="'$(Configuration)' != 'Debug' Or '$(IsTestProject)' == 'true' Or '$(BuildingForLiveUnitTesting)' == 'true'"-->
-        <!--            >false</OpenApiGenerateDocumentsOnBuild>-->
-        <!--        <OpenApiGenerateDocumentsOnBuild Condition="'$(OpenApiGenerateDocumentsOnBuild)' == ''"-->
-        <!--            >true</OpenApiGenerateDocumentsOnBuild>-->
-
-        <OpenApiGenerateDocumentsOnBuild>true</OpenApiGenerateDocumentsOnBuild>
+        <!-- 
+      Enable OpenAPI document generation ONLY for local Debug builds.
+      Explicitly exclude CI environments (where continuous integration or build servers run),
+      tests, live unit testing, and dotnet watch builds.
+    -->
+        <OpenApiGenerateDocumentsOnBuild
+            Condition="'$(Configuration)' == 'Debug' And '$(CI)' != 'true' And '$(ContinuousIntegrationBuild)' != 'true' And '$(DotNetWatchBuild)' != 'true' And '$(IsTestProject)' != 'true' And '$(BuildingForLiveUnitTesting)' != 'true'"
+            >true</OpenApiGenerateDocumentsOnBuild>
+        <OpenApiGenerateDocumentsOnBuild Condition="'$(OpenApiGenerateDocumentsOnBuild)' == ''"
+            >false</OpenApiGenerateDocumentsOnBuild>
 
         <OpenApiGenerateDocumentsOptions>--file-name swagger</OpenApiGenerateDocumentsOptions>
-
         <OpenApiDocumentsDirectory>../client/api/</OpenApiDocumentsDirectory>
     </PropertyGroup>
-
-    <!--    <Target-->
-    <!--        Name="AutomateFrontendTypeGen"-->
-    <!--        AfterTargets="Build"-->
-    <!--        Condition="'$(Configuration)' == 'Debug' And '$(DotNetWatchBuild)' != 'true' And '$(IsTestProject)' != 'true' And '$(BuildingForLiveUnitTesting)' != 'true'"-->
-    <!--    >-->
-    <!--        <Message Importance="high" Text="🚀 .NET Build Hook: Automating @hey-api/openapi-ts..." />-->
-
-    <!--        <Exec WorkingDirectory="../client" Command="npm run clientGen" ContinueOnError="true" />-->
-    <!--    </Target>-->
+  
+    <Target
+        Name="AutomateFrontendTypeGen"
+        AfterTargets="Build"
+        Condition="'$(Configuration)' == 'Debug' And '$(CI)' != 'true' And '$(ContinuousIntegrationBuild)' != 'true' And '$(DotNetWatchBuild)' != 'true' And '$(IsTestProject)' != 'true' And '$(BuildingForLiveUnitTesting)' != 'true'"
+    >
+        <Message Importance="high" Text="🚀 .NET Build Hook: Automating @hey-api/openapi-ts..." />
+        <Exec WorkingDirectory="../client" Command="npm run clientGen" ContinueOnError="false" />
+    </Target>
 
     <ItemGroup>
         <PackageReference Include="FastEndpoints" Version="8.2.0" />
