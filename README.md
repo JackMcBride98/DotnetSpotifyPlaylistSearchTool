@@ -62,9 +62,6 @@ build project.
 # TODO
 Plan: Client Gen ✅ -> Frontent Lint, format and test setup ✅ -> Background job for syncing playlists ✅ -> Update branding and fix bugs ✅ -> AWS Deployment -> IaaC deployment -> PWA (stretch goal)
 
-- remove the total playlist count from search (only an issue when searching during sync which is not a common use case) could add a warning text saying playlist counts are unreliable during sync.
-- related to above - invalidate search queries as playlists are synced
-
 - (later/stretch) Error Handling could be much better (think I found a limitation of the client-gen library). We need to surface error messages and status codes from the backend to frontend in  a typesafe way.
 - Figure out how to run the automated api generation and frontend generation (currently commented out in csproj), only for development builds i.e dont run in watch mode, tests or in CI. CI check that its been committed?
 - (later/stretch) Do we need to get around rate limiting? We could catch RateLimitExceptions and skip the jobs until next week?

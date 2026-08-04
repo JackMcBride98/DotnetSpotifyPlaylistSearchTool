@@ -70,7 +70,7 @@ jobs:
         run: npm ci
         working-directory: client
 
-      - name: Run Frontend Tests (Jest)
+      - name: Run Frontend Tests (Vitetest)
         run: npm run test
         working-directory: client
 
@@ -118,12 +118,25 @@ jobs:
           cache: true
           cache-dependency-path: '**/packages.lock.json'
 
+      - name: Install Frontend Dependencies
+        run: npm ci
+        working-directory: client
+
       - name: Run Cake Build Task
         uses: cake-build/cake-action@v3
         with:
           project-path: build/Build.csproj
           target: Build
           verbosity: Normal
+
+      - name: Run API/Frontend Generation Verification
+        uses: cake-build/cake-action@v3
+        with:
+          project-path: build/Build.csproj
+          target: CheckFrontendApiClientGenCommitted
+          verbosity: Diagnostic
+          arguments: |
+            exclusive: true
 
       - name: Upload Compiled Binaries
         uses: actions/upload-artifact@v4

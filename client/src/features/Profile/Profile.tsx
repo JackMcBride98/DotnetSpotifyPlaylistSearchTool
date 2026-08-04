@@ -1,20 +1,22 @@
+import {
+  getProfileOptions,
+  getProfileQueryKey,
+  searchPlaylistsQueryKey,
+  syncPlaylistsMutation,
+} from "@api/@tanstack/react-query.gen.ts";
+import { client } from "@api/client.gen.ts";
+import { GetProfileSyncStatusResponse } from "@api/index";
+import { formatDate } from "@helpers/dateHelpers.ts";
+import { getErrorMessage } from "@helpers/getErrorMessage.ts";
+import { baseIdPredicate } from "@helpers/queryInvalidation.ts";
+import { UpIcon } from "@icons/UpIcon.tsx";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { SpinnerCircularFixed } from "spinners-react";
 import { useEffect, useRef, useState } from "react";
-import { GetProfileSyncStatusResponse } from "../api";
-import {
-  getProfileOptions,
-  getProfileQueryKey,
-  syncPlaylistsMutation,
-} from "../api/@tanstack/react-query.gen.ts";
-import { client } from "../api/client.gen.ts";
-import { LogoutButton } from "../components/LogoutButton";
-import { RandomPlaylist } from "../components/RandomPlaylist";
-import { SearchPlaylists } from "../components/SearchPlaylists.tsx";
-import { formatDate } from "../helpers/dateHelpers.ts";
-import { getErrorMessage } from "../helpers/getErrorMessage.ts";
-import { UpIcon } from "../icons/UpIcon.tsx";
+import { LogoutButton } from "./components/LogoutButton";
+import { RandomPlaylist } from "./components/RandomPlaylist";
+import { SearchPlaylists } from "./components/SearchPlaylists.tsx";
 
 export const Profile = () => {
   const queryClient = useQueryClient();
@@ -246,6 +248,21 @@ const SyncInProgress = ({
   showOnlyOwnPlaylists,
   setShowOnlyOwnPlaylists,
 }: SyncInProgressProps) => {
+  const queryClient = useQueryClient();
+  const [previousSyncedPlaylists, setPreviousSyncedPlaylists] =
+    useState(syncedPlaylists);
+
+  const searchPlaylistQueryKeyBaseId = searchPlaylistsQueryKey({
+    query: { searchTerm: "", showOnlyOwnPlaylists: true },
+  })[0]._id;
+
+  if (syncedPlaylists > previousSyncedPlaylists) {
+    void queryClient.invalidateQueries({
+      predicate: baseIdPredicate(searchPlaylistQueryKeyBaseId),
+    });
+    setPreviousSyncedPlaylists(syncedPlaylists);
+  }
+
   return (
     <div className="flex w-full flex-col items-center gap-2">
       <SpinnerCircularFixed color="#7c3aed" />

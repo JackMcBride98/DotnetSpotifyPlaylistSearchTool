@@ -20,7 +20,17 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true
+    "noUncheckedSideEffectImports": true,
+
+    "baseUrl": ".",
+    "paths": {
+      "@api/*": ["src/api/*"],
+      "@helpers/*": ["src/helpers/*"],
+      "@components/*": ["src/components/*"],
+      "@icons/*": ["src/icons/*"],
+      "@assets/*": ["src/assets/*"],
+      "@features/*": ["src/features/*"]
+    }
   },
   "include": ["src"]
 }

@@ -1,7 +1,8 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { BrowserRouter, Route, Routes } from "react-router";
-import { Home } from "./features/Home.tsx";
-import { Profile } from "./features/Profile.tsx";
+import { Home } from "./features/Home/Home.tsx";
+import { Profile } from "./features/Profile/Profile.tsx";
 
 function App() {
   const queryClient = new QueryClient();
@@ -15,6 +16,7 @@ function App() {
           <Route path="/profile" element={<Profile />} />
         </Routes>
       </BrowserRouter>
+      <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
   );
 }

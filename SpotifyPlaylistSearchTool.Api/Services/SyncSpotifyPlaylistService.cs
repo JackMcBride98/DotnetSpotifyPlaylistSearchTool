@@ -22,6 +22,8 @@ public class SyncSpotifyPlaylistService(
     ISpotifyAuthService spotifyAuthService
 ) : ISyncSpotifyPlaylistService
 {
+    private const int InitialSyncPlaylistBatchSize = 5;
+
     public async Task SyncActiveUsersAsync(CancellationToken ct)
     {
         var aWeekAgo = SystemClock.Instance.GetCurrentInstant() - Duration.FromDays(7);
@@ -105,7 +107,7 @@ public class SyncSpotifyPlaylistService(
 
                 await SyncPlaylistAsync(spotifyClient, playlist, user, existingPlaylist, ct);
 
-                var shouldSaveUsingBatchingStrategy = index % 5 == 0;
+                var shouldSaveUsingBatchingStrategy = index % InitialSyncPlaylistBatchSize == 0;
                 if (requiresProgressUpdates && shouldSaveUsingBatchingStrategy)
                 {
                     await dataContext.SaveChangesAsync(ct);

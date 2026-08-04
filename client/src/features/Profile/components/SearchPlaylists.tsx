@@ -1,9 +1,9 @@
+import { searchPlaylistsOptions } from "@api/@tanstack/react-query.gen.ts";
+import { client } from "@api/client.gen.ts";
+import { getErrorMessage } from "@helpers/getErrorMessage.ts";
 import { useQuery } from "@tanstack/react-query";
 import { SpinnerCircularFixed } from "spinners-react";
 import { useState } from "react";
-import { searchPlaylistsOptions } from "../api/@tanstack/react-query.gen.ts";
-import { client } from "../api/client.gen.ts";
-import { getErrorMessage } from "../helpers/getErrorMessage.ts";
 import { SearchBar } from "./SearchBar.tsx";
 import { SearchResults } from "./SearchResults.tsx";
 
