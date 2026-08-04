@@ -391,9 +391,9 @@ public sealed class RunBackendE2ETests : FrostingTask<BuildContext>
     }
 }
 
-[TaskName("CheckFrontendApiClientGenCommited")]
+[TaskName("CheckFrontendApiClientGenCommitted")]
 [IsDependentOn(typeof(BuildTask))]
-public sealed class CheckFrontendApiClientGenCommited : FrostingTask<BuildContext>
+public sealed class CheckFrontendApiClientGenCommitted : FrostingTask<BuildContext>
 {
     public override void Run(BuildContext context)
     {
@@ -401,11 +401,12 @@ public sealed class CheckFrontendApiClientGenCommited : FrostingTask<BuildContex
             "Verifying that API specs and frontend types are up to date and committed..."
         );
 
+        // 1. Check status strictly for the ./api/ folder relative to the client working directory
         var statusProcess = context.StartProcess(
             "git",
             new ProcessSettings
             {
-                Arguments = "status --porcelain",
+                Arguments = "status --porcelain -- ./api/",
                 WorkingDirectory = context.ClientDirectoryPath,
                 RedirectStandardOutput = true,
             },
@@ -420,23 +421,24 @@ public sealed class CheckFrontendApiClientGenCommited : FrostingTask<BuildContex
         var changes = statusOutput?.ToList() ?? new List<string>();
         if (changes.Count > 0)
         {
-            context.Information("Detected changes/untracked files:");
+            context.Information("Detected uncommitted changes or untracked files in client/api:");
             foreach (var change in changes)
             {
                 context.Information($"  {change}");
             }
 
             throw new CakeException(
-                "❌ Uncommitted changes or untracked API/frontend files detected! "
-                    + "Please run a local development build to generate them, then commit the files."
+                "❌ Uncommitted changes or untracked files detected in client/api! "
+                    + "Please run a local development build to generate the latest files, then commit them."
             );
         }
 
+        // 2. Ensure diff exits cleanly specifically for ./api/
         var diffExitCode = context.StartProcess(
             "git",
             new ProcessSettings
             {
-                Arguments = "diff --exit-code ../client/api/",
+                Arguments = "diff --exit-code ./api/",
                 WorkingDirectory = context.ClientDirectoryPath,
             }
         );
@@ -444,7 +446,7 @@ public sealed class CheckFrontendApiClientGenCommited : FrostingTask<BuildContex
         if (diffExitCode != 0)
         {
             throw new CakeException(
-                "❌ 'git diff --exit-code' failed. The API specs or frontend types have differences."
+                "❌ 'git diff --exit-code' failed. The generated API specs or frontend types in client/api have differences."
             );
         }
 
@@ -460,7 +462,7 @@ public sealed class CheckFrontendApiClientGenCommited : FrostingTask<BuildContex
 [IsDependentOn(typeof(TestFrontendTask))]
 [IsDependentOn(typeof(SetupTestDatabase))]
 [IsDependentOn(typeof(RunBackendE2ETests))]
-[IsDependentOn((typeof(CheckFrontendApiClientGenCommited)))]
+[IsDependentOn((typeof(CheckFrontendApiClientGenCommitted)))]
 public sealed class CITask : FrostingTask<BuildContext>
 {
     public override void Run(BuildContext context) { }

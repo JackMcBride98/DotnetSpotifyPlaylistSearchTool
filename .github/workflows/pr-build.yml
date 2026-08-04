@@ -127,8 +127,9 @@ jobs:
 
       - name: Verify API and Frontend types are committed
         run: |
-          git status --porcelain
-          git diff --exit-code ../client/api/
+          git status --porcelain -- cllient/api/
+          git diff --exit-code client/api/
+        working-directory: .
 
       - name: Upload Compiled Binaries
         uses: actions/upload-artifact@v4
