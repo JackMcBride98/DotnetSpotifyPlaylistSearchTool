@@ -1,12 +1,14 @@
 import {
   getProfileOptions,
   getProfileQueryKey,
+  searchPlaylistsQueryKey,
   syncPlaylistsMutation,
 } from "@api/@tanstack/react-query.gen.ts";
 import { client } from "@api/client.gen.ts";
 import { GetProfileSyncStatusResponse } from "@api/index";
 import { formatDate } from "@helpers/dateHelpers.ts";
 import { getErrorMessage } from "@helpers/getErrorMessage.ts";
+import { baseIdPredicate } from "@helpers/queryInvalidation.ts";
 import { UpIcon } from "@icons/UpIcon.tsx";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
@@ -246,6 +248,21 @@ const SyncInProgress = ({
   showOnlyOwnPlaylists,
   setShowOnlyOwnPlaylists,
 }: SyncInProgressProps) => {
+  const queryClient = useQueryClient();
+  const [previousSyncedPlaylists, setPreviousSyncedPlaylists] =
+    useState(syncedPlaylists);
+
+  const searchPlaylistQueryKeyBaseId = searchPlaylistsQueryKey({
+    query: { searchTerm: "", showOnlyOwnPlaylists: true },
+  })[0]._id;
+
+  if (syncedPlaylists > previousSyncedPlaylists) {
+    void queryClient.invalidateQueries({
+      predicate: baseIdPredicate(searchPlaylistQueryKeyBaseId),
+    });
+    setPreviousSyncedPlaylists(syncedPlaylists);
+  }
+
   return (
     <div className="flex w-full flex-col items-center gap-2">
       <SpinnerCircularFixed color="#7c3aed" />
