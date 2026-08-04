@@ -60,10 +60,8 @@ Pipelines are ran using Github Actions. These live in ./github/workflows. They c
 build project. 
 
 # TODO
-Plan: Client Gen ✅ -> Frontent Lint, format and test setup ✅ -> Background job for syncing playlists -> Update branding and fix bugs ✅ -> AWS Deployment -> IaaC deployment -> PWA (stretch goal)
+Plan: Client Gen ✅ -> Frontent Lint, format and test setup ✅ -> Background job for syncing playlists ✅ -> Update branding and fix bugs ✅ -> AWS Deployment -> IaaC deployment -> PWA (stretch goal)
 
-- Setup Weekly sync job
-- Test weekly sync job?
 - remove the total playlist count from search (only an issue when searching during sync which is not a common use case) could add a warning text saying playlist counts are unreliable during sync.
 - related to above - invalidate search queries as playlists are synced
 

@@ -9,9 +9,8 @@ public class WeeklyPlaylistSyncJob(ISyncSpotifyPlaylistService syncSpotifyPlayli
 {
     //TODO once we have tested that it works, then we can switch it to weekly, but want to test locally and on deployed environment
     public const string DailyAt12PmNoonCronSchedule = "0 12 * * *";
-    public const string DailyAt922AmCronSchedule = "0 22 9 * * *";
 
-    [TickerFunction("DailyPlaylistSync", cronExpression: DailyAt922AmCronSchedule)]
+    [TickerFunction("DailyPlaylistSync", cronExpression: DailyAt12PmNoonCronSchedule)]
     public async Task ExecuteAsync(
         TickerFunctionContext context,
         CancellationToken cancellationToken

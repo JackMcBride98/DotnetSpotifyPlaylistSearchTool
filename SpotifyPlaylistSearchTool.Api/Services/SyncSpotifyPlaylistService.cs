@@ -91,6 +91,7 @@ public class SyncSpotifyPlaylistService(
                 .Include(p => p.Tracks)
                 .Include(p => p.Image)
                 .Where(p => playlistIds.Contains(p.PlaylistId))
+                .AsSplitQuery()
                 .ToDictionaryAsync(p => p.PlaylistId, ct);
 
             foreach (var (index, playlist) in playlists.Index())
