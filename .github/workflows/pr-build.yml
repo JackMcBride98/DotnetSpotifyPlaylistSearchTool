@@ -134,7 +134,7 @@ jobs:
         with:
           project-path: build/Build.csproj
           target: CheckFrontendApiClientGenCommitted
-          verbosity: Normal
+          verbosity: Diagnostic
           arguments: |
             exclusive: true
 
