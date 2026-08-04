@@ -27,7 +27,7 @@ public static class SyncPlaylists
                 ct
             );
 
-            ticker.AddAsync<InitialSyncJob, InitialSyncPayload>(
+            _ = ticker.AddAsync<InitialSyncJob, InitialSyncPayload>(
                 DateTime.UtcNow,
                 new InitialSyncPayload(spotifyUserProfile.Id),
                 ct
