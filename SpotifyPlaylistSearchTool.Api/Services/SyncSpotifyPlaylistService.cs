@@ -85,9 +85,24 @@ public class SyncSpotifyPlaylistService(
                 await dataContext.SaveChangesAsync(ct);
             }
 
+            var playlistIds = playlists.Where(p => p.Id != null).Select(p => p.Id!).ToList();
+            var existingPlaylists = await dataContext
+                .Playlists.Include(p => p.Users)
+                .Include(p => p.Tracks)
+                .Include(p => p.Image)
+                .Where(p => playlistIds.Contains(p.PlaylistId))
+                .ToDictionaryAsync(p => p.PlaylistId, ct);
+
             foreach (var (index, playlist) in playlists.Index())
             {
-                await SyncPlaylistAsync(spotifyClient, playlist, user, ct);
+                if (playlist.Id == null)
+                {
+                    continue;
+                }
+
+                existingPlaylists.TryGetValue(playlist.Id, out var existingPlaylist);
+
+                await SyncPlaylistAsync(spotifyClient, playlist, user, existingPlaylist, ct);
 
                 var shouldSaveUsingBatchingStrategy = index % 5 == 0;
                 if (requiresProgressUpdates && shouldSaveUsingBatchingStrategy)
@@ -157,6 +172,7 @@ public class SyncSpotifyPlaylistService(
         ISpotifyClient spotifyClient,
         FullPlaylist playlist,
         User user,
+        Playlist? existingPlaylist,
         CancellationToken ct
     )
     {
@@ -164,11 +180,6 @@ public class SyncSpotifyPlaylistService(
         {
             return;
         }
-
-        var existingPlaylist = await dataContext
-            .Playlists.Include(p => p.Users)
-            .Include(p => p.Tracks)
-            .SingleOrDefaultAsync(p => p.PlaylistId == playlist.Id, ct);
 
         if (existingPlaylist != null && existingPlaylist.SnapshotId == playlist.SnapshotId)
         {
