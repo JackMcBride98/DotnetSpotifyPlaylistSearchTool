@@ -20,7 +20,7 @@ public class GetProfile
         DateTimeOffset? CompletedAt
     );
 
-    public record Response(UserProfileResponse User, SyncStatusResponse SyncStatus);
+    public record Response(UserProfileResponse User, SyncStatusResponse SyncStatus, string yourMum);
 
     public class Endpoint(DataContext dataContext, ISpotifyAuthService spotifyAuthService)
         : EndpointWithoutRequest<Response>
@@ -68,7 +68,8 @@ public class GetProfile
                     profileData.SyncTotalPlaylists,
                     profileData.SyncErrorMessage,
                     profileData.SyncCompletedAt?.ToDateTimeOffset()
-                )
+                ),
+                "YourMum"
             );
         }
     }
