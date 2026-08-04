@@ -1,10 +1,10 @@
+import { getRandomPlaylistOptions } from "@api/@tanstack/react-query.gen.ts";
+import { client } from "@api/client.gen.ts";
+import { getErrorMessage } from "@helpers/getErrorMessage.ts";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { SpinnerCircularFixed } from "spinners-react";
 import { useState } from "react";
-import { getRandomPlaylistOptions } from "../api/@tanstack/react-query.gen.ts";
-import { client } from "../api/client.gen.ts";
-import { getErrorMessage } from "../helpers/getErrorMessage.ts";
 import { Playlist } from "./SearchResults";
 
 interface RandomPlaylistProps {

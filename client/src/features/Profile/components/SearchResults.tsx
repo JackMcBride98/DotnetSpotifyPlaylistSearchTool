@@ -1,7 +1,7 @@
+import { PlaylistResponse, TrackResponse } from "@api/index";
+import spotifyLogo from "@assets/Spotify_Primary_Logo_RGB_Green.png";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useLayoutEffect, useRef } from "react";
-import { PlaylistResponse, TrackResponse } from "../api";
-import spotifyLogo from "../assets/Spotify_Primary_Logo_RGB_Green.png";
 
 type Props = {
   playlists: Array<PlaylistResponse>;

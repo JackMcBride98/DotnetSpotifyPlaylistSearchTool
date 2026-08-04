@@ -24,6 +24,18 @@ export default tseslint.config(
         "warn",
         { allowConstantExport: true },
       ],
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["../**/"],
+              message:
+                "Please use path aliases (e.g., @api, @helpers) instead of relative parent paths.",
+            },
+          ],
+        },
+      ],
     },
   },
 );

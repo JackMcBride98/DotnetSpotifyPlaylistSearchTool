@@ -1,10 +1,10 @@
+import { logoutMutation } from "@api/@tanstack/react-query.gen.ts";
+import { getErrorMessage } from "@helpers/getErrorMessage.ts";
 import { useMutation } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router";
 import { SpinnerCircularFixed } from "spinners-react";
 import { useState } from "react";
-import { logoutMutation } from "../api/@tanstack/react-query.gen.ts";
-import { getErrorMessage } from "../helpers/getErrorMessage.ts";
 
 export const LogoutButton = () => {
   const navigate = useNavigate();

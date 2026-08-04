@@ -1,20 +1,20 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { motion } from "framer-motion";
-import { SpinnerCircularFixed } from "spinners-react";
-import { useEffect, useRef, useState } from "react";
-import { GetProfileSyncStatusResponse } from "../api";
 import {
   getProfileOptions,
   getProfileQueryKey,
   syncPlaylistsMutation,
-} from "../api/@tanstack/react-query.gen.ts";
-import { client } from "../api/client.gen.ts";
-import { LogoutButton } from "../components/LogoutButton";
-import { RandomPlaylist } from "../components/RandomPlaylist";
-import { SearchPlaylists } from "../components/SearchPlaylists.tsx";
-import { formatDate } from "../helpers/dateHelpers.ts";
-import { getErrorMessage } from "../helpers/getErrorMessage.ts";
-import { UpIcon } from "../icons/UpIcon.tsx";
+} from "@api/@tanstack/react-query.gen.ts";
+import { client } from "@api/client.gen.ts";
+import { GetProfileSyncStatusResponse } from "@api/index";
+import { formatDate } from "@helpers/dateHelpers.ts";
+import { getErrorMessage } from "@helpers/getErrorMessage.ts";
+import { UpIcon } from "@icons/UpIcon.tsx";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { motion } from "framer-motion";
+import { SpinnerCircularFixed } from "spinners-react";
+import { useEffect, useRef, useState } from "react";
+import { LogoutButton } from "./components/LogoutButton";
+import { RandomPlaylist } from "./components/RandomPlaylist";
+import { SearchPlaylists } from "./components/SearchPlaylists.tsx";
 
 export const Profile = () => {
   const queryClient = useQueryClient();
