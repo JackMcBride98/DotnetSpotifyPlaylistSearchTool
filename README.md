@@ -49,6 +49,9 @@ Then run the backend with `dotnet watch run` and go to `http://localhost:5030/`
 
 Run the frontend by navigating to the `/client` directory and then running `npm run dev`
 
+# Development
+Attach the client folder to the solution to get automcpletes
+
 # Running migrations
 Use `./cake MigrateLocalDatabase` to run the latest migrations e.g. if you have added any new ones in development
 
