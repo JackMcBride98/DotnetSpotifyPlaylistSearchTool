@@ -65,6 +65,10 @@ the `/infrastructure` folder contains terraform files for creating the AWS resou
 
 Create a `terraform.tfvars` file in the `/infrastructure` folder with the variables from `terraform.tfvars.example`.
 
+When running tofu commands locally make sure to set the AWS_PROFILE environment variable to the profile you want to use for deployment.
+$env:AWS_PROFILE = "spotify-playlist-search-tool-admin"
+tofu plan
+
 # TODO
 - IaaC deployment
 - Logging in AWS!

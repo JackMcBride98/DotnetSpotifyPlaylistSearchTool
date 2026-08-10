@@ -3,6 +3,7 @@
     <Project Path="SpotifyPlaylistSearchTool.Api/SpotifyPlaylistSearchTool.Api.csproj" />
     <Project Path="SpotifyPlaylistSearchTool.Database/SpotifyPlaylistSearchTool.Database.csproj" />
     <Folder Name="/infrastructure/">
+        <File Path="infrastructure/.env" />
         <File Path="infrastructure/.gitignore" />
         <File Path="infrastructure/alb.tf" />
         <File Path="infrastructure/dns.tf" />
