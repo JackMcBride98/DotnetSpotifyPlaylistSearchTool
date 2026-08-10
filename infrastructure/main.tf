@@ -10,5 +10,4 @@
 
 provider "aws" {
   region = "eu-west-2"
-  profile = "spotify-playlist-search-tool-admin"
 }
