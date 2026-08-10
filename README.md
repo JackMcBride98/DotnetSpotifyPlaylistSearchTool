@@ -79,8 +79,6 @@ who you want to be signed in with when using tofu locally.
 
 # TODO
 - Have a go at putting the DB in a private subnet and running the migrations via an ecs task
-- ecs.tf step 5, is in a public subnet, this could be made private too
-- Use commit SHA's for docker image versions
 - Test an app and database migration change
 - Setup the logging in AWS!
 - PWA
