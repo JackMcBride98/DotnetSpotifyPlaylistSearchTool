@@ -100,3 +100,5 @@ jobs:
           echo "Waiting 15 seconds for ECR image propagation..."
           sleep 15
           aws ecs update-service --cluster $ECS_CLUSTER --service $ECS_SERVICE --force-new-deployment
+          echo "Waiting for ECS service to stabilize..."
+          aws ecs wait services-stable --cluster $ECS_CLUSTER --services $ECS_SERVICE
