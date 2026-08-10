@@ -104,11 +104,15 @@ jobs:
           echo "Fetching current task definition..."
           aws ecs describe-task-definition --task-definition playlist-search-tool-api --query taskDefinition > task-def.json
 
-          echo "Cleaning up system metadata from task definition..."
+          echo "Cleaning up system metadata..."
           jq 'del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy)' task-def.json > cleaned-task-def.json
 
-          echo "Injecting new image URI: $IMAGE_URI"
-          jq --arg IMAGE "$IMAGE_URI" '.containerDefinitions[0].image = $IMAGE' cleaned-task-def.json > final-task-def.json
+          echo "Injecting new image URI explicitly into container 'backend': $IMAGE_URI"
+          # This targets the container named 'backend' specifically
+          jq --arg IMAGE "$IMAGE_URI" '(.containerDefinitions[] | select(.name == "backend")).image = $IMAGE' cleaned-task-def.json > final-task-def.json
+
+          echo "Verifying final-task-def.json image field:"
+          jq '.containerDefinitions[0].image' final-task-def.json
 
           echo "Registering new task definition revision..."
           NEW_TASK_DEF=$(aws ecs register-task-definition --cli-input-json file://final-task-def.json --query 'taskDefinition.taskDefinitionArn' --output text)
