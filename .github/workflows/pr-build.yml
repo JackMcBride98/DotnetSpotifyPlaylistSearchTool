@@ -1,0 +1,265 @@
+---
+name: Pull Request Checks
+on:
+  pull_request:
+jobs:
+  frontend-lint:
+    name: Frontend Lint & Format
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: '26'
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+
+      - name: Install Frontend Dependencies
+        run: npm ci
+        working-directory: client
+
+      - name: Run Frontend Linter (ESLint)
+        run: npm run lint
+        working-directory: client
+      - name: Run Frontend Format Check (Prettier)
+        run: npm run format:check
+        working-directory: client
+
+  frontend-typecheck:
+    name: Frontend Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: '26'
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+      - name: Install Frontend Dependencies
+        run: npm ci
+        working-directory: client
+      - name: Run Frontend Typecheck (TypeScript)
+        run: npm run typecheck
+        working-directory: client
+
+  frontend-tests:
+    name: Frontend Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: '26'
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+      - name: Install Frontend Dependencies
+        run: npm ci
+        working-directory: client
+      - name: Run Frontend Tests (Vitetest)
+        run: npm run test
+        working-directory: client
+
+  lint-backend:
+    name: Lint & Format Backend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      - name: Install yamllint
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y yamllint
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+          cache: true
+          cache-dependency-path: '**/packages.lock.json'
+      - name: Restore Local Tools
+        shell: bash
+        run: dotnet tool restore
+      - name: Run Backend Linter
+        uses: cake-build/cake-action@v3
+        with:
+          project-path: build/Build.csproj
+          target: LintBackend
+          verbosity: Normal
+
+  build:
+    name: Build Solution
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+          cache: true
+          cache-dependency-path: '**/packages.lock.json'
+      - name: Install Frontend Dependencies
+        run: npm ci
+        working-directory: client
+      - name: Run Cake Build Task
+        uses: cake-build/cake-action@v3
+        with:
+          project-path: build/Build.csproj
+          target: Build
+          verbosity: Normal
+      - name: Run API/Frontend Generation Verification
+        uses: cake-build/cake-action@v3
+        with:
+          project-path: build/Build.csproj
+          target: CheckFrontendApiClientGenCommitted
+          verbosity: Diagnostic
+          arguments: |
+            exclusive: true
+      - name: Upload Compiled Binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: compiled-binaries
+          path: |
+            **/bin/
+            **/obj/
+          retention-days: 1
+
+  test:
+    name: Backend E2E Tests
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+          cache: true
+          cache-dependency-path: '**/packages.lock.json'
+      - name: Download Compiled Binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: compiled-binaries
+      - name: Restore Executable Permissions
+        run: |
+          echo "Restoring execute permissions to compiled binaries..."
+          find . -type f -path "*/bin/*" ! -name "*.*" -exec chmod +x {} +
+      - name: Start Test Database Container
+        uses: cake-build/cake-action@v3
+        with:
+          project-path: build/Build.csproj
+          target: CreateTestDatabase
+          verbosity: Normal
+          arguments: |
+            exclusive: true
+      - name: Migrate Test Database
+        uses: cake-build/cake-action@v3
+        with:
+          project-path: build/Build.csproj
+          target: MigrateTestDatabase
+          verbosity: Normal
+          arguments: |
+            exclusive: true
+      - name: Run E2E Integration Tests
+        uses: cake-build/cake-action@v3
+        with:
+          project-path: build/Build.csproj
+          target: RunBackendE2ETests
+          verbosity: Normal
+          arguments: |
+            exclusive: true
+      - name: Clean up Test Database
+        if: always()
+        uses: cake-build/cake-action@v3
+        with:
+          project-path: build/Build.csproj
+          target: DestroyTestDatabase
+          verbosity: Normal
+
+  infra-plan:
+    name: OpenTofu Plan & Verify
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write  # Required for AWS OIDC token exchange
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # Add AWS credentials configuration using OIDC role assumption
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::687979656894:role/playlist-search-tool-github-actions-role
+          aws-region: eu-west-2
+      - name: Setup OpenTofu
+        uses: opentofu/setup-opentofu@v1
+      - name: OpenTofu Init
+        working-directory: ./infrastructure
+        run: tofu init
+      - name: OpenTofu Validate
+        working-directory: ./infrastructure
+        run: tofu validate
+      - name: OpenTofu Plan
+        id: plan
+        working-directory: ./infrastructure
+        continue-on-error: true
+        env:
+          TF_VAR_spotify_client_id: ${{ secrets.SPOTIFY_CLIENT_ID }}
+          TF_VAR_spotify_client_secret: ${{ secrets.SPOTIFY_CLIENT_SECRET }}
+          TF_VAR_spotify_redirect_uri: ${{ secrets.SPOTIFY_REDIRECT_URI }}
+          TF_VAR_db_name: ${{ secrets.DB_NAME }}
+          TF_VAR_db_username: ${{ secrets.DB_USERNAME }}
+          TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
+          TF_VAR_db_port: ${{ secrets.DB_PORT }}
+        run: |
+          tofu plan -no-color -out=tfplan
+          {
+            echo "tfplan<<EOF"
+            tofu show -no-color tfplan
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
+      - name: Post Tofu Plan to PR
+        uses: actions/github-script@v7
+        if: github.event_name == 'pull_request'
+        with:
+          script: |-
+            const output = `#### OpenTofu Plan 🖌\`${{ steps.plan.outcome }}\`
+            <details><summary>Show Plan</summary>
+            \`\`\`hcl
+            ${{ steps.plan.outputs.tfplan }}
+            \`\`\`
+            </details>
+            *Pushed by: @${{ github.actor }}_`;
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            const botComment = comments.find(
+              comment => comment.user.type === 'Bot' &&
+              comment.body.includes('OpenTofu Plan')
+            );
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: output
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: output
+              });
+            }
