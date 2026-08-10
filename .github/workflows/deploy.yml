@@ -99,7 +99,8 @@ jobs:
       # 5. Download the current task definition from AWS into a file
       - name: Download task definition
         run: |
-          aws ecs describe-task-definition --task-definition playlist-search-tool-api --query taskDefinition > task-definition.json
+          aws ecs describe-task-definition --task-definition playlist-search-tool-api --query \
+          taskDefinition > task-definition.json
 
       # 6. RENDER TASK DEFINITION (Automatically swaps the image tag in the downloaded file)
       - name: Render Amazon ECS task definition
