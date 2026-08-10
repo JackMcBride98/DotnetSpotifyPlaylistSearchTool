@@ -26,6 +26,7 @@ export const Credits = () => {
           className="mt-2 h-8 w-8 invert"
         ></img>
       </a>
+        <p>Test frontend change</p>
     </div>
   );
 };
