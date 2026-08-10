@@ -213,6 +213,14 @@ jobs:
         id: plan
         working-directory: ./infrastructure
         continue-on-error: true
+        env:
+          TF_VAR_spotify_client_id: ${{ secrets.SPOTIFY_CLIENT_ID }}
+          TF_VAR_spotify_client_secret: ${{ secrets.SPOTIFY_CLIENT_SECRET }}
+          TF_VAR_spotify_redirect_uri: ${{ secrets.SPOTIFY_REDIRECT_URI }}
+          TF_VAR_db_name: ${{ secrets.DB_NAME }}
+          TF_VAR_db_username: ${{ secrets.DB_USERNAME }}
+          TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
+          TF_VAR_db_port: ${{ secrets.DB_PORT }}
         run: |
           tofu plan -no-color -out=tfplan
           EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
