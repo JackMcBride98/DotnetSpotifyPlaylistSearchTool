@@ -125,7 +125,7 @@ if (builder.Environment.IsDevelopment())
 }
 else
 {
-    if (!isDocumentGeneration)
+    if (!isDocumentGeneration && !builder.Environment.IsEnvironment("Testing"))
     {
         app.MapStaticAssets();
     }

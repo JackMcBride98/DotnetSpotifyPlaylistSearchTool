@@ -53,7 +53,7 @@ Run the frontend by navigating to the `/client` directory and then running `npm 
 Use `./cake MigrateLocalDatabase` to run the latest migrations e.g. if you have added any new ones in development
 
 # Testing
-To run the BackendE2ETests, first create a local test database by running `./cake CreateLocalTestDatabase` 
+To run the BackendE2ETests, first create a local test database by running `./cake CreateTestDatabase` 
 and then run the tests with `./cake RunBackendE2ETests` (you can run them within Rider as well, make sure to change the 
 environment variable of Rider's test environment to "Testing" so that the test database is used instead of the development database,
 this is set in committed DotSettings.user, so you may not need to do this.)
@@ -73,7 +73,10 @@ tofu plan
 
 # TODO
 - Have a go at putting the DB in a private subnet and running the migrations via an ecs task
-- 
-- Logging in AWS!
+- ecs.tf step 5, is in a public subnet, this could be made private too
+- Use commit SHA's for docker image versions
+- Test an app and database migration change
+- Setup the logging in AWS!
 - PWA
+- Document what I've done (infrastructure.md) then post into the world for feedback!
 - (later/stretch) Error Handling could be much better (think I found a limitation of the client-gen library). We need to surface error messages and status codes from the backend to frontend in  a typesafe way.
