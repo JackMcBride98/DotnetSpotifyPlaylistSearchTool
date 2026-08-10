@@ -74,6 +74,9 @@ When running tofu commands locally make sure to set the AWS_PROFILE environment 
 $env:AWS_PROFILE = "spotify-playlist-search-tool-admin"
 tofu plan
 
+https://687979656894.signin.aws.amazon.com/console - console sign in link for spotify-playlist-search-tool-admin. This is
+who you want to be signed in with when using tofu locally.
+
 # TODO
 - Have a go at putting the DB in a private subnet and running the migrations via an ecs task
 - ecs.tf step 5, is in a public subnet, this could be made private too

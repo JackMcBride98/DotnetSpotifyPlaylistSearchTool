@@ -75,16 +75,18 @@ jobs:
       - name: Build and Push Migration Image
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker build -f Migrations.Dockerfile -t $REGISTRY/$ECR_REPOSITORY_MIGRATE:latest .
-          docker push $REGISTRY/$ECR_REPOSITORY_MIGRATE:latest
+          docker build -f Migrations.Dockerfile -t $REGISTRY/$ECR_REPOSITORY_MIGRATE:$IMAGE_TAG .
+          docker push $REGISTRY/$ECR_REPOSITORY_MIGRATE:$IMAGE_TAG
       - name: Build and Push API Image (Bundled with Frontend inside /publish)
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
         run: |
           # Ensure you have a Dockerfile at the root or point to it that bundles the publish output
-          docker build -f Dockerfile -t $REGISTRY/$ECR_REPOSITORY_API:latest .
-          docker push $REGISTRY/$ECR_REPOSITORY_API:latest
+          docker build -f Dockerfile -t $REGISTRY/$ECR_REPOSITORY_API:$IMAGE_TAG .
+          docker push $REGISTRY/$ECR_REPOSITORY_API:$IMAGE_TAG
 
       # 4. EXECUTE DATABASE MIGRATIONS
       - name: Run Database Migrations
@@ -95,10 +97,27 @@ jobs:
           -- "$DATABASE_CONNECTION_STRING"
 
       # 5. UPDATE ECS SERVICE (Trigger Rolling Deployment)
-      - name: Update ECS API Service
-        run: |-
-          echo "Waiting 15 seconds for ECR image propagation..."
-          sleep 15
-          aws ecs update-service --cluster $ECS_CLUSTER --service $ECS_SERVICE --force-new-deployment
-          echo "Waiting for ECS service to stabilize..."
-          aws ecs wait services-stable --cluster $ECS_CLUSTER --services $ECS_SERVICE
+      - name: Update ECS API Service with Git SHA
+        env:
+          IMAGE_URI: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY_API }}:${{ github.sha }}
+        run: |
+          echo "Fetching current task definition..."
+          aws ecs describe-task-definition --task-definition playlist-search-tool-api --query taskDefinition > task-def.json
+
+          echo "Cleaning up system metadata from task definition..."
+          jq 'del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy)' task-def.json > cleaned-task-def.json
+
+          echo "Injecting new image URI: $IMAGE_URI"
+          jq --arg IMAGE "$IMAGE_URI" '.containerDefinitions[0].image = $IMAGE' cleaned-task-def.json > final-task-def.json
+
+          echo "Registering new task definition revision..."
+          NEW_TASK_DEF=$(aws ecs register-task-definition --cli-input-json file://final-task-def.json --query 'taskDefinition.taskDefinitionArn' --output text)
+          echo "New task definition registered: $NEW_TASK_DEF"
+
+          echo "Updating ECS service..."
+          aws ecs update-service \
+            --cluster $ECS_CLUSTER \
+            --service $ECS_SERVICE \
+            --task-definition $NEW_TASK_DEF \
+            --desired-count 1 \
+            --force-new-deployment
