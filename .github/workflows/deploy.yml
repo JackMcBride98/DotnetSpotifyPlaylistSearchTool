@@ -97,4 +97,6 @@ jobs:
       # 5. UPDATE ECS SERVICE (Trigger Rolling Deployment)
       - name: Update ECS API Service
         run: |-
+          echo "Waiting 15 seconds for ECR image propagation..."
+          sleep 15
           aws ecs update-service --cluster $ECS_CLUSTER --service $ECS_SERVICE --force-new-deployment
