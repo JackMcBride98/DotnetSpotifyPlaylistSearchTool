@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using Cake.Common;
 using Cake.Common.Diagnostics;
+using Cake.Common.IO;
 using Cake.Common.Tools.DotNet;
 using Cake.Common.Tools.DotNet.Format;
+using Cake.Common.Tools.DotNet.Publish;
 using Cake.Common.Tools.DotNet.Run;
 using Cake.Common.Tools.DotNet.Test;
 using Cake.Common.Tools.DotNet.Tool;
@@ -30,6 +32,7 @@ public class BuildContext : FrostingContext
     public string LocalTestDbConnectionString { get; }
     public string DbDirectoryPath { get; }
     public string DbUpProjectPath { get; }
+    public string ApiProjectDirectoryPath { get; }
     public string ApiProjectPath { get; }
     public string ClientDirectoryPath { get; }
     public string BackendE2ETestsProjectPath { get; }
@@ -46,7 +49,8 @@ public class BuildContext : FrostingContext
             "Host=localhost;Port=5433;Database=SpotifyPlaylistSearchTool;Username=postgres;Password=mysecretpassword";
         LocalTestDbConnectionString =
             "Host=localhost;Port=5434;Database=SpotifyPlaylistSearchToolTest;Username=postgres;Password=mysecretpassword";
-        ApiProjectPath = "../SpotifyPlaylistSearchTool.Api/SpotifyPlaylistSearchTool.Api.csproj";
+        ApiProjectDirectoryPath = "../SpotifyPlaylistSearchTool.Api";
+        ApiProjectPath = ApiProjectDirectoryPath + "/SpotifyPlaylistSearchTool.Api.csproj";
         ClientDirectoryPath = "../client";
         BackendE2ETestsProjectPath = "../BackendE2ETests/BackendE2ETests/BackendE2ETests.csproj";
         BuildersProjectPath = "../Builders/Builders.csproj";
@@ -470,6 +474,64 @@ public sealed class CheckFrontendApiClientGenCommitted : FrostingTask<BuildConte
 public sealed class CITask : FrostingTask<BuildContext>
 {
     public override void Run(BuildContext context) { }
+}
+
+[TaskName("BuildFrontend")]
+public sealed class BuildFrontendTask : FrostingTask<BuildContext>
+{
+    public override void Run(BuildContext context)
+    {
+        context.NpmInstall(settings => settings.FromPath(context.ClientDirectoryPath));
+
+        context.NpmRunScript("build", settings => settings.FromPath(context.ClientDirectoryPath));
+    }
+}
+
+[TaskName("PublishBackend")]
+[IsDependentOn(typeof(BuildFrontendTask))]
+public sealed class PublishBackendTask : FrostingTask<BuildContext>
+{
+    public override void Run(BuildContext context)
+    {
+        var wwwrootPath = context.ApiProjectDirectoryPath + "/wwwroot";
+        var frontendDist = context.ClientDirectoryPath + "/dist";
+
+        if (context.DirectoryExists(wwwrootPath))
+        {
+            context.DeleteDirectory(
+                wwwrootPath,
+                new DeleteDirectorySettings { Recursive = true, Force = true }
+            );
+        }
+        context.CreateDirectory(wwwrootPath);
+
+        context.CopyDirectory(frontendDist, wwwrootPath);
+
+        context.DotNetPublish(
+            context.ApiProjectPath,
+            new DotNetPublishSettings { Configuration = "Release", OutputDirectory = "../publish" }
+        );
+    }
+}
+
+[TaskName("PublishDatabaseMigrations")]
+public sealed class PublishDatabaseMigrationsTask : FrostingTask<BuildContext>
+{
+    public override void Run(BuildContext context)
+    {
+        context.Information("Publishing DbUp console application for production release...");
+
+        context.DotNetPublish(
+            context.DbUpProjectPath,
+            new DotNetPublishSettings
+            {
+                Configuration = "Release",
+                OutputDirectory = "../publish-migrations",
+            }
+        );
+
+        context.Information("DbUp project published successfully.");
+    }
 }
 
 [TaskName("Default")]
