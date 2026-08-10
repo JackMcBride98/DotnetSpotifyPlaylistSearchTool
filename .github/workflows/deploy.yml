@@ -96,32 +96,26 @@ jobs:
           dotnet run --project SpotifyPlaylistSearchTool.Database/SpotifyPlaylistSearchTool.Database.csproj \
           -- "$DATABASE_CONNECTION_STRING"
 
-      # 5. UPDATE ECS SERVICE (Trigger Rolling Deployment)
-      - name: Update ECS API Service with Git SHA
-        env:
-          IMAGE_URI: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY_API }}:${{ github.sha }}
+      # 5. Download the current task definition from AWS into a file
+      - name: Download task definition
         run: |
-          echo "Fetching current task definition..."
-          aws ecs describe-task-definition --task-definition playlist-search-tool-api --query taskDefinition > task-def.json
+          aws ecs describe-task-definition --task-definition playlist-search-tool-api --query taskDefinition > task-definition.json
 
-          echo "Cleaning up system metadata..."
-          jq 'del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy)' task-def.json > cleaned-task-def.json
+      # 6. RENDER TASK DEFINITION (Automatically swaps the image tag in the downloaded file)
+      - name: Render Amazon ECS task definition
+        id: render-app
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: task-definition.json
+          container-name: backend
+          image: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY_API }}:${{ github.sha }}
 
-          echo "Injecting new image URI explicitly into container 'backend': $IMAGE_URI"
-          # This targets the container named 'backend' specifically
-          jq --arg IMAGE "$IMAGE_URI" '(.containerDefinitions[] | select(.name == "backend")).image = $IMAGE' cleaned-task-def.json > final-task-def.json
-
-          echo "Verifying final-task-def.json image field:"
-          jq '.containerDefinitions[0].image' final-task-def.json
-
-          echo "Registering new task definition revision..."
-          NEW_TASK_DEF=$(aws ecs register-task-definition --cli-input-json file://final-task-def.json --query 'taskDefinition.taskDefinitionArn' --output text)
-          echo "New task definition registered: $NEW_TASK_DEF"
-
-          echo "Updating ECS service..."
-          aws ecs update-service \
-            --cluster $ECS_CLUSTER \
-            --service $ECS_SERVICE \
-            --task-definition $NEW_TASK_DEF \
-            --desired-count 1 \
-            --force-new-deployment
+      # 7. DEPLOY TO ECS SERVICE (Registers new revision and rolls out safely)
+      - name: Deploy Amazon ECS task definition
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+          task-definition: ${{ steps.render-app.outputs.task-definition }}
+          service: playlist-search-tool-service
+          cluster: playlist-search-tool-cluster
+          wait-for-service-stability: true
+          wait-max-delay-seconds: 15
