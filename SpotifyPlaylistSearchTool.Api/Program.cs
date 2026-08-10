@@ -69,11 +69,8 @@ builder.Services.AddSingleton<ISpotifyClientFactory, SpotifyClientFactory>();
 builder.Services.AddTickerQ();
 builder.Services.MapTicker<InitialSyncJob, InitialSyncPayload>();
 
-// builder.Services.AddSpaStaticFiles(options => { options.RootPath = "client/dist"; }); do this if not development
-
 var app = builder.Build();
 
-app.UseStaticFiles();
 app.UseRouting();
 app.UseDefaultExceptionHandler();
 app.UseFastEndpoints(c =>
@@ -126,7 +123,13 @@ if (builder.Environment.IsDevelopment())
         o.OperationTitleSource = OperationTitleSource.Path;
     });
 }
-
-app.MapFallbackToFile("index.html");
+else
+{
+    if (!isDocumentGeneration && !builder.Environment.IsEnvironment("Testing"))
+    {
+        app.MapStaticAssets();
+    }
+    app.MapFallbackToFile("index.html");
+}
 
 app.Run();

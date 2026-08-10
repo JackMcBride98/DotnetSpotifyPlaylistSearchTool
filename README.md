@@ -34,6 +34,8 @@ There are no down migrations as DbUp is opinionated against them. Although they 
 and use mock the results of Spotify API. These are setup as reccomened by FastEndpoints [documentation](https://fast-endpoints.com/docs/integration-unit-testing).
 
 # Running the app locally
+Ensure you have installed the necceessary deps in prerequisites. Build the solution and run `npm install` in the client folder
+
 First create the local database by running `./cake CreateLocalDatabase`
 
 Then migrate the local database by running `./cake MigrateLocalDatabase`
@@ -47,11 +49,14 @@ Then run the backend with `dotnet watch run` and go to `http://localhost:5030/`
 
 Run the frontend by navigating to the `/client` directory and then running `npm run dev`
 
+# Development
+Attach the client folder to the solution to get automcpletes
+
 # Running migrations
 Use `./cake MigrateLocalDatabase` to run the latest migrations e.g. if you have added any new ones in development
 
 # Testing
-To run the BackendE2ETests, first create a local test database by running `./cake CreateLocalTestDatabase` 
+To run the BackendE2ETests, first create a local test database by running `./cake CreateTestDatabase` 
 and then run the tests with `./cake RunBackendE2ETests` (you can run them within Rider as well, make sure to change the 
 environment variable of Rider's test environment to "Testing" so that the test database is used instead of the development database,
 this is set in committed DotSettings.user, so you may not need to do this.)
@@ -70,8 +75,11 @@ $env:AWS_PROFILE = "spotify-playlist-search-tool-admin"
 tofu plan
 
 # TODO
-- IaaC deployment
-- Logging in AWS!
+- Have a go at putting the DB in a private subnet and running the migrations via an ecs task
+- ecs.tf step 5, is in a public subnet, this could be made private too
+- Use commit SHA's for docker image versions
+- Test an app and database migration change
+- Setup the logging in AWS!
 - PWA
+- Document what I've done (infrastructure.md) then post into the world for feedback!
 - (later/stretch) Error Handling could be much better (think I found a limitation of the client-gen library). We need to surface error messages and status codes from the backend to frontend in  a typesafe way.
-- Can we use app.MapStaticAssets() as a performance improvement
