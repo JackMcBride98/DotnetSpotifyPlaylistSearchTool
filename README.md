@@ -34,6 +34,8 @@ There are no down migrations as DbUp is opinionated against them. Although they 
 and use mock the results of Spotify API. These are setup as reccomened by FastEndpoints [documentation](https://fast-endpoints.com/docs/integration-unit-testing).
 
 # Running the app locally
+Ensure you have installed the necceessary deps in prerequisites. Build the solution and run `npm install` in the client folder
+
 First create the local database by running `./cake CreateLocalDatabase`
 
 Then migrate the local database by running `./cake MigrateLocalDatabase`
@@ -70,8 +72,8 @@ $env:AWS_PROFILE = "spotify-playlist-search-tool-admin"
 tofu plan
 
 # TODO
-- IaaC deployment
+- Have a go at putting the DB in a private subnet and running the migrations via an ecs task
+- 
 - Logging in AWS!
 - PWA
 - (later/stretch) Error Handling could be much better (think I found a limitation of the client-gen library). We need to surface error messages and status codes from the backend to frontend in  a typesafe way.
-- Can we use app.MapStaticAssets() as a performance improvement
