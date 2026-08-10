@@ -14,6 +14,7 @@ Tip: You can use the --exclusive flag to run Cake tasks without running the task
 - Docker Desktop (for running PostgresSQL database)
 - Install yamllint
 - CSharpier extension for formatting C# code
+- Install AWS CLI and opentofu (for deploying to AWS)
 - Most likely only works on a Windows machine, as developed in Windows using Rider IDE and VsCode
 
 # Project folder structure
@@ -59,14 +60,18 @@ this is set in committed DotSettings.user, so you may not need to do this.)
 Pipelines are ran using Github Actions. These live in ./github/workflows. They call jobs defined in the Cake Frosting
 build project. 
 
+# Infrastructure
+the `/infrastructure` folder contains terraform files for creating the AWS resources used to host the DB, Server and frontend.
+
+Create a `terraform.tfvars` file in the `/infrastructure` folder with the variables from `terraform.tfvars.example`.
+
+When running tofu commands locally make sure to set the AWS_PROFILE environment variable to the profile you want to use for deployment.
+$env:AWS_PROFILE = "spotify-playlist-search-tool-admin"
+tofu plan
+
 # TODO
-Plan: Client Gen ✅ -> Frontent Lint, format and test setup ✅ -> Background job for syncing playlists ✅ -> Update branding and fix bugs ✅ -> AWS Deployment -> IaaC deployment -> PWA (stretch goal)
-
-- (later/stretch) Error Handling could be much better (think I found a limitation of the client-gen library). We need to surface error messages and status codes from the backend to frontend in  a typesafe way.
-- Figure out how to run the automated api generation and frontend generation (currently commented out in csproj), only for development builds i.e dont run in watch mode, tests or in CI. CI check that its been committed?
-- (later/stretch) Do we need to get around rate limiting? We could catch RateLimitExceptions and skip the jobs until next week?
-
-- AWS Deployment
 - IaaC deployment
 - Logging in AWS!
 - PWA
+- (later/stretch) Error Handling could be much better (think I found a limitation of the client-gen library). We need to surface error messages and status codes from the backend to frontend in  a typesafe way.
+- Can we use app.MapStaticAssets() as a performance improvement

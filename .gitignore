@@ -3,6 +3,9 @@
 ##
 ## Get latest from `dotnet new gitignore`
 
+database-publish/
+publish-migrations/
+
 # dotenv files
 .env
 

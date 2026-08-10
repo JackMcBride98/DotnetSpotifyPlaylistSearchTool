@@ -1,0 +1,13 @@
+﻿# ==========================================
+# OpenTofu Local Variables Example
+# Copy this file to 'terraform.tfvars' and fill in your values.
+# ==========================================
+
+spotify_client_id     = "your_spotify_client_id_here"
+spotify_client_secret = "your_spotify_client_secret_here"
+spotify_redirect_uri  = "http://localhost:5000/api/callback"
+
+db_name               = "playlistdb"
+db_username           = "dbadmin"
+db_password           = "ChangeThisSecurePassword123!"
+db_port               = 5432

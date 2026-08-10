@@ -15,6 +15,8 @@ import type {
   GetProfileResponses,
   GetRandomPlaylistData,
   GetRandomPlaylistResponses,
+  HealthData,
+  HealthResponses,
   LogInData,
   LogInResponses,
   LogoutData,
@@ -51,6 +53,14 @@ export const callback = <ThrowOnError extends boolean = false>(
     CallbackErrors,
     ThrowOnError
   >({ url: "/api/callback", ...options });
+
+export const health = <ThrowOnError extends boolean = false>(
+  options?: Options<HealthData, ThrowOnError>,
+): RequestResult<HealthResponses, unknown, ThrowOnError> =>
+  (options?.client ?? client).get<HealthResponses, unknown, ThrowOnError>({
+    url: "/api/health",
+    ...options,
+  });
 
 export const logIn = <ThrowOnError extends boolean = false>(
   options?: Options<LogInData, ThrowOnError>,

@@ -127,4 +127,6 @@ if (builder.Environment.IsDevelopment())
     });
 }
 
+app.MapFallbackToFile("index.html");
+
 app.Run();

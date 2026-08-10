@@ -10,6 +10,7 @@ import {
   callback,
   getProfile,
   getRandomPlaylist,
+  health,
   logIn,
   logout,
   searchPlaylists,
@@ -23,6 +24,8 @@ import type {
   GetProfileResponse2,
   GetRandomPlaylistData,
   GetRandomPlaylistResponse2,
+  HealthData,
+  HealthResponse,
   LogInData,
   LogInResponse2,
   LogoutData,
@@ -93,6 +96,28 @@ export const callbackOptions = (options: Options<CallbackData>) =>
       return data;
     },
     queryKey: callbackQueryKey(options),
+  });
+
+export const healthQueryKey = (options?: Options<HealthData>) =>
+  createQueryKey("health", options);
+
+export const healthOptions = (options?: Options<HealthData>) =>
+  queryOptions<
+    HealthResponse,
+    DefaultError,
+    HealthResponse,
+    ReturnType<typeof healthQueryKey>
+  >({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await health({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: healthQueryKey(options),
   });
 
 export const logInMutation = (
