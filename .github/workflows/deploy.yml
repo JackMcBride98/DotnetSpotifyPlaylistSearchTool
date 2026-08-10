@@ -75,16 +75,18 @@ jobs:
       - name: Build and Push Migration Image
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker build -f Migrations.Dockerfile -t $REGISTRY/$ECR_REPOSITORY_MIGRATE:latest .
-          docker push $REGISTRY/$ECR_REPOSITORY_MIGRATE:latest
+          docker build -f Migrations.Dockerfile -t $REGISTRY/$ECR_REPOSITORY_MIGRATE:$IMAGE_TAG .
+          docker push $REGISTRY/$ECR_REPOSITORY_MIGRATE:$IMAGE_TAG
       - name: Build and Push API Image (Bundled with Frontend inside /publish)
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
         run: |
           # Ensure you have a Dockerfile at the root or point to it that bundles the publish output
-          docker build -f Dockerfile -t $REGISTRY/$ECR_REPOSITORY_API:latest .
-          docker push $REGISTRY/$ECR_REPOSITORY_API:latest
+          docker build -f Dockerfile -t $REGISTRY/$ECR_REPOSITORY_API:$IMAGE_TAG .
+          docker push $REGISTRY/$ECR_REPOSITORY_API:$IMAGE_TAG
 
       # 4. EXECUTE DATABASE MIGRATIONS
       - name: Run Database Migrations
@@ -94,7 +96,27 @@ jobs:
           dotnet run --project SpotifyPlaylistSearchTool.Database/SpotifyPlaylistSearchTool.Database.csproj \
           -- "$DATABASE_CONNECTION_STRING"
 
-      # 5. UPDATE ECS SERVICE (Trigger Rolling Deployment)
-      - name: Update ECS API Service
-        run: |-
-          aws ecs update-service --cluster $ECS_CLUSTER --service $ECS_SERVICE --force-new-deployment
+      # 5. Download the current task definition from AWS into a file
+      - name: Download task definition
+        run: |
+          aws ecs describe-task-definition --task-definition playlist-search-tool-api --query \
+          taskDefinition > task-definition.json
+
+      # 6. RENDER TASK DEFINITION (Automatically swaps the image tag in the downloaded file)
+      - name: Render Amazon ECS task definition
+        id: render-app
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: task-definition.json
+          container-name: backend
+          image: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY_API }}:${{ github.sha }}
+
+      # 7. DEPLOY TO ECS SERVICE (Registers new revision and rolls out safely)
+      - name: Deploy Amazon ECS task definition
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+          task-definition: ${{ steps.render-app.outputs.task-definition }}
+          service: playlist-search-tool-service
+          cluster: playlist-search-tool-cluster
+          wait-for-service-stability: true
+          wait-max-delay-seconds: 15

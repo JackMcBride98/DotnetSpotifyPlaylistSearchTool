@@ -63,7 +63,6 @@ resource "aws_ecs_task_definition" "api" {
   container_definitions = jsonencode([
     {
       name      = "backend"
-      image     = "${aws_ecr_repository.api.repository_url}:latest"
       essential = true
       portMappings = [
         {
@@ -79,6 +78,10 @@ resource "aws_ecs_task_definition" "api" {
       ]
     }
   ])
+
+  lifecycle {
+    ignore_changes = [container_definitions]
+  }
 }
 
 # 5. The ECS Service (Maintains your desired container count and hooks into the ALB)
