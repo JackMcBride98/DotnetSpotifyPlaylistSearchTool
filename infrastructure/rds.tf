@@ -84,8 +84,4 @@ resource "aws_ecs_task_definition" "migrations" {
       ]
     }
   ])
-
-  lifecycle {
-    ignore_changes = [container_definitions]
-  }
 }
