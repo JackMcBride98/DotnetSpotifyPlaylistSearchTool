@@ -104,7 +104,9 @@ jobs:
 
           # 2. Update the image placeholder with our newly built image tag using the official action
           # (Or use jq to inject the image URI directly)
-          CONFIGURED_TASK_DEF=$(npx --yes jq --arg IMAGE "${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY_MIGRATE }}:${{ github.sha }}" '.containerDefinitions[0].image = $IMAGE | del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy)' migration-task-def.json)
+          CONFIGURED_TASK_DEF=$(npx --yes jq --arg IMAGE \
+          "${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY_MIGRATE }}:${{ github.sha }}" \
+          '.containerDefinitions[0].image = $IMAGE | del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy)' migration-task-def.json)
           echo "$CONFIGURED_TASK_DEF" > final-migration-task-def.json
 
           # 3. Register a new revision with the fresh image

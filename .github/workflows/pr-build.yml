@@ -204,6 +204,7 @@ jobs:
         uses: dflook/tofu-plan@v2
         with:
           path: ./infrastructure
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           variables: |
             spotify_client_id     = "${{ secrets.SPOTIFY_CLIENT_ID }}"
             spotify_client_secret = "${{ secrets.SPOTIFY_CLIENT_SECRET }}"
