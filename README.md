@@ -80,6 +80,7 @@ who you want to be signed in with when using tofu locally.
 # TODO
 - Have a go at putting the DB in a private subnet and running the migrations via an ecs task
 - Test an app and database migration change
+- Fix tofu output formatting
 - Setup the logging in AWS!
 - PWA
 - Document what I've done (infrastructure.md) then post into the world for feedback!
