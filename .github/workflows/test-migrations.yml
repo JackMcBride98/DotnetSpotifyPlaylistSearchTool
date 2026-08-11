@@ -92,7 +92,7 @@ jobs:
         uses: geekcell/github-action-aws-ecs-run-task@v5.0.1
         with:
           cluster: ${{ env.ECS_CLUSTER }}
-          task-definition: ${{ steps.render-migration.outputs.task-definition }}
+          task-definition: playlist-search-tool-migrations
           subnet-ids: |
             ${{ steps.tf-outputs.outputs.public_subnet_1 }}
             ${{ steps.tf-outputs.outputs.public_subnet_2 }}
