@@ -202,9 +202,10 @@ jobs:
 
       - name: Run OpenTofu Plan
         uses: dflook/tofu-plan@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           path: ./infrastructure
-          github_token: ${{ secrets.GITHUB_TOKEN }}
           variables: |
             spotify_client_id     = "${{ secrets.SPOTIFY_CLIENT_ID }}"
             spotify_client_secret = "${{ secrets.SPOTIFY_CLIENT_SECRET }}"
