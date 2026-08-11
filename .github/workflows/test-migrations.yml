@@ -28,6 +28,10 @@ jobs:
         run: tofu init
         working-directory: ./infrastructure
 
+    - name: OpenTofu Apply (to register outputs)
+        run: tofu apply -auto-approve
+        working-directory: ./infrastructure
+
       - name: Get OpenTofu Outputs
         id: tf-outputs
         run: |
