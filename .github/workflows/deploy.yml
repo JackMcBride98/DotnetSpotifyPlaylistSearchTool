@@ -96,29 +96,40 @@ jobs:
           docker build -f Dockerfile -t $REGISTRY/$ECR_REPOSITORY_API:$IMAGE_TAG .
           docker push $REGISTRY/$ECR_REPOSITORY_API:$IMAGE_TAG
 
-      # 4. EXECUTE DATABASE MIGRATIONS SECURELY INSIDE PRIVATE VPC
+      # 4. DOWNLOAD & RENDER MIGRATION TASK DEFINITION
+      - name: Download Migration Task Definition
+        run: |
+          aws ecs describe-task-definition --task-definition playlist-search-tool-migrations --query taskDefinition > migration-task-def.json
+
+      - name: Render Migration Task Definition
+        id: render-migration
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: migration-task-def.json
+          container-name: migrations
+          image: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY_MIGRATE }}:${{ github.sha }}
+
+      # 5. EXECUTE DATABASE MIGRATIONS SECURELY INSIDE PRIVATE VPC
       - name: Run Database Migrations
         uses: geekcell/github-action-aws-ecs-run-task@v3.0.0
         with:
           cluster: ${{ env.ECS_CLUSTER }}
-          task-definition: playlist-search-tool-migrations
+          task-definition: ${{ steps.render-migration.outputs.task-definition }}
           subnet-ids: |
             ${{ steps.tf-outputs.outputs.subnet_1 }}
             ${{ steps.tf-outputs.outputs.subnet_2 }}
           security-group-ids: ${{ steps.tf-outputs.outputs.ecs_sg }}
           assign-public-ip: 'DISABLED'
           tail-logs: true
-          override-container: migrations # Replace with the actual container name inside your migration task definition if different
-          override-container-image: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY_MIGRATE }}:${{ github.sha }}
-          task-wait-until-stopped: true
+          override-container: migrations
 
-      # 5. Download the current task definition from AWS into a file
+      # 6. Download the current task definition from AWS into a file
       - name: Download task definition
         run: |
           aws ecs describe-task-definition --task-definition playlist-search-tool-api --query \
           taskDefinition > task-definition.json
 
-      # 6. RENDER TASK DEFINITION (Automatically swaps the image tag in the downloaded file)
+      # 7. RENDER TASK DEFINITION (Automatically swaps the image tag in the downloaded file)
       - name: Render Amazon ECS task definition
         id: render-app
         uses: aws-actions/amazon-ecs-render-task-definition@v1
@@ -127,7 +138,7 @@ jobs:
           container-name: backend
           image: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY_API }}:${{ github.sha }}
 
-      # 7. DEPLOY TO ECS SERVICE (Registers new revision and rolls out safely)
+      # 8. DEPLOY TO ECS SERVICE (Registers new revision and rolls out safely)
       - name: Deploy Amazon ECS task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
