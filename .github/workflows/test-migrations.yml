@@ -76,9 +76,9 @@ jobs:
           docker build -f Migrations.Dockerfile -t $REGISTRY/$ECR_REPOSITORY_MIGRATE:$IMAGE_TAG .
           docker push $REGISTRY/$ECR_REPOSITORY_MIGRATE:$IMAGE_TAG
 
-      - name: Download Migration Task Definition
-        run: |
-          aws ecs describe-task-definition --task-definition playlist-search-tool-migrations --query taskDefinition > migration-task-def.json
+  - name: Download Migration Task Definition
+      run: |
+        aws ecs describe-task-definition --task-definition playlist-search-tool-migrations --query taskDefinition > migration-task-def.json
 
       - name: Render Migration Task Definition
         id: render-migration
@@ -88,11 +88,18 @@ jobs:
           container-name: migrations
           image: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY_MIGRATE }}:${{ github.sha }}
 
+      - name: Register Migration Task Definition
+        id: register-migration
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+          task-definition: ${{ steps.render-migration.outputs.task-definition }}
+          ignore-service: true
+
       - name: Run Database Migrations
         uses: geekcell/github-action-aws-ecs-run-task@v5.0.1
         with:
           cluster: ${{ env.ECS_CLUSTER }}
-          task-definition: playlist-search-tool-migrations
+          task-definition: ${{ steps.register-migration.outputs.task-definition-arn }}
           subnet-ids: |
             ${{ steps.tf-outputs.outputs.public_subnet_1 }}
             ${{ steps.tf-outputs.outputs.public_subnet_2 }}
