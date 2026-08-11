@@ -111,17 +111,18 @@ jobs:
 
       # 5. EXECUTE DATABASE MIGRATIONS SECURELY INSIDE PRIVATE VPC
       - name: Run Database Migrations
-        uses: geekcell/github-action-aws-ecs-run-task@v3.0.0
+        uses: geekcell/github-action-aws-ecs-run-task@v5.0.1
         with:
           cluster: ${{ env.ECS_CLUSTER }}
-          task-definition: ${{ steps.render-migration.outputs.task-definition }}
+          task-definition: playlist-search-tool-migrations
           subnet-ids: |
             ${{ steps.tf-outputs.outputs.subnet_1 }}
             ${{ steps.tf-outputs.outputs.subnet_2 }}
           security-group-ids: ${{ steps.tf-outputs.outputs.ecs_sg }}
           assign-public-ip: 'DISABLED'
           tail-logs: true
-          override-container: migrations
+          override-container: migrator
+          override-container-command: dotnet SpotifyPlaylistSearchTool.Database.dll
 
       # 6. Download the current task definition from AWS into a file
       - name: Download task definition
