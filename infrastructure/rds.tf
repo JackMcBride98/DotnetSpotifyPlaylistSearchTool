@@ -77,11 +77,23 @@ resource "aws_ecs_task_definition" "migrations" {
   container_definitions = jsonencode([
     {
       name      = "migrations"
-      image     = "placeholder:latest" # Required for initial OpenTofu creation, ignored afterwards
+      image = "placeholder:latest" # Required for initial OpenTofu creation, ignored afterwards
       essential = true
       environment = [
-        { name = "Database__ConnectionString", value = "Host=${aws_db_instance.postgres.address};Port=${var.db_port};Database=${var.db_name};Username=${var.db_username};Password=${var.db_password}" }
+        { name  = "Database__ConnectionString",
+          value = "Host=${aws_db_instance.postgres.address};Port=${var.db_port};Database=${var.db_name};Username=${var.db_username};Password=${var.db_password}"
+        }
       ]
+
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          "awslogs-group"         = "/ecs/playlist-search-tool-migrations"
+          "awslogs-region"        = "eu-west-2"
+          "awslogs-stream-prefix" = "migrations"
+          "awslogs-create-group"  = "true"
+        }
+      }
     }
   ])
 }
