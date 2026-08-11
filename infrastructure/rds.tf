@@ -1,11 +1,7 @@
 ﻿# 1. DB Subnet Group (Places the database in your public subnets)
 resource "aws_db_subnet_group" "main" {
   name       = "playlist-search-tool-db-subnet-group"
-  subnet_ids = [aws_subnet.public_a.id, aws_subnet.public_b.id]
-
-  lifecycle {
-    create_before_destroy = true
-  }
+  subnet_ids = [aws_subnet.private_a.id, aws_subnet.private_b.id]
   
   tags = {
     Name = "playlist-search-tool-db-subnet-group"
@@ -19,11 +15,11 @@ resource "aws_security_group" "rds" {
   vpc_id      = aws_vpc.main.id
 
   ingress {
-    description = "PostgreSQL from anywhere (Public)"
-    from_port   = var.db_port
-    to_port     = var.db_port
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # WARNING: Exposes your database port to the entire internet
+    description     = "PostgreSQL from ECS Tasks only"
+    from_port       = var.db_port
+    to_port         = var.db_port
+    protocol        = "tcp"
+    security_groups = [aws_security_group.ecs_tasks.id]
   }
 
   egress {
@@ -56,7 +52,7 @@ resource "aws_db_instance" "postgres" {
   db_subnet_group_name   = aws_db_subnet_group.main.name
   vpc_security_group_ids = [aws_security_group.rds.id]
 
-  publicly_accessible    = true # consider at some point if we can find a way to run the db migrations without this
+  publicly_accessible    = false
 
   skip_final_snapshot    = true
 
@@ -65,6 +61,39 @@ resource "aws_db_instance" "postgres" {
   }
 }
 
-output "database_host" {
-  value = aws_db_instance.postgres.address
+resource "aws_cloudwatch_log_group" "migrations" {
+  name              = "/ecs/playlist-search-tool-migrations"
+  retention_in_days = 7
+}
+
+# 4. Task for running database migrations
+resource "aws_ecs_task_definition" "migrations" {
+  family                   = "playlist-search-tool-migrations"
+  network_mode             = "awsvpc"
+  requires_compatibilities = ["FARGATE"]
+  cpu                      = "256"
+  memory                   = "512"
+  execution_role_arn       = aws_iam_role.ecs_execution_role.arn
+
+  container_definitions = jsonencode([
+    {
+      name      = "migrations"
+      image = "placeholder:latest" # Required for initial OpenTofu creation, ignored afterwards
+      essential = true
+      environment = [
+        { name  = "Database__ConnectionString",
+          value = "Host=${aws_db_instance.postgres.address};Port=${var.db_port};Database=${var.db_name};Username=${var.db_username};Password=${var.db_password}"
+        }
+      ]
+
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          "awslogs-group"         = "/ecs/playlist-search-tool-migrations"
+          "awslogs-region"        = "eu-west-2"
+          "awslogs-stream-prefix" = "migrations"
+        }
+      }
+    }
+  ])
 }
