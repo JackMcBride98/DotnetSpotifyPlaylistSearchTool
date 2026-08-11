@@ -2,6 +2,7 @@
 
 on:
   workflow_dispatch: # Allows you to trigger this manually from the Actions tab
+  push:
 
 permissions:
   id-token: write
