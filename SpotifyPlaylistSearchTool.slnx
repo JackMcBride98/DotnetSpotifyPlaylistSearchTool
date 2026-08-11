@@ -8,6 +8,7 @@
         <File Path="infrastructure/dns.tf" />
         <File Path="infrastructure/ecr.tf" />
         <File Path="infrastructure/ecs.tf" />
+        <File Path="infrastructure/output.tf" />
         <File Path="infrastructure/rds.tf" />
         <File Path="infrastructure/terraform.tfvars" />
         <File Path="infrastructure/terraform.tfvars.example" />

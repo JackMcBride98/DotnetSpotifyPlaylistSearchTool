@@ -53,6 +53,14 @@ jobs:
           tofu init
           tofu apply -auto-approve
 
+      - name: Get Infrastructure Outputs
+        id: tf-outputs
+        working-directory: ./infrastructure
+        run: |
+          echo "subnet_1=$(tofu output -json private_subnet_ids | jq -r '.[0]')" >> $GITHUB_OUTPUT
+          echo "subnet_2=$(tofu output -json private_subnet_ids | jq -r '.[1]')" >> $GITHUB_OUTPUT
+          echo "ecs_sg=$(tofu output -raw ecs_tasks_security_group_id)" >> $GITHUB_OUTPUT
+
       # 2. BUILD FRONTEND AND PUBLISH BACKEND (Using Cake Task)
       - name: Build and Publish via Cake
         uses: cake-build/cake-action@v3
@@ -88,13 +96,47 @@ jobs:
           docker build -f Dockerfile -t $REGISTRY/$ECR_REPOSITORY_API:$IMAGE_TAG .
           docker push $REGISTRY/$ECR_REPOSITORY_API:$IMAGE_TAG
 
-      # 4. EXECUTE DATABASE MIGRATIONS
-      - name: Run Database Migrations
-        env:
-          DATABASE_CONNECTION_STRING: ${{ secrets.DATABASE_CONNECTION_STRING }}
+      # 4. EXECUTE DATABASE MIGRATIONS SECURELY INSIDE PRIVATE VPC
+      - name: Register & Run Database Migrations Task
         run: |
-          dotnet run --project SpotifyPlaylistSearchTool.Database/SpotifyPlaylistSearchTool.Database.csproj \
-          -- "$DATABASE_CONNECTION_STRING"
+          # 1. Download current migration task definition template
+          aws ecs describe-task-definition --task-definition playlist-search-tool-migrations --query taskDefinition > migration-task-def.json
+
+          # 2. Update the image placeholder with our newly built image tag using the official action
+          # (Or use jq to inject the image URI directly)
+          CONFIGURED_TASK_DEF=$(npx --yes jq --arg IMAGE "${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY_MIGRATE }}:${{ github.sha }}" '.containerDefinitions[0].image = $IMAGE | del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy)' migration-task-def.json)
+          echo "$CONFIGURED_TASK_DEF" > final-migration-task-def.json
+
+          # 3. Register a new revision with the fresh image
+          NEW_TASK_DEF_ARN=$(aws ecs register-task-definition --cli-input-json file://final-migration-task-def.json --query 'taskDefinition.taskDefinitionArn' --output text)
+
+          echo "Running migration task using revision: $NEW_TASK_DEF_ARN"
+
+          # 4. Run the task on Fargate inside the private subnets and wait for it to exit successfully
+          # Note: Adjust your security group IDs and private subnet IDs to match your setup variables or reference them dynamically
+          aws ecs run-task \
+            --cluster ${{ env.ECS_CLUSTER }} \
+            --task-definition $NEW_TASK_DEF_ARN \
+            --launch-type FARGATE \
+            --network-configuration "awsvpcConfiguration={subnets=[${{ steps.get-subnets.outputs.subnet_id_1 }}, ${{ steps.get-subnets.outputs.subnet_id_2 }}],securityGroups=[${{ steps.get-sgs.outputs.ecs_sg }}],assignPublicIp=ENABLED}" \
+            --started-by "github-actions-migration" > run-task-output.json
+
+          # Extract task ID to monitor it
+          TASK_ID=$(jq -r '.tasks[0].taskArn' run-task-output.json)
+          echo "Started migration task: $TASK_ID. Waiting for completion..."
+
+          # 5. Wait for the migration container to finish execution (exits with 0 on success)
+          aws ecs wait tasks-stopped --cluster ${{ env.ECS_CLUSTER }} --tasks $TASK_ID
+
+          # 6. Check exit code to ensure migrations succeeded without errors
+          EXIT_CODE=$(aws ecs describe-tasks --cluster ${{ env.ECS_CLUSTER }} --tasks $TASK_ID --query 'tasks[0].containers[0].exitCode' --output text)
+
+          if [ "$EXIT_CODE" -ne 0 ]; then
+            echo "❌ Database migrations failed with exit code $EXIT_CODE"
+            exit 1
+          else
+            echo "✅ Database migrations completed successfully!"
+          fi
 
       # 5. Download the current task definition from AWS into a file
       - name: Download task definition

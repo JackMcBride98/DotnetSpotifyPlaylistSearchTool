@@ -66,7 +66,7 @@ resource "aws_ecs_task_definition" "api" {
       essential = true
       portMappings = [
         {
-          containerPort = 8080 # Change to match your app's port
+          containerPort = 8080
           hostPort      = 8080
         }
       ]
