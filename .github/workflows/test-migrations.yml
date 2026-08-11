@@ -24,13 +24,19 @@ jobs:
       - name: Setup OpenTofu
         uses: opentofu/setup-opentofu@v1
 
-      - name: OpenTofu Init
-        run: tofu init
+      - name: OpenTofu Apply
         working-directory: ./infrastructure
-
-      - name: OpenTofu Apply (to register outputs)
-        run: tofu apply -auto-approve
-        working-directory: ./infrastructure
+        env:
+          TF_VAR_spotify_client_id: ${{ secrets.SPOTIFY_CLIENT_ID }}
+          TF_VAR_spotify_client_secret: ${{ secrets.SPOTIFY_CLIENT_SECRET }}
+          TF_VAR_spotify_redirect_uri: ${{ secrets.SPOTIFY_REDIRECT_URI }}
+          TF_VAR_db_name: ${{ secrets.DB_NAME }}
+          TF_VAR_db_username: ${{ secrets.DB_USERNAME }}
+          TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
+          TF_VAR_db_port: ${{ secrets.DB_PORT }}
+        run: |
+          tofu init
+          tofu apply -auto-approve
 
       - name: Get OpenTofu Outputs
         id: tf-outputs
