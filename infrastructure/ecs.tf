@@ -63,6 +63,7 @@ resource "aws_ecs_task_definition" "api" {
   container_definitions = jsonencode([
     {
       name      = "backend"
+      image = "placeholder:latest" # Required for initial OpenTofu creation, ignored afterwards
       essential = true
       portMappings = [
         {
