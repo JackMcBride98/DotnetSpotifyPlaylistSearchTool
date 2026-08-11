@@ -97,48 +97,20 @@ jobs:
           docker push $REGISTRY/$ECR_REPOSITORY_API:$IMAGE_TAG
 
       # 4. EXECUTE DATABASE MIGRATIONS SECURELY INSIDE PRIVATE VPC
-      - name: Register & Run Database Migrations Task
-        run: |
-          # 1. Download current migration task definition template
-          aws ecs describe-task-definition --task-definition playlist-search-tool-migrations --query taskDefinition > migration-task-def.json
-
-          # 2. Update the image placeholder with our newly built image tag using the official action
-          # (Or use jq to inject the image URI directly)
-          CONFIGURED_TASK_DEF=$(npx --yes jq --arg IMAGE \
-          "${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY_MIGRATE }}:${{ github.sha }}" \
-          '.containerDefinitions[0].image = $IMAGE | del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy)' migration-task-def.json)
-          echo "$CONFIGURED_TASK_DEF" > final-migration-task-def.json
-
-          # 3. Register a new revision with the fresh image
-          NEW_TASK_DEF_ARN=$(aws ecs register-task-definition --cli-input-json file://final-migration-task-def.json --query 'taskDefinition.taskDefinitionArn' --output text)
-
-          echo "Running migration task using revision: $NEW_TASK_DEF_ARN"
-
-          # 4. Run the task on Fargate inside the private subnets and wait for it to exit successfully
-          # Note: Adjust your security group IDs and private subnet IDs to match your setup variables or reference them dynamically
-          aws ecs run-task \
-            --cluster ${{ env.ECS_CLUSTER }} \
-            --task-definition $NEW_TASK_DEF_ARN \
-            --launch-type FARGATE \
-            --network-configuration "awsvpcConfiguration={subnets=[${{ steps.get-subnets.outputs.subnet_id_1 }}, ${{ steps.get-subnets.outputs.subnet_id_2 }}],securityGroups=[${{ steps.get-sgs.outputs.ecs_sg }}],assignPublicIp=ENABLED}" \
-            --started-by "github-actions-migration" > run-task-output.json
-
-          # Extract task ID to monitor it
-          TASK_ID=$(jq -r '.tasks[0].taskArn' run-task-output.json)
-          echo "Started migration task: $TASK_ID. Waiting for completion..."
-
-          # 5. Wait for the migration container to finish execution (exits with 0 on success)
-          aws ecs wait tasks-stopped --cluster ${{ env.ECS_CLUSTER }} --tasks $TASK_ID
-
-          # 6. Check exit code to ensure migrations succeeded without errors
-          EXIT_CODE=$(aws ecs describe-tasks --cluster ${{ env.ECS_CLUSTER }} --tasks $TASK_ID --query 'tasks[0].containers[0].exitCode' --output text)
-
-          if [ "$EXIT_CODE" -ne 0 ]; then
-            echo "❌ Database migrations failed with exit code $EXIT_CODE"
-            exit 1
-          else
-            echo "✅ Database migrations completed successfully!"
-          fi
+      - name: Run Database Migrations
+        uses: geekcell/github-action-aws-ecs-run-task@v3.0.0
+        with:
+          cluster: ${{ env.ECS_CLUSTER }}
+          task-definition: playlist-search-tool-migrations
+          subnet-ids: |
+            ${{ steps.tf-outputs.outputs.subnet_1 }}
+            ${{ steps.tf-outputs.outputs.subnet_2 }}
+          security-group-ids: ${{ steps.tf-outputs.outputs.ecs_sg }}
+          assign-public-ip: 'DISABLED'
+          tail-logs: true
+          override-container: migrations # Replace with the actual container name inside your migration task definition if different
+          override-container-image: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY_MIGRATE }}:${{ github.sha }}
+          task-wait-until-stopped: true
 
       # 5. Download the current task definition from AWS into a file
       - name: Download task definition

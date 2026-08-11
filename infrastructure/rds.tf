@@ -76,7 +76,7 @@ resource "aws_ecs_task_definition" "migrations" {
 
   container_definitions = jsonencode([
     {
-      name      = "migrator"
+      name      = "migrations"
       image     = "placeholder" 
       essential = true
       environment = [
