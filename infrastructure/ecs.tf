@@ -76,12 +76,21 @@ resource "aws_ecs_task_definition" "api" {
         { name = "Spotify__RedirectUri", value = var.spotify_redirect_uri },
         { name = "Database__ConnectionString", value = "Host=${aws_db_instance.postgres.address};Port=${var.db_port};Database=${var.db_name};Username=${var.db_username};Password=${var.db_password}" }
       ]
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          "awslogs-group"         = "/ecs/playlist-search-tool-api"
+          "awslogs-region"        = "eu-west-2"
+          "awslogs-stream-prefix" = "backend"
+        }
+      }
     }
   ])
+}
 
-  lifecycle {
-    ignore_changes = [container_definitions]
-  }
+resource "aws_cloudwatch_log_group" "api_logs" {
+  name              = "/ecs/playlist-search-tool-api"
+  retention_in_days = 7
 }
 
 # 5. The ECS Service (Maintains your desired container count and hooks into the ALB)
