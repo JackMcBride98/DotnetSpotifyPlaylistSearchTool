@@ -56,8 +56,8 @@ jobs:
         id: tf-outputs
         working-directory: ./infrastructure
         run: |
-          echo "subnet_1=$(tofu output -json private_subnet_ids | jq -r '.[0]')" >> $GITHUB_OUTPUT
-          echo "subnet_2=$(tofu output -json private_subnet_ids | jq -r '.[1]')" >> $GITHUB_OUTPUT
+          echo "subnet_1=$(tofu output -json public_subnet_ids | jq -r '.[0]')" >> $GITHUB_OUTPUT
+          echo "subnet_2=$(tofu output -json public_subnet_ids | jq -r '.[1]')" >> $GITHUB_OUTPUT
           echo "ecs_sg=$(tofu output -raw ecs_tasks_security_group_id)" >> $GITHUB_OUTPUT
 
       # 2. BUILD FRONTEND AND PUBLISH BACKEND (Using Cake Task)
