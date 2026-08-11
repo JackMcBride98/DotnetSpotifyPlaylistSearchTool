@@ -77,6 +77,7 @@ resource "aws_ecs_task_definition" "migrations" {
   container_definitions = jsonencode([
     {
       name      = "migrations"
+      image     = "placeholder:latest" # Required for initial OpenTofu creation, ignored afterwards
       essential = true
       environment = [
         { name = "Database__ConnectionString", value = "Host=${aws_db_instance.postgres.address};Port=${var.db_port};Database=${var.db_name};Username=${var.db_username};Password=${var.db_password}" }
