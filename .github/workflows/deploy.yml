@@ -121,7 +121,7 @@ jobs:
           security-group-ids: ${{ steps.tf-outputs.outputs.ecs_sg }}
           assign-public-ip: 'DISABLED'
           tail-logs: true
-          override-container: migrator
+          override-container: migrations
           override-container-command: dotnet SpotifyPlaylistSearchTool.Database.dll
 
       # 6. Download the current task definition from AWS into a file
