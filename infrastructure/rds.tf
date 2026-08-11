@@ -61,8 +61,9 @@ resource "aws_db_instance" "postgres" {
   }
 }
 
-output "database_host" {
-  value = aws_db_instance.postgres.address
+resource "aws_cloudwatch_log_group" "migrations" {
+  name              = "/ecs/playlist-search-tool-migrations"
+  retention_in_days = 7
 }
 
 # 4. Task for running database migrations
@@ -91,7 +92,6 @@ resource "aws_ecs_task_definition" "migrations" {
           "awslogs-group"         = "/ecs/playlist-search-tool-migrations"
           "awslogs-region"        = "eu-west-2"
           "awslogs-stream-prefix" = "migrations"
-          "awslogs-create-group"  = "true"
         }
       }
     }
