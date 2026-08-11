@@ -2,10 +2,6 @@
 resource "aws_db_subnet_group" "main" {
   name       = "playlist-search-tool-db-subnet-group"
   subnet_ids = [aws_subnet.private_a.id, aws_subnet.private_b.id]
-
-  lifecycle {
-    create_before_destroy = true
-  }
   
   tags = {
     Name = "playlist-search-tool-db-subnet-group"
