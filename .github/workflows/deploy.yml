@@ -119,7 +119,7 @@ jobs:
             ${{ steps.tf-outputs.outputs.subnet_1 }}
             ${{ steps.tf-outputs.outputs.subnet_2 }}
           security-group-ids: ${{ steps.tf-outputs.outputs.ecs_sg }}
-          assign-public-ip: 'DISABLED'
+          assign-public-ip: 'ENABLED'
           tail-logs: true
           override-container: migrations
           override-container-command: dotnet SpotifyPlaylistSearchTool.Database.dll
