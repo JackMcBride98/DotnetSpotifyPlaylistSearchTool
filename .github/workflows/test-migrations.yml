@@ -1,8 +1,14 @@
 ﻿name: Test Migrations
 
 on:
-  workflow_dispatch: # Allows you to trigger this manually from the Actions tab
+  workflow_dispatch:
   push:
+
+env:
+  AWS_REGION: eu-west-2
+  ECR_REPOSITORY_MIGRATE: playlist-search-tool-migrations
+  ECS_CLUSTER: playlist-search-tool-cluster
+  AWS_ROLE_ARN: arn:aws:iam::687979656894:role/playlist-search-tool-github-actions-role
 
 permissions:
   id-token: write
@@ -15,11 +21,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::687979656894:role/playlist-search-tool-github-actions-role
-          aws-region: eu-west-2
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
 
       - name: Setup OpenTofu
         uses: opentofu/setup-opentofu@v1
@@ -46,11 +57,42 @@ jobs:
           echo "ecs_sg=$(tofu output -raw ecs_tasks_security_group_id)" >> $GITHUB_OUTPUT
         working-directory: ./infrastructure
 
+      - name: Publish Migrations via Cake
+        uses: cake-build/cake-action@v3
+        with:
+          project-path: build/Build.csproj
+          target: PublishDatabaseMigrations
+          verbosity: Normal
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and Push Migration Image
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -f Migrations.Dockerfile -t $REGISTRY/$ECR_REPOSITORY_MIGRATE:$IMAGE_TAG .
+          docker push $REGISTRY/$ECR_REPOSITORY_MIGRATE:$IMAGE_TAG
+
+      - name: Download Migration Task Definition
+        run: |
+          aws ecs describe-task-definition --task-definition playlist-search-tool-migrations --query taskDefinition > migration-task-def.json
+
+      - name: Render Migration Task Definition
+        id: render-migration
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: migration-task-def.json
+          container-name: migrations
+          image: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY_MIGRATE }}:${{ github.sha }}
+
       - name: Run Database Migrations
         uses: geekcell/github-action-aws-ecs-run-task@v5.0.1
         with:
-          cluster: playlist-search-tool-cluster
-          task-definition: playlist-search-tool-migrations
+          cluster: ${{ env.ECS_CLUSTER }}
+          task-definition: ${{ steps.render-migration.outputs.task-definition }}
           subnet-ids: |
             ${{ steps.tf-outputs.outputs.public_subnet_1 }}
             ${{ steps.tf-outputs.outputs.public_subnet_2 }}
