@@ -87,6 +87,12 @@ resource "aws_ecs_task_definition" "api" {
       }
     }
   ])
+
+  lifecycle {
+    ignore_changes = [
+      container_definitions
+    ]
+  }
 }
 
 resource "aws_cloudwatch_log_group" "api_logs" {
