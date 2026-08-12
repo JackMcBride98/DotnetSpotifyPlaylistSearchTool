@@ -73,7 +73,7 @@ builder.Services.AddHealthChecks();
 
 var app = builder.Build();
 
-app.MapHealthChecks("/health");
+app.MapHealthChecks("/api/health");
 
 app.UseRouting();
 app.UseDefaultExceptionHandler();
