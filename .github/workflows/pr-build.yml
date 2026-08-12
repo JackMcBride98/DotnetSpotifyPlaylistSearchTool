@@ -200,7 +200,6 @@ jobs:
           filters: |
             infra:
               - 'infrastructure/**'
-              - '.github/workflows/**'
 
   infra-plan:
     name: OpenTofu Plan & Verify
@@ -214,14 +213,6 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
-
-      - name: Filter Infrastructure Changes
-        uses: dorny/paths-filter@v3
-        id: filter
-        with:
-          filters: |
-            infra:
-              - 'infrastructure/**'
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
