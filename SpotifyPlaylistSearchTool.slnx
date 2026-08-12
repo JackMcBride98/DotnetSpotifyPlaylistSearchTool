@@ -15,6 +15,7 @@
         <File Path="infrastructure/variables.tf" />
         <File Path="infrastructure/vpc.tf" />
         <File Path="infrastructure/iam.tf" />
+        <File Path="infrastructure/Infrastructure.md" />
         <File Path="infrastructure/main.tf" />
     </Folder>
     <Folder Name="/Solution Items/" />

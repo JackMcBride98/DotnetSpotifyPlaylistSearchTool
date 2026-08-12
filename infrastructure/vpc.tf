@@ -19,7 +19,6 @@ resource "aws_internet_gateway" "gw" {
 }
 
 # 3. Public Subnets (For internet-facing components like your Load Balancer)
-# --- AZ A ---
 resource "aws_subnet" "public_a" {
   vpc_id                  = aws_vpc.main.id
   cidr_block              = "10.0.1.0/24"
@@ -31,7 +30,6 @@ resource "aws_subnet" "public_a" {
   }
 }
 
-# --- AZ B (NEW) ---
 resource "aws_subnet" "public_b" {
   vpc_id                  = aws_vpc.main.id
   cidr_block              = "10.0.3.0/24"
@@ -43,8 +41,7 @@ resource "aws_subnet" "public_b" {
   }
 }
 
-# 4. Private Subnets (For secure components like your .NET app and Database)
-# --- AZ A ---
+# 4. Private Subnets
 resource "aws_subnet" "private_a" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = "10.0.2.0/24"
@@ -55,7 +52,6 @@ resource "aws_subnet" "private_a" {
   }
 }
 
-# --- AZ B (NEW) ---
 resource "aws_subnet" "private_b" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = "10.0.4.0/24"

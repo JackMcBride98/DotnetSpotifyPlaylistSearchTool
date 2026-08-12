@@ -90,7 +90,7 @@ resource "aws_ecs_task_definition" "api" {
 
   lifecycle {
     ignore_changes = [
-      container_definitions
+      container_definitions # This is done as we manually update the container definition via CI/CD later on
     ]
   }
 }
@@ -100,7 +100,7 @@ resource "aws_cloudwatch_log_group" "api_logs" {
   retention_in_days = 7
 }
 
-# 5. The ECS Service (Maintains your desired container count and hooks into the ALB)
+# 5. The ECS Service
 resource "aws_ecs_service" "api" {
   name            = "playlist-search-tool-service"
   cluster         = aws_ecs_cluster.main.id
@@ -127,4 +127,10 @@ resource "aws_ecs_service" "api" {
   }
 
   depends_on = [aws_lb_listener.http]
+
+  lifecycle {
+    ignore_changes = [
+      task_definition
+    ]
+  }
 }
