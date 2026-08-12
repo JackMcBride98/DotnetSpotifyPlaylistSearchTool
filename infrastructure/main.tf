@@ -17,5 +17,4 @@
 
 provider "aws" {
   region = "eu-west-2"
-  profile = "playlist-search-tool-admin"
 }
