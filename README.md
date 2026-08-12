@@ -78,7 +78,5 @@ https://687979656894.signin.aws.amazon.com/console - console sign in link for sp
 who you want to be signed in with when using tofu locally.
 
 # TODO
-- Test an app and database migration change
-- PWA
 - Document what I've done (infrastructure.md) then post into the world for feedback!
 - (later/stretch) Error Handling could be much better (think I found a limitation of the client-gen library). We need to surface error messages and status codes from the backend to frontend in  a typesafe way.

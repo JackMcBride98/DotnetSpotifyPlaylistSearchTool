@@ -243,7 +243,8 @@
           "id",
           "displayName",
           "profileImageUrl",
-          "totalPlaylists"
+          "totalPlaylists",
+          "favouriteArtist"
         ],
         "type": "object",
         "properties": {
@@ -262,6 +263,9 @@
           "totalPlaylists": {
             "type": "integer",
             "format": "int32"
+          },
+          "favouriteArtist": {
+            "type": "string"
           }
         }
       },

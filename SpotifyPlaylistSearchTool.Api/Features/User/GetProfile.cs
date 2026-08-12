@@ -10,7 +10,8 @@ public class GetProfile
         string Id,
         string DisplayName,
         string? ProfileImageUrl,
-        int TotalPlaylists
+        int TotalPlaylists,
+        string FavouriteArtist
     );
 
     public record SyncStatusResponse(
@@ -48,6 +49,7 @@ public class GetProfile
                     SyncErrorMessage = u.SyncState.ErrorMessage,
                     SyncCompletedAt = u.SyncState.CompletedAt,
                     SyncTotalPlaylists = u.SyncState.TotalPlaylists,
+                    u.FavouriteArtist
                 })
                 .SingleOrDefaultAsync(ct);
 
@@ -61,7 +63,8 @@ public class GetProfile
                     spotifyUserProfile.Id,
                     spotifyUserProfile.DisplayName,
                     spotifyUserProfile.Images.FirstOrDefault()?.Url,
-                    profileData.PlaylistCount
+                    profileData.PlaylistCount,
+                    profileData.FavouriteArtist
                 ),
                 new SyncStatusResponse(
                     profileData.SyncStatus,
