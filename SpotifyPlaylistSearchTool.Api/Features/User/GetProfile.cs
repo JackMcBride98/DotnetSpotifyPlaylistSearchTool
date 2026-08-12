@@ -49,7 +49,7 @@ public class GetProfile
                     SyncErrorMessage = u.SyncState.ErrorMessage,
                     SyncCompletedAt = u.SyncState.CompletedAt,
                     SyncTotalPlaylists = u.SyncState.TotalPlaylists,
-                    u.FavouriteArtist
+                    u.FavouriteArtist,
                 })
                 .SingleOrDefaultAsync(ct);
 

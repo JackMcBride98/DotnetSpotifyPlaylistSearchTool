@@ -18,8 +18,9 @@ public class User(string userId, string username, string accessToken, string ref
     public string? RefreshToken { get; set; } = refreshToken;
 
     public Instant? LastActiveAt { get; set; }
-    
-    public string FavouriteArtist {get; set;} = "Sam Gellaitry";
+
+    [MaxLength(5000)]
+    public string FavouriteArtist { get; set; } = "Sam Gellaitry";
 
     // Owned Entity
     public UserSyncState SyncState { get; set; } = new UserSyncState();
