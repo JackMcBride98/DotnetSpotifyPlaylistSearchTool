@@ -8,7 +8,7 @@ resource "aws_db_subnet_group" "main" {
   }
 }
 
-# 2. Security Group for PostgreSQL (Allows public connection from the internet)
+# 2. Security Group for PostgreSQL
 resource "aws_security_group" "rds" {
   name        = "playlist-search-tool-rds-sg"
   description = "Allow inbound traffic to PostgreSQL"
