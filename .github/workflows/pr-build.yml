@@ -222,7 +222,6 @@ jobs:
           filters: |
             infra:
               - 'infrastructure/**'
-              - '.github/workflows/**' # Optional: re-run if workflows change
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
