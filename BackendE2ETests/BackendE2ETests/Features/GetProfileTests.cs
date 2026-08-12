@@ -53,6 +53,7 @@ public class GetProfileEndpointTests(App app) : TestBase(app)
         result.User.DisplayName.ShouldBe(DefaultDisplayName);
         result.User.ProfileImageUrl.ShouldBe(profileImageUrl);
         result.User.TotalPlaylists.ShouldBe(2);
+        result.User.FavouriteArtist.ShouldBe("Sam Gellaitry");
 
         result.SyncStatus.Status.ShouldBe(SyncStatus.Completed);
         result.SyncStatus.TotalPlaylists.ShouldBe(12);

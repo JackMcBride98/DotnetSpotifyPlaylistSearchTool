@@ -93,9 +93,9 @@ app.UseFastEndpoints(c =>
     };
     c.Errors.UseProblemDetails(x =>
     {
-        x.AllowDuplicateErrors = true; //allows duplicate errors for the same error name
-        x.IndicateErrorCode = true; //serializes the fluentvalidation error code
-        x.IndicateErrorSeverity = true; //serializes the fluentvalidation error severity
+        x.AllowDuplicateErrors = true;
+        x.IndicateErrorCode = true;
+        x.IndicateErrorSeverity = true;
         x.TypeValue = "https://www.rfc-editor.org/rfc/rfc7231#section-6.5.1";
         x.TitleValue = "One or more validation errors occurred.";
         x.TitleTransformer = pd =>

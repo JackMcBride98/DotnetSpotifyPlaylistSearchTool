@@ -19,6 +19,9 @@ public class User(string userId, string username, string accessToken, string ref
 
     public Instant? LastActiveAt { get; set; }
 
+    [MaxLength(5000)]
+    public string FavouriteArtist { get; set; } = "Sam Gellaitry";
+
     // Owned Entity
     public UserSyncState SyncState { get; set; } = new UserSyncState();
 

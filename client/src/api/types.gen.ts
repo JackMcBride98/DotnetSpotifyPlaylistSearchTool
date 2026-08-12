@@ -21,6 +21,7 @@ export type GetProfileUserProfileResponse = {
   displayName: string;
   profileImageUrl: null | string;
   totalPlaylists: number;
+  favouriteArtist: string;
 };
 
 export type GetRandomPlaylistResponse = {
