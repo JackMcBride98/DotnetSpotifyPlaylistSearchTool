@@ -69,7 +69,11 @@ builder.Services.AddSingleton<ISpotifyClientFactory, SpotifyClientFactory>();
 builder.Services.AddTickerQ();
 builder.Services.MapTicker<InitialSyncJob, InitialSyncPayload>();
 
+builder.Services.AddHealthChecks();
+
 var app = builder.Build();
+
+app.MapHealthChecks("/health");
 
 app.UseRouting();
 app.UseDefaultExceptionHandler();

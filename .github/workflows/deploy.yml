@@ -112,7 +112,6 @@ jobs:
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
           task-definition: ${{ steps.render-migration.outputs.task-definition }}
-          ignore-service: true
 
       # 5. EXECUTE DATABASE MIGRATIONS SECURELY INSIDE PRIVATE VPC
       - name: Run Database Migrations
