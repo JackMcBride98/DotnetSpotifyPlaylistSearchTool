@@ -27,11 +27,6 @@ export type GetRandomPlaylistResponse = {
   randomPlaylist: PlaylistResponse;
 };
 
-export type HealthHealthResponse = {
-  status: string;
-  timestamp: string;
-};
-
 export type ICollectionOfPlaylistResponse = Array<PlaylistResponse>;
 
 export type ICollectionOfTrackResponse = Array<TrackResponse>;
@@ -134,22 +129,6 @@ export type CallbackResponses = {
 };
 
 export type CallbackResponse = CallbackResponses[keyof CallbackResponses];
-
-export type HealthData = {
-  body?: never;
-  path?: never;
-  query?: never;
-  url: "/api/health";
-};
-
-export type HealthResponses = {
-  /**
-   * Success
-   */
-  200: HealthHealthResponse;
-};
-
-export type HealthResponse = HealthResponses[keyof HealthResponses];
 
 export type LogInData = {
   body?: never;

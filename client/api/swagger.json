@@ -38,26 +38,6 @@
         }
       }
     },
-    "/api/health": {
-      "get": {
-        "tags": [
-          "Health"
-        ],
-        "operationId": "Health",
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Health_HealthResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/login": {
       "post": {
         "tags": [
@@ -293,22 +273,6 @@
         "properties": {
           "randomPlaylist": {
             "$ref": "#/components/schemas/PlaylistResponse"
-          }
-        }
-      },
-      "Health_HealthResponse": {
-        "required": [
-          "status",
-          "timestamp"
-        ],
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string"
-          },
-          "timestamp": {
-            "type": "string",
-            "format": "date-time"
           }
         }
       },
