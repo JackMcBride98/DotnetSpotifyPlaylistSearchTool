@@ -1,0 +1,79 @@
+﻿name: Deploy to coolify
+
+on:
+  push:
+    branches: ["main"]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_BASE: "jackmcbride98/dotnetspotifyplaylistsearchtool"
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Publish API and Frontend
+        uses: cake-build/cake-action@v3
+        with:
+          project-path: build/Build.csproj
+          target: PublishBackend
+          verbosity: Normal
+
+      - name: Publish Database Migrations
+        uses: cake-build/cake-action@v3
+        with:
+          project-path: build/Build.csproj
+          target: PublishDatabaseMigrations
+          verbosity: Normal
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Migration image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile.migration
+          platforms: linux/amd64
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_BASE }}-migrations:latest
+
+      - name: Build and push API image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_BASE }}-api:latest
+
+      - name: Run Migrations on Server via Coolify
+        run: |
+          curl --request GET '${{ secrets.COOLIFY_WEBHOOK_MIGRATION }}' \
+          --header 'Authorization: Bearer ${{ secrets.COOLIFY_TOKEN }}'
+
+      - name: Deploy API Service via Coolify
+        run: |
+          curl --request GET '${{ secrets.COOLIFY_WEBHOOK_API }}' \
+          --header 'Authorization: Bearer ${{ secrets.COOLIFY_TOKEN }}'
