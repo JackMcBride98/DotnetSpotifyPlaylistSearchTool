@@ -74,7 +74,7 @@ When running tofu commands locally make sure to set the AWS_PROFILE environment 
 $env:AWS_PROFILE = "spotify-playlist-search-tool-admin"
 tofu plan
 
-https://687979656894.signin.aws.amazon.com/console - console sign in link for spotify-playlist-search-tool-admin. This is
+https://687979656894.signin.aws.amazon.com/console - console sign in link for playlist-search-tool-admin. This is
 who you want to be signed in with when using tofu locally.
 
 # TODO
