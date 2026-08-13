@@ -74,9 +74,8 @@ When running tofu commands locally make sure to set the AWS_PROFILE environment 
 $env:AWS_PROFILE = "spotify-playlist-search-tool-admin"
 tofu plan
 
-https://687979656894.signin.aws.amazon.com/console - console sign in link for spotify-playlist-search-tool-admin. This is
+https://687979656894.signin.aws.amazon.com/console - console sign in link for playlist-search-tool-admin. This is
 who you want to be signed in with when using tofu locally.
 
 # TODO
-- Document what I've done (infrastructure.md) then post into the world for feedback!
 - (later/stretch) Error Handling could be much better (think I found a limitation of the client-gen library). We need to surface error messages and status codes from the backend to frontend in  a typesafe way.
