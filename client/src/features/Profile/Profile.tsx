@@ -128,7 +128,6 @@ export const Profile = () => {
       />
 
       <LogoutButton />
-      <p>Favourite Artist: {user.favouriteArtist}</p>
       <motion.button
         onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
         whileHover={{ scale: 1.1 }}
