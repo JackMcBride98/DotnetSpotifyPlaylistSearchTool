@@ -69,10 +69,10 @@ jobs:
 
       - name: Run Migrations on Server via Coolify
         run: |
-          curl --request GET '${{ secrets.COOLIFY_WEBHOOK_MIGRATION }}' \
+          curl --request POST '${{ secrets.COOLIFY_WEBHOOK_MIGRATION }}' \
           --header 'Authorization: Bearer ${{ secrets.COOLIFY_TOKEN }}'
 
       - name: Deploy API Service via Coolify
         run: |
-          curl --request GET '${{ secrets.COOLIFY_WEBHOOK_API }}' \
+          curl --request POST '${{ secrets.COOLIFY_WEBHOOK_API }}' \
           --header 'Authorization: Bearer ${{ secrets.COOLIFY_TOKEN }}'
