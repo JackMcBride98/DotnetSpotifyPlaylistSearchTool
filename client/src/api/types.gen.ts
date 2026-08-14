@@ -117,6 +117,10 @@ export type CallbackErrors = {
    * Bad Request
    */
   400: ProblemDetails;
+  /**
+   * Server Error
+   */
+  500: ProblemDetails;
 };
 
 export type CallbackError = CallbackErrors[keyof CallbackErrors];
@@ -137,6 +141,15 @@ export type LogInData = {
   url: "/api/login";
 };
 
+export type LogInErrors = {
+  /**
+   * Server Error
+   */
+  500: ProblemDetails;
+};
+
+export type LogInError = LogInErrors[keyof LogInErrors];
+
 export type LogInResponses = {
   /**
    * Success
@@ -153,6 +166,15 @@ export type LogoutData = {
   url: "/api/logout";
 };
 
+export type LogoutErrors = {
+  /**
+   * Server Error
+   */
+  500: ProblemDetails;
+};
+
+export type LogoutError = LogoutErrors[keyof LogoutErrors];
+
 export type LogoutResponses = {
   /**
    * Success
@@ -168,6 +190,19 @@ export type GetProfileData = {
   query?: never;
   url: "/api/profile";
 };
+
+export type GetProfileErrors = {
+  /**
+   * Not Found
+   */
+  404: ProblemDetails;
+  /**
+   * Server Error
+   */
+  500: ProblemDetails;
+};
+
+export type GetProfileError = GetProfileErrors[keyof GetProfileErrors];
 
 export type GetProfileResponses = {
   /**
@@ -187,6 +222,16 @@ export type GetRandomPlaylistData = {
   };
   url: "/api/random-playlist";
 };
+
+export type GetRandomPlaylistErrors = {
+  /**
+   * Server Error
+   */
+  500: ProblemDetails;
+};
+
+export type GetRandomPlaylistError =
+  GetRandomPlaylistErrors[keyof GetRandomPlaylistErrors];
 
 export type GetRandomPlaylistResponses = {
   /**
@@ -208,6 +253,16 @@ export type SearchPlaylistsData = {
   url: "/api/search-playlists";
 };
 
+export type SearchPlaylistsErrors = {
+  /**
+   * Server Error
+   */
+  500: ProblemDetails;
+};
+
+export type SearchPlaylistsError =
+  SearchPlaylistsErrors[keyof SearchPlaylistsErrors];
+
 export type SearchPlaylistsResponses = {
   /**
    * Success
@@ -224,6 +279,15 @@ export type SyncPlaylistsData = {
   query?: never;
   url: "/api/sync-playlists";
 };
+
+export type SyncPlaylistsErrors = {
+  /**
+   * Server Error
+   */
+  500: ProblemDetails;
+};
+
+export type SyncPlaylistsError = SyncPlaylistsErrors[keyof SyncPlaylistsErrors];
 
 export type SyncPlaylistsResponses = {
   /**

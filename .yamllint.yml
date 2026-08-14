@@ -5,7 +5,7 @@ rules:
   line-length:
     max: 240
   new-lines:
-    type: platform
+    type: unix
 ignore: |-
   **/node_modules/
   node_modules/
