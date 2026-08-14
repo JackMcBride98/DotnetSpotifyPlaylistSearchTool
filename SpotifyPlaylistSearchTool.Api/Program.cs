@@ -91,6 +91,12 @@ app.UseFastEndpoints(c =>
 
         return name.EndsWith("Endpoint") ? name[..^8] : name;
     };
+
+    c.Endpoints.Configurator = ep =>
+    {
+        ep.Description(d => d.ProducesProblemDetails(500));
+    };
+
     c.Errors.UseProblemDetails(x =>
     {
         x.AllowDuplicateErrors = true;

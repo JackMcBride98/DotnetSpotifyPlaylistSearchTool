@@ -1,7 +1,5 @@
 ﻿using FluentValidation;
-using Microsoft.EntityFrameworkCore;
 using SpotifyAPI.Web;
-using SpotifyPlaylistSearchTool.Api.Database;
 using SpotifyPlaylistSearchTool.Api.Services;
 using Void = FastEndpoints.Void;
 
@@ -42,8 +40,7 @@ public static class Callback
             catch (APIException ex)
             {
                 AddError(r => r.Code, $"Spotify authentication failed: {ex.Message}");
-                await Send.ErrorsAsync(StatusCodes.Status400BadRequest, ct);
-                return new Void();
+                return await Send.ErrorsAsync(StatusCodes.Status400BadRequest, ct);
             }
         }
     }

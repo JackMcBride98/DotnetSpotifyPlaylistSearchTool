@@ -78,4 +78,3 @@ https://687979656894.signin.aws.amazon.com/console - console sign in link for pl
 who you want to be signed in with when using tofu locally.
 
 # TODO
-- (later/stretch) Error Handling could be much better (think I found a limitation of the client-gen library). We need to surface error messages and status codes from the backend to frontend in  a typesafe way.

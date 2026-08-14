@@ -29,6 +29,9 @@ public class GetProfile
         {
             Get("/profile");
             AllowAnonymous();
+            Description(b =>
+                b.ProducesProblemFE<ProblemDetails>(404).ProducesProblemFE<ProblemDetails>(500)
+            );
         }
 
         public override async Task<Response> ExecuteAsync(CancellationToken ct)

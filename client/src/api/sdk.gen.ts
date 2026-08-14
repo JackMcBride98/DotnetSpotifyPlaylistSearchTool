@@ -12,16 +12,22 @@ import type {
   CallbackErrors,
   CallbackResponses,
   GetProfileData,
+  GetProfileErrors,
   GetProfileResponses,
   GetRandomPlaylistData,
+  GetRandomPlaylistErrors,
   GetRandomPlaylistResponses,
   LogInData,
+  LogInErrors,
   LogInResponses,
   LogoutData,
+  LogoutErrors,
   LogoutResponses,
   SearchPlaylistsData,
+  SearchPlaylistsErrors,
   SearchPlaylistsResponses,
   SyncPlaylistsData,
+  SyncPlaylistsErrors,
   SyncPlaylistsResponses,
 } from "./types.gen";
 
@@ -54,51 +60,59 @@ export const callback = <ThrowOnError extends boolean = false>(
 
 export const logIn = <ThrowOnError extends boolean = false>(
   options?: Options<LogInData, ThrowOnError>,
-): RequestResult<LogInResponses, unknown, ThrowOnError> =>
-  (options?.client ?? client).post<LogInResponses, unknown, ThrowOnError>({
+): RequestResult<LogInResponses, LogInErrors, ThrowOnError> =>
+  (options?.client ?? client).post<LogInResponses, LogInErrors, ThrowOnError>({
     url: "/api/login",
     ...options,
   });
 
 export const logout = <ThrowOnError extends boolean = false>(
   options?: Options<LogoutData, ThrowOnError>,
-): RequestResult<LogoutResponses, unknown, ThrowOnError> =>
-  (options?.client ?? client).post<LogoutResponses, unknown, ThrowOnError>({
-    url: "/api/logout",
-    ...options,
-  });
+): RequestResult<LogoutResponses, LogoutErrors, ThrowOnError> =>
+  (options?.client ?? client).post<LogoutResponses, LogoutErrors, ThrowOnError>(
+    { url: "/api/logout", ...options },
+  );
 
 export const getProfile = <ThrowOnError extends boolean = false>(
   options?: Options<GetProfileData, ThrowOnError>,
-): RequestResult<GetProfileResponses, unknown, ThrowOnError> =>
-  (options?.client ?? client).get<GetProfileResponses, unknown, ThrowOnError>({
-    url: "/api/profile",
-    ...options,
-  });
+): RequestResult<GetProfileResponses, GetProfileErrors, ThrowOnError> =>
+  (options?.client ?? client).get<
+    GetProfileResponses,
+    GetProfileErrors,
+    ThrowOnError
+  >({ url: "/api/profile", ...options });
 
 export const getRandomPlaylist = <ThrowOnError extends boolean = false>(
   options: Options<GetRandomPlaylistData, ThrowOnError>,
-): RequestResult<GetRandomPlaylistResponses, unknown, ThrowOnError> =>
+): RequestResult<
+  GetRandomPlaylistResponses,
+  GetRandomPlaylistErrors,
+  ThrowOnError
+> =>
   (options.client ?? client).get<
     GetRandomPlaylistResponses,
-    unknown,
+    GetRandomPlaylistErrors,
     ThrowOnError
   >({ url: "/api/random-playlist", ...options });
 
 export const searchPlaylists = <ThrowOnError extends boolean = false>(
   options: Options<SearchPlaylistsData, ThrowOnError>,
-): RequestResult<SearchPlaylistsResponses, unknown, ThrowOnError> =>
+): RequestResult<
+  SearchPlaylistsResponses,
+  SearchPlaylistsErrors,
+  ThrowOnError
+> =>
   (options.client ?? client).get<
     SearchPlaylistsResponses,
-    unknown,
+    SearchPlaylistsErrors,
     ThrowOnError
   >({ url: "/api/search-playlists", ...options });
 
 export const syncPlaylists = <ThrowOnError extends boolean = false>(
   options?: Options<SyncPlaylistsData, ThrowOnError>,
-): RequestResult<SyncPlaylistsResponses, unknown, ThrowOnError> =>
+): RequestResult<SyncPlaylistsResponses, SyncPlaylistsErrors, ThrowOnError> =>
   (options?.client ?? client).post<
     SyncPlaylistsResponses,
-    unknown,
+    SyncPlaylistsErrors,
     ThrowOnError
   >({ url: "/api/sync-playlists", ...options });
