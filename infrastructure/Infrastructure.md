@@ -31,7 +31,7 @@ We use ECR to host our docker images of the migrations and API project. ECS host
 Tasks reference docker images in ECR. 
 
 We create a role for the Github Actions, with Administrator access (bad habit would be better to tie down to individual roles required)
-We setup OIDC connect for this and put our created access token for this in the actions secrets in GitHub.
+We setup OIDC connect for this.
 
 
 # Deployment & CI/CD Pipeline
@@ -40,3 +40,7 @@ We then use tofu to detect infra changes and apply any that need applying. Once 
 for the migrations and api project. And then upload these to ECR as docker images. Then we update the task defintions in ECS 
 to point at the latest uploaded docker images, these are tagged by commit sha, we then run these tasks, first the database migrations
 as a one off task and then the deploy of the API task to the API ECS service, which handles zero downtime deployment.
+
+# Improvements
+Instead of putting the ECS service on the public subnets just so it could get access to ECR, we could have setup VPC interface endpoints
+for ECR API, ECR DKR and CLoudwatch logs
