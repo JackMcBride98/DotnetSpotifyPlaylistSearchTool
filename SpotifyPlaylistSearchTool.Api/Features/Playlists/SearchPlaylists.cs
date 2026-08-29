@@ -58,7 +58,8 @@ public static class SearchPlaylists
                     p.Description,
                     p.OwnerName,
                     new ImageResponse(p.Image!.Url),
-                    p.Tracks!.Select(t => new TrackResponse(
+                    p.Tracks!.OrderBy(t => t.Index)
+                        .Select(t => new TrackResponse(
                             t.Name,
                             t.ArtistName,
                             t.Name.Contains(request.SearchTerm, StringComparison.OrdinalIgnoreCase)

@@ -405,4 +405,72 @@ public class SearchPlaylistsTests(App app) : TestBase(app)
             .ShouldHaveSingleItem();
         nameMatchTrack.Match.ShouldBeTrue();
     }
+
+    [Fact]
+    public async Task Search_Returns_Playlist_Tracks_In_Original_Index_Order()
+    {
+        // Arrange
+        ConfigureMockUser(TestUserId, TestUserName);
+
+        var user = new UserBuilder { UserId = TestUserId, Username = TestUserName }
+            .WithPlaylists([
+                new PlaylistBuilder
+                {
+                    PlaylistId = "ordered-playlist",
+                    Image = new Image("https://example.com/img1.jpg", 0, 0),
+                }.WithTracks([
+                    new TrackBuilder
+                    {
+                        Name = "Second Track - Target",
+                        ArtistName = "Artist B",
+                        Index = 1,
+                    }, // Index 1 (Match)
+                    new TrackBuilder
+                    {
+                        Name = "First Track",
+                        ArtistName = "Artist A",
+                        Index = 0,
+                    }, // Index 0 (No match)
+                    new TrackBuilder
+                    {
+                        Name = "Fourth Track - Target",
+                        ArtistName = "Artist D",
+                        Index = 3,
+                    }, // Index 3 (Match)
+                    new TrackBuilder
+                    {
+                        Name = "Third Track",
+                        ArtistName = "Artist C",
+                        Index = 2,
+                    }, // Index 2 (No match)
+                ]),
+            ])
+            .Build();
+        Db.Users.Add(user);
+        await Db.SaveChangesAsync(TestContext.Current.CancellationToken);
+
+        Db.ChangeTracker.Clear();
+
+        var request = new SearchPlaylists.Request("Target", ShowOnlyOwnPlaylists: false);
+
+        // Act
+        var (response, result) = await App.Client.GETAsync<
+            SearchPlaylists.Endpoint,
+            SearchPlaylists.Request,
+            SearchPlaylists.Response
+        >(request);
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+
+        var playlist = result.MatchingPlaylists.ShouldHaveSingleItem();
+        var trackNames = playlist.Tracks.Select(t => t.Name).ToList();
+
+        trackNames.ShouldBe([
+            "First Track",
+            "Second Track - Target",
+            "Third Track",
+            "Fourth Track - Target",
+        ]);
+    }
 }
